@@ -1,0 +1,638 @@
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight } from "lucide-react";
+import InfinityLoader from "./InfinityLoader";
+import CongratulationsPage from "./CongoPage";
+
+const questions = [
+  { id: 1, text: "What's your Full Name?", type: "text", keyType: "alphabet" },
+  { id: 2, text: "What's your Running Age?", type: "text", keyType: "numeric" },
+  { id: 3, text: "What's your zipcode?", type: "text", keyType: "numeric" },
+  {
+    id: 4,
+    text: "What is your email address?",
+    type: "text",
+    keyType: "alphabet",
+  },
+  {
+    id: 5,
+    text: "Are you on Medicare?",
+    type: "choice",
+    options: ["Yes", "No"],
+  },
+  {
+    id: 6,
+    text: "Do you have any of the following health conditions?",
+    type: "choice",
+    options: ["Alzheimers", "Diabetes", "Hypertension", "Arthritis", "No"],
+  },
+  {
+    id: 7,
+    text: "Do you own your home or rent?",
+    type: "choice",
+    options: ["I Own", "I Rent"],
+  },
+  {
+    id: 8,
+    text: "Do you drive atleast once a week?",
+    type: "choice",
+    options: ["Yes", "No"],
+  },
+  {
+    id: 9,
+    text: "Do you have any DUIs in the last 6 months?",
+    type: "choice",
+    options: ["Yes", "No"],
+  },
+  {
+    id: 10,
+    text: "Have you faced any motor vehicle accidents in the last 2 years?",
+    type: "choice",
+    options: ["Yes", "No"],
+  },
+  {
+    id: 11,
+    text: "Do you have any children between the age of 18-64?",
+    type: "choice",
+    options: ["Yes", "No"],
+  },
+  {
+    id: 12,
+    text: "Do you have a credit card debt of 10,000 or more?",
+    type: "choice",
+    options: ["Yes", "No"],
+  },
+  {
+    id: 13,
+    text: "Do you exercise at least once a week?",
+    type: "choice",
+    options: ["Yes", "No"],
+  },
+];
+
+export default function Home() {
+  const [showInitialMessage, setShowInitialMessage] = useState(true);
+  const [startChat, setStartChat] = useState(false);
+  const [activatingAiLoder, setActivatingAiLoder] = useState(false);
+  const [chat, setChat] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [step, setStep] = useState(0);
+  const [input, setInput] = useState("");
+  const [typing, setTyping] = useState(false);
+  const [finalmessage, setFinalMessage] = useState(false);
+  const chatBoxRef = useRef(null);
+
+  const [isMedicare, setIsMedicare] = useState(true);
+  const [isCreditDebt, setIsCreditDebt] = useState(true);
+  const [isDiscountedInsurence, setIsDiscountedInsurance] = useState(true);
+  const [isComponsation, setIsComponsation] = useState(true);
+  const [isACA, setIsACA] = useState(true);
+  const [name, setName] = useState("");
+
+  // useEffect(() => {
+  //   const initialMessages = [
+  //     {
+  //       id: 1,
+  //       sender: "bot",
+  //       text: "Congratulations, you qualify for a Food Allowance Card worth thousands of dollars AND",
+  //     },
+  //     {
+  //       id: 2,
+  //       sender: "bot",
+  //       text: "you very well qualify for 6 other benefits worth $10,000+",
+  //     },
+  //     {
+  //       id: 3,
+  //       sender: "bot",
+  //       text: "Simply click below & message us on Whatsapp, our Al agent will help you claim all the benefits mentioned in a few button clicks.",
+  //     },
+  //   ];
+
+  //   setTyping(true);
+  //   let delay = 0;
+  //   initialMessages.forEach((msg, index) => {
+  //     setTimeout(() => {
+  //       setChat((prev) => [...prev, msg]);
+  //       if (index === initialMessages.length - 1) {
+  //         setTyping(false);
+  //         // Delay the first question
+  //         setTimeout(() => {
+  //           setTyping(true);
+  //           setChat((prev) => [
+  //             ...prev,
+  //             {
+  //               id: 5,
+  //               sender: "bot",
+  //               text: questions[0].text,
+  //               type: questions[0].type,
+  //               options: questions[0].options,
+  //             },
+  //           ]);
+  //           setTyping(false);
+  //         }, 1000);
+  //       }
+  //     }, delay);
+  //     delay += 800;
+  //   });
+  // }, []);
+
+  useEffect(() => {
+    if (chatBoxRef.current) {
+      setTimeout(() => {
+        chatBoxRef.current.scrollTo({
+          top: chatBoxRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }, 100); // small delay ensures render is done
+    }
+  }, [chat, typing]);
+
+  const simulateBotTyping = (question) => {
+    setTyping(true);
+    setTimeout(() => {
+      setChat((prev) => [
+        ...prev,
+        {
+          id: question.id,
+          sender: "bot",
+          text: question.text,
+          type: question.type,
+          options: question.options,
+        },
+      ]);
+      setTyping(false);
+    }, 1000);
+  };
+
+  const handleSend = (response) => {
+    const currentQuestion = questions[step];
+
+    if(currentQuestion.id === 3 && !validatePincode(response)){
+      alert("Please enter a valid pincode");
+      return
+    }
+
+    if(currentQuestion.id === 4 && !validateEmail(response)){
+      alert("Please enter a valid email");
+      return
+    }
+    // Apply special logic like in handleNext
+    switch (currentQuestion.id) {
+      case 1:
+        setName(response);
+        break;
+      case 5:
+        setIsMedicare(response === "Yes");
+        break;
+      case 7:
+        setIsDiscountedInsurance(response === "I Own");
+        break;
+      case 8:
+        setIsComponsation(response === "Yes");
+        break;
+      case 9:
+        setIsACA(response === "Yes");
+        break;
+      case 12:
+        setIsCreditDebt(response === "Yes");
+        break;
+      default:
+        break;
+    }
+
+    // Save answer
+    const updatedAnswers = {
+      ...answers,
+      [currentQuestion.text]: response,
+    };
+    setAnswers(updatedAnswers);
+
+    // Add user message to chat
+    const updatedChat = [
+      ...chat,
+      { id: chat.length + 1, sender: "user", text: response },
+    ];
+
+    const nextStep = step + 1;
+
+    if (nextStep < questions.length) {
+      setStep(nextStep);
+      setChat(updatedChat);
+      simulateBotTyping(questions[nextStep]);
+    } else {
+      setChat(updatedChat);
+      setFinalMessage(true);
+      handleFinalAnswers(updatedAnswers); // Call final submission
+    }
+
+    setInput("");
+  };
+
+  const handleChoiceClick = (choice) => {
+    if (
+      choice === "Lets Start" &&
+      step === 0 &&
+      chat.some((m) => m.text.includes("Simply click below"))
+    ) {
+      setChat([]);
+      setTimeout(() => {
+        simulateBotTyping(questions[0]);
+      }, 100);
+      return;
+    }
+
+    handleSend(choice); // Otherwise, handle as usual
+  };
+
+  const renderUserInput = () => {
+    if (typing || step >= questions.length) return null;
+
+    const current = questions[step];
+    if (current.type === "text") {
+      return (
+        <div className="mt-3 w-full flex flex-col items-end">
+          <div className="flex gap-2 mt-1">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
+              className="flex-grow border rounded px-3 py-2 border-black outline-black"
+              placeholder="Type your answer..."
+            />
+            <button
+              onClick={() => handleSend(input)}
+              className="bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-[#005e54]"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const handleFinalAnswers = async (allAnswers) => {
+    // Optional: transform the keys to match your backend schema
+    const payload = {
+      fullName: allAnswers["What's your Full Name?"],
+      age: allAnswers["What's your Running Age?"],
+      zipcode: allAnswers["What's your zipcode?"],
+      email: allAnswers["What is your email address?"],
+      medicare: allAnswers["Are you on Medicare?"],
+      healthConditions:
+        allAnswers["Do you have any of the following health conditions?"],
+      housingStatus: allAnswers["Do you own your home or rent?"],
+      drivesWeekly: allAnswers["Do you drive atleast once a week?"],
+      recentDUI: allAnswers["Do you have any DUIs in the last 6 months?"],
+      accidents:
+        allAnswers[
+          "Have you faced any motor vehicle accidents in the last 2 years?"
+        ],
+      hasChildren:
+        allAnswers["Do you have any children between the age of 18-64?"],
+      creditCardDebt:
+        allAnswers["Do you have a credit card debt of 10,000 or more?"],
+      exercises: allAnswers["Do you exercise at least once a week?"],
+    };
+
+    try {
+      const res = await fetch(
+        "https://benifit-gpt-be.onrender.com/api/chatbot",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await res.json();
+      console.log("✅ Successfully submitted:", data);
+    } catch (err) {
+      console.error("❌ Error submitting chatbot answers:", err);
+    }
+  };
+
+  const handleStartAI = () => {
+    setActivatingAiLoder(true);
+
+    setTimeout(() => {
+      setActivatingAiLoder(false);
+      setStartChat(true);
+
+      const initialMessages = [
+        {
+          id: 1,
+          sender: "bot",
+          text: "Congratulations, you qualify for a Food Allowance Card worth thousands of dollars AND",
+        },
+        {
+          id: 2,
+          sender: "bot",
+          text: "you very well qualify for 6 other benefits worth $10,000+",
+        },
+        {
+          id: 3,
+          sender: "bot",
+          text: "Simply click below & message us on Whatsapp, our AI agent will help you claim all the benefits mentioned in a few button clicks.",
+          type: "choice",
+          options: ["Lets Start"],
+        },
+      ];
+
+      let delay = 0;
+      initialMessages.forEach((msg, index) => {
+        setTimeout(() => {
+          setChat((prev) => [...prev, msg]);
+        }, delay);
+        delay += 800;
+      });
+    }, 3000);
+  };
+
+    const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePincode = (pincode) => {
+    const pinRegex = /^\d{5,6}$/;
+    return pinRegex.test(pincode);
+  };
+  return (
+    <>
+    {!finalmessage? (
+      <>
+      <div>
+        {/* Black Top Header */}
+        <div className="w-full bg-black text-white py-4 flex justify-center items-center space-x-2">
+          {/* Crown icon (you can use any SVG/icon) */}
+          <div className="bg-white text-black rounded-full p-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M10 2l2.39 4.84L18 8.26l-4.91 4.78L14.6 18 10 15.27 5.4 18l1.51-4.96L2 8.26l5.61-.42L10 2z" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold">
+            SeniorBenefit.Ai<sup className="text-xs align-super">®</sup>
+          </h1>
+        </div>
+
+        <div
+          className="w-full text-white text-center font-semibold italic py-2 rounded-b-full"
+          style={{ backgroundColor: "#005e54" }}
+        >
+          22,578 Seniors Helped In Last 24 Hours!
+        </div>
+      </div>
+      <div
+        className="min-h-screen p-4 flex flex-col items-center"
+        style={{ backgroundColor: "rgb(246,246,243)" }}
+      >
+        <div className="w-full max-w-md bg-grey h-[80vh] p-4 space-y-2">
+          {/* Centered 100% FREE, NO HIDDEN COSTS! */}
+          <div className="flex justify-center">
+            <div className="inline-flex items-center justify-center px-6 py-2 bg-black text-white uppercase rounded-full">
+              <h2 className="text-sm font-bold whitespace-nowrap">
+                100% FREE, NO HIDDEN COSTS!
+              </h2>
+            </div>
+          </div>
+          <div className="flex-grow flex flex-col justify-between h-full">
+            {startChat ? (
+              <div
+                ref={chatBoxRef}
+                className="max-h-[60vh] overflow-y-auto p-2 space-y-2 flex flex-col"
+              >
+                <AnimatePresence initial={false}>
+                  {chat.map((msg, idx) => (
+                    <motion.div
+                      key={msg.id + "-" + idx}
+                      className={`flex flex-col ${
+                        msg.sender === "bot" ? "items-start" : "items-end"
+                      }`}
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    >
+                      <div className="flex h-full">
+                        {msg.sender === "bot" && (
+                          <div className="flex flex-col justify-end mr-4">
+                            <div className="w-8 h-8 flex items-center justify-center">
+                              <img
+                                className="w-full h-full rounded-full"
+                                src="/user.jpg"
+                                alt="donut 1"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        <div className="relative max-w-xs">
+                          {/* Bubble */}
+                          <div
+                            className={`p-4 rounded-2xl bg-white text-black ${
+                              msg.sender === "bot"
+                                ? "rounded-bl-none"
+                                : "rounded-br-none"
+                            }`}
+                          >
+                            {msg.text}
+                          </div>
+
+                          {/* Tail */}
+                          {msg.sender === "bot" && (
+                            <svg
+                              viewBox="120 85 60 60"
+                              className={`absolute -bottom-[1.6px] w-[34px] h-[34px] ${
+                                msg.sender === "bot"
+                                  ? "left-[-26px]"
+                                  : "right-[-26px] scale-x-[-1]"
+                              }`}
+                              fill="#ffffff"
+                            >
+                              <path d="M 167 92 V 92 V 142 H 130 C 155 134 163 123 167 93" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Show choices if applicable */}
+                      {msg.sender === "bot" && msg.type === "choice" && (
+                        <motion.div
+                          className="flex flex-wrap gap-2 mt-3 ml-10"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          {msg.options.map((opt, i) => (
+                            <motion.button
+                              key={i}
+                              onClick={() => handleChoiceClick(opt)}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="bg-green-500 text-white font-bold px-4 py-1 rounded-xl hover:bg-[#005e54]"
+                            >
+                              {opt}
+                            </motion.button>
+                          ))}
+                        </motion.div>
+                      )}
+
+                      {/* Show user input box if last message and of type text */}
+                      {idx === chat.length - 1 &&
+                        msg.sender === "bot" &&
+                        msg.type === "text" &&
+                        renderUserInput()}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {typing && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.8 }}
+                    className="flex items-center gap-2"
+                  >
+                    <img
+                      src="/user.jpg"
+                      alt="Bot"
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <motion.div
+                      initial={{ scale: 0.9 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                      className="max-w-xs p-2 rounded-lg text-sm bg-white text-gray-800 flex items-center gap-1"
+                    >
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-4 space-y-4">
+                <h1 className="font-bold text-3xl text-center text-black">
+                  Seniors, Get Your Free Benefits Check in Just 60 Seconds!
+                </h1>
+                <div className="flex justify-center items-center mt-6 px-4 text-md font-semibold text-gray-600">
+                  <div className="space-y-2 flex flex-col items-start space-x-2">
+                    <div className="flex items-start space-x-2">
+                      <div className="w-5 h-5 mt-0.5 flex items-center justify-center rounded bg-[#005e54] text-white">
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <span>Over 2M+ Seniors Helped Till Date.</span>
+                    </div>
+
+                    <div className="flex items-start space-x-2">
+                      <div className="w-5 h-5 mt-0.5 flex items-center justify-center rounded bg-[#005e54] text-white">
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <span>Completely Free & Easy.</span>
+                    </div>
+
+                    <div className="flex items-start space-x-2">
+                      <div className="w-5 h-5 mt-0.5 flex items-center justify-center rounded bg-[#005e54] text-white">
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <span>Specially Made For Seniors Over 65!</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center justify-center mt-6">
+                  <button
+                    onClick={handleStartAI}
+                    className="bg-[#005e54] flex items-center text-white text-3xl px-8 py-3 rounded-4xl hover:opacity-90"
+                  >
+                    START NOW <ChevronRight className="w-8 h-8" />
+                  </button>
+                  <p className="text-sm mt-2">
+                    <i>
+                      <span className="text-[#005e54] font-bold">69</span>{" "}
+                      Peoples Are <span className="font-bold">Claiming</span>{" "}
+                      Right Now!
+                    </i>
+                  </p>
+                </div>
+                {activatingAiLoder && (
+                  <div className="flex items-center justify-center ">
+                    <InfinityLoader />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="text-center space-y-4 pt-6">
+              <div className="p-3 text-sm text-black">
+                <p>
+                  <span className="font-bold text-red-500">NOTE</span>: We don't
+                  spam OR sell information & we aren't affiliated with any gov.
+                  branch. We are not sponsored by any External Private
+                  Organisation.
+                </p>
+              </div>
+              <footer className="p-3 text-center text-xs text-black">
+                <p>
+                  Beware of other fraudulent & similar looking websites that
+                  might look exactly like ours, we have no affiliation with
+                  them. This is the only official website to claim your Burial
+                  Protection Plan with the domain name burialprotectionplan.org
+                </p>
+              </footer>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+    ) : (
+      <CongratulationsPage
+        isMedicare={isMedicare}
+        isCreditDebt={isCreditDebt}
+        isDiscountedInsurence={isDiscountedInsurence}
+        isComponsation={isComponsation}
+        isACA={isACA}
+        name={name}
+      />
+    )}
+    </>
+  );
+}
