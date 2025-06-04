@@ -252,21 +252,38 @@ export default function Home() {
       return (
         <div className="mt-3 w-full flex flex-col items-end">
           <div className="flex gap-2 mt-1">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
-              className="flex-grow border rounded px-3 py-2 border-black outline-black"
-              placeholder="Type your answer..."
-            />
-            <button
-              onClick={() => handleSend(input)}
-              className="bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-[#005e54]"
-            >
-              Send
-            </button>
+         
+  <input
+    value={input}
+    onChange={(e) => setInput(e.target.value)}
+    onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
+    className="flex-grow rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm"
+    placeholder="Type your message..."
+  />
+  <button
+    onClick={() => handleSend(input)}
+    className="bg-emerald-600 hover:bg-emerald-700 text-black p-3 rounded-full transition duration-150"
+    aria-label="Send"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-5 w-5"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M5 13l4 4L19 7"
+      />
+    </svg>
+  </button>
+</div>
+
           </div>
-        </div>
+      
       );
     }
     return null;
@@ -428,7 +445,7 @@ export default function Home() {
                             <div className="w-8 h-8 flex items-center justify-center">
                               <img
                                 className="w-full h-full rounded-full"
-                                src="/user.jpg"
+                                src={"https://www.livebenefit.org/assets/pic-DztGI3xK.png"}
                                 alt="donut 1"
                               />
                             </div>

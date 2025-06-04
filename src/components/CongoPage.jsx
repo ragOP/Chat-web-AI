@@ -51,14 +51,39 @@ const CongratulationsPage = ({
   );
 
   return (
-    <div className="bg-emerald-800 min-h-screen flex flex-col items-center px-4 py-8 text-white">
-      <div className="bg-black w-full py-3 text-center">
-        <img src={center} alt="Logo" className="h-10 mx-auto" />
-      </div>
 
-      <div className="bg-white text-black w-full text-center py-2 text-sm font-semibold rounded-b-xl">
-        22,578 Seniors Helped In Last 24 Hours!
+    <>
+      <div>
+        {/* Black Top Header */}
+        <div className="w-full bg-black text-white py-4 flex justify-center items-center space-x-2">
+          {/* Crown icon (you can use any SVG/icon) */}
+          <div className="bg-white text-black rounded-full p-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M10 2l2.39 4.84L18 8.26l-4.91 4.78L14.6 18 10 15.27 5.4 18l1.51-4.96L2 8.26l5.61-.42L10 2z" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold">
+            SeniorBenefit.Ai<sup className="text-xs align-super">®</sup>
+          </h1>
+        </div>
+
+        <div
+          className="w-full text-white text-center font-semibold italic py-2 rounded-b-full"
+          style={{ backgroundColor: "#005e54" }}
+        >
+          22,578 Seniors Helped In Last 24 Hours!
+        </div>
       </div>
+   
+    <div className="bg-emerald-800 min-h-screen flex flex-col items-center px-4 py-8 text-white">
+     
+
+     
 
       <div className="text-center mt-10">
         <h1 className="text-3xl font-bold">Congratulations, {name}!</h1>
@@ -114,6 +139,7 @@ const CongratulationsPage = ({
         Beware of other fraudulent & similar looking websites that might look exactly like ours, we have no affiliation with them. This is the only official website to claim your Burial Protection Plan with the domain name burialprotectionplan.org.
       </p>
     </div>
+    </>
   );
 };
 
