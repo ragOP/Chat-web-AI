@@ -343,12 +343,12 @@ export default function Home() {
         {
           id: 1,
           sender: "bot",
-          text: "Congratulations, you qualify for a Food Allowance Card worth thousands of dollars AND",
+          text: "Congratulations, on taking the first step towards securing your future!",
         },
         {
           id: 2,
           sender: "bot",
-          text: "you very well qualify for 6 other benefits worth $10,000+",
+          text: "My focus is to help seniors like you claim benefits that can significantly improve your quality of life.",
         },
         {
           id: 3,
@@ -494,7 +494,8 @@ export default function Home() {
                               onClick={() => handleChoiceClick(opt)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
-                              className="bg-green-500 text-white font-bold px-4 py-1 rounded-xl hover:bg-[#005e54]"
+                               style={{ backgroundColor: "#005e54" }}
+                              className=" text-white font-bold px-4 py-1 rounded-xl hover:bg-[#005e54]"
                             >
                               {opt}
                             </motion.button>
@@ -519,7 +520,7 @@ export default function Home() {
                     className="flex items-center gap-2"
                   >
                     <img
-                      src="/user.jpg"
+                      src={"https://www.livebenefit.org/assets/pic-DztGI3xK.png"}
                       alt="Bot"
                       className="w-8 h-8 rounded-full"
                     />
