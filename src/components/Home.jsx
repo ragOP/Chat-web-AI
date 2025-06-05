@@ -396,13 +396,13 @@ export default function Home() {
               <path d="M10 2l2.39 4.84L18 8.26l-4.91 4.78L14.6 18 10 15.27 5.4 18l1.51-4.96L2 8.26l5.61-.42L10 2z" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold">
+          <h1 className="text-lg font-bold">
             SeniorBenefit.Ai<sup className="text-xs align-super">®</sup>
           </h1>
         </div>
 
         <div
-          className="w-full text-white text-center font-semibold italic py-2 rounded-b-full"
+          className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm"
           style={{ backgroundColor: "#005e54" }}
         >
           22,578 Seniors Helped In Last 24 Hours!
@@ -412,11 +412,11 @@ export default function Home() {
         className="min-h-screen p-4 flex flex-col items-center"
         style={{ backgroundColor: "rgb(246,246,243)" }}
       >
-        <div className="w-full max-w-md bg-grey h-[80vh] p-4 space-y-2">
+        <div className="w-full max-w-md bg-grey h-[80vh] px-4 py-1 space-y-2">
           {/* Centered 100% FREE, NO HIDDEN COSTS! */}
           <div className="flex justify-center">
             <div className="inline-flex items-center justify-center px-6 py-2 bg-black text-white uppercase rounded-full">
-              <h2 className="text-sm font-bold whitespace-nowrap">
+              <h2 className="text-sm font-bold whitespace-nowrap -mt-1">
                 100% FREE, NO HIDDEN COSTS!
               </h2>
             </div>
@@ -601,7 +601,15 @@ export default function Home() {
                     onClick={handleStartAI}
                     className="bg-[#005e54] flex items-center text-white text-3xl px-8 py-3 rounded-4xl hover:opacity-90"
                   >
+                    {activatingAiLoder ? (
+                  <div className="flex items-center justify-center ">
+                    <InfinityLoader />
+                  </div>
+                ) : (
+                    <>
                     START NOW <ChevronRight className="w-8 h-8" />
+                    </>
+                  )}
                   </button>
                   <p className="text-sm mt-2">
                     <i>
@@ -611,15 +619,11 @@ export default function Home() {
                     </i>
                   </p>
                 </div>
-                {activatingAiLoder && (
-                  <div className="flex items-center justify-center ">
-                    <InfinityLoader />
-                  </div>
-                )}
+                
               </div>
             )}
 
-            <div className="text-center space-y-4 pt-6">
+            {/* <div className="text-center space-y-4 pt-6">
               <div className="p-3 text-sm text-black">
                 <p>
                   <span className="font-bold text-red-500">NOTE</span>: We don't
@@ -636,7 +640,7 @@ export default function Home() {
                   Protection Plan with the domain name burialprotectionplan.org
                 </p>
               </footer>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
