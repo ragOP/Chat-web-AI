@@ -256,8 +256,9 @@ export default function Home() {
     value={input}
     onChange={(e) => setInput(e.target.value)}
     onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
-    className="flex-grow rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm"
+    className="flex-grow rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-base"
     placeholder="Type your message..."
+    style={{ fontSize: '16px' }}
   />
   <button
     onClick={() => handleSend(input)}
