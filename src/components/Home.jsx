@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import InfinityLoader from "./InfinityLoader";
 import CongratulationsPage from "./CongoPage";
+import botAvatar from "../assets/pic-DztGI3xK.png";
 
 const questions = [
   { id: 1, text: "What's your Full Name?", type: "text", keyType: "alphabet" },
@@ -163,7 +164,7 @@ export default function Home() {
         },
       ]);
       setTyping(false);
-    }, showTyping ? 2000 : 1000);
+    }, showTyping ? 2000 : 10);
   };
 
   const handleSend = (response) => {
@@ -423,7 +424,7 @@ export default function Home() {
             {startChat ? (
               <div
                 ref={chatBoxRef}
-                className="max-h-[60vh] overflow-y-auto p-2 space-y-2 flex flex-col scrollbar-hide [&::-webkit-scrollbar]:hidden"
+                className="max-h-[100vh] overflow-y-auto p-2 space-y-2 flex flex-col scrollbar-hide [&::-webkit-scrollbar]:hidden"
               >
                 <AnimatePresence initial={false}>
                   {chat.map((msg, idx) => (
@@ -431,15 +432,30 @@ export default function Home() {
                       key={msg.id + "-" + idx}
                       className={`flex flex-col ${
                         msg.sender === "bot" ? "items-start" : "items-end"
-                      }`}
-                      initial={{ opacity: 0, x: msg.sender === "bot" ? -20 : 20, y: 0 }}
-                      animate={{ opacity: 1, x: 0, y: 0 }}
-                      exit={{ opacity: 0, x: msg.sender === "bot" ? -20 : 20 }}
+                      } mb-4`}
+                      initial={{ 
+                        opacity: 0, 
+                        y: 20,
+                        scale: 0.95,
+                        x: msg.sender === "bot" ? -20 : 20 
+                      }}
+                      animate={{ 
+                        opacity: 1, 
+                        y: 0,
+                        scale: 1,
+                        x: 0 
+                      }}
+                      exit={{ 
+                        opacity: 0,
+                        scale: 0.95,
+                        y: 10,
+                        x: msg.sender === "bot" ? -20 : 20 
+                      }}
                       transition={{ 
                         type: "spring",
-                        stiffness: 80,
-                        damping: 15,
-                        mass: 1.2,
+                        stiffness: 120,
+                        damping: 25,
+                        mass: 1,
                         duration: 0.8
                       }}
                     >
@@ -447,75 +463,95 @@ export default function Home() {
                         {msg.sender === "bot" && idx === chat.length - 1 && (
                           <motion.div 
                             className="flex flex-col justify-end mr-2"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
                             transition={{ 
                               type: "spring",
-                              stiffness: 80,
-                              damping: 15,
-                              mass: 1.2,
-                              duration: 0.8,
-                              delay: 0.2
+                              stiffness: 120,
+                              damping: 25,
+                              delay: 0.2,
+                              duration: 0.8
                             }}
                           >
                             <div className="w-8 h-8 flex items-center justify-center">
                               <motion.img
-                                className="w-full h-full rounded-full"
-                                src={"https://www.livebenefit.org/assets/pic-DztGI3xK.png"}
+                                className="w-full h-full rounded-full shadow-lg"
+                                src={botAvatar}
                                 alt="Bot Avatar"
-                                initial={{ scale: 0.8 }}
+                                initial={{ scale: 0.5 }}
                                 animate={{ scale: 1 }}
                                 transition={{
                                   type: "spring",
-                                  stiffness: 60,
-                                  damping: 12,
-                                  mass: 1.2,
-                                  duration: 0.8,
-                                  delay: 0.3
+                                  stiffness: 120,
+                                  damping: 25,
+                                  delay: 0.3,
+                                  duration: 0.8
                                 }}
                               />
                             </div>
                           </motion.div>
                         )}
-                        <div className={`relative max-w-xs ${msg.sender === "bot" && idx !== chat.length - 1 ? "ml-10" : ""}`}>
+                        <motion.div 
+                          className={`relative max-w-xs ${msg.sender === "bot" ? (idx === chat.length - 1 ? "ml-1" : "ml-10") : "mr-1"}`}
+                          initial={{ scale: 0.95 }}
+                          animate={{ scale: 1 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 120,
+                            damping: 25,
+                            duration: 0.8
+                          }}
+                        >
                           <div
-                            className={`p-3 rounded-2xl bg-white text-black ${
+                            className={`p-3 rounded-2xl shadow-sm ${
                               msg.sender === "bot"
-                                ? "rounded-bl-none"
-                                : "rounded-br-none"
+                                ? "bg-white text-black rounded-bl-none"
+                                : "bg-[#005e54] text-white rounded-br-none"
                             }`}
+                            style={{
+                              transform: "translateZ(0)",
+                              backfaceVisibility: "hidden"
+                            }}
                           >
                             {msg.text}
                           </div>
 
-                          {msg.sender === "bot" && idx === chat.length - 1 && (
-                            <svg
+                          {msg.sender === "bot" && (
+                            <motion.svg
                               viewBox="120 85 60 60"
                               className={`absolute -bottom-[1.6px] w-[20px] h-[20px] ${
                                 msg.sender === "bot"
                                   ? "left-[-15px]"
                                   : "right-[-15px] scale-x-[-1]"
                               }`}
-                              fill="#ffffff"
+                              fill={msg.sender === "bot" ? "#ffffff" : "#005e54"}
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 120,
+                                damping: 25,
+                                delay: 0.2,
+                                duration: 0.8
+                              }}
                             >
                               <path d="M 167 92 V 92 V 142 H 130 C 155 134 163 123 167 93" />
-                            </svg>
+                            </motion.svg>
                           )}
-                        </div>
+                        </motion.div>
                       </div>
 
-                      {/* Show choices if applicable */}
                       {msg.sender === "bot" && msg.type === "choice" && (
                         <motion.div
                           className="flex flex-wrap gap-2 mt-3 ml-10"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ 
                             type: "spring",
-                            stiffness: 60,
-                            damping: 12,
-                            mass: 1.2,
-                            delay: 0.3,
+                            stiffness: 120,
+                            damping: 25,
+                            mass: 1,
+                            delay: 0.4,
                             duration: 0.8
                           }}
                         >
@@ -523,10 +559,19 @@ export default function Home() {
                             <motion.button
                               key={i}
                               onClick={() => handleChoiceClick(opt)}
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                               style={{ backgroundColor: "#005e54" }}
-                              className=" text-white font-bold px-5 py-2 rounded-xl hover:bg-[#005e54]"
+                              className="text-white font-bold px-5 py-2 rounded-xl bg-[#005e54] hover:bg-[#004a43] transition-colors duration-300"
+                              whileHover={{ scale: 1.03 }}
+                              whileTap={{ scale: 0.97 }}
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 120,
+                                damping: 25,
+                                mass: 1,
+                                delay: 0.4 + (i * 0.15),
+                                duration: 0.8
+                              }}
                             >
                               {opt}
                             </motion.button>
@@ -534,7 +579,6 @@ export default function Home() {
                         </motion.div>
                       )}
 
-                      {/* Show user input box if last message and of type text */}
                       {idx === chat.length - 1 &&
                         msg.sender === "bot" &&
                         msg.type === "text" &&
@@ -545,37 +589,45 @@ export default function Home() {
 
                 {typing && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ 
                       type: "spring",
-                      stiffness: 80,
-                      damping: 15,
-                      mass: 1.2,
+                      stiffness: 120,
+                      damping: 25,
+                      mass: 1,
                       duration: 0.8
                     }}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 mt-2"
                   >
-                    <img
-                      src={"https://www.livebenefit.org/assets/pic-DztGI3xK.png"}
+                    <motion.img
+                      src={botAvatar}
                       alt="Bot"
-                      className="w-8 h-8 rounded-full"
-                    />
-                    <motion.div
-                      initial={{ scale: 0.8 }}
+                      className="w-8 h-8 rounded-full shadow-lg"
+                      initial={{ scale: 0.5 }}
                       animate={{ scale: 1 }}
-                      transition={{ 
+                      transition={{
                         type: "spring",
-                        stiffness: 80,
-                        damping: 15,
-                        mass: 1.2,
+                        stiffness: 120,
+                        damping: 25,
                         duration: 0.8
                       }}
-                      className="max-w-xs p-2 rounded-lg text-sm bg-white text-gray-800 flex items-center gap-1"
+                    />
+                    <motion.div
+                      initial={{ scale: 0.95, x: -10 }}
+                      animate={{ scale: 1, x: 0 }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 120,
+                        damping: 25,
+                        duration: 0.8
+                      }}
+                      className="max-w-xs p-3 rounded-2xl shadow-sm bg-white text-gray-800 flex items-center gap-2"
                     >
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                     </motion.div>
                   </motion.div>
                 )}

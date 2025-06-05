@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 const states = [
   { message: "Reviewing your answer", percentage: 45 },
-  { message: "Analyzing eligibility", percentage: 65 },
-  { message: "Checking available benefits", percentage: 85 },
-  { message: "Preparing results", percentage: 100 }
+  { message: "Matching best option for you", percentage: 65 },
+  { message: "Confirming your eligibility", percentage: 100 },
 ];
 
 const LoaderWithStates = ({ onComplete }) => {
