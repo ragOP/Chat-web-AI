@@ -83,10 +83,10 @@ export default function Home() {
   const chatBoxRef = useRef(null);
 
   const [isMedicare, setIsMedicare] = useState(true);
-  const [isCreditDebt, setIsCreditDebt] = useState(true);
-  const [isDiscountedInsurence, setIsDiscountedInsurance] = useState(true);
-  const [isComponsation, setIsComponsation] = useState(true);
-  const [isACA, setIsACA] = useState(true);
+  const [isCreditDebt, setIsCreditDebt] = useState(false);
+  const [isDiscountedInsurence, setIsDiscountedInsurance] = useState(false);
+  const [isComponsation, setIsComponsation] = useState(false);
+  const [isACA, setIsACA] = useState(false);
   const [name, setName] = useState("");
 
   // useEffect(() => {
@@ -114,7 +114,7 @@ export default function Home() {
   //     setTimeout(() => {
   //       setChat((prev) => [...prev, msg]);
   //       if (index === initialMessages.length - 1) {
-  //         setTyping(false);
+  //         set(false);
   //         // Delay the first question
   //         setTimeout(() => {
   //           setTyping(true);
@@ -147,8 +147,10 @@ export default function Home() {
     }
   }, [chat, typing]);
 
-  const simulateBotTyping = (question) => {
-    setTyping(true);
+  const simulateBotTyping = (question, showTyping = true) => {
+    if(showTyping){
+      setTyping(true);
+    }
     setTimeout(() => {
       setChat((prev) => [
         ...prev,
@@ -161,7 +163,7 @@ export default function Home() {
         },
       ]);
       setTyping(false);
-    }, 1000);
+    }, showTyping ? 2000 : 1000);
   };
 
   const handleSend = (response) => {
@@ -176,13 +178,9 @@ export default function Home() {
       alert("Please enter a valid email");
       return
     }
-    // Apply special logic like in handleNext
     switch (currentQuestion.id) {
       case 1:
         setName(response);
-        break;
-      case 5:
-        setIsMedicare(response === "Yes");
         break;
       case 7:
         setIsDiscountedInsurance(response === "I Own");
@@ -236,8 +234,8 @@ export default function Home() {
     ) {
       setChat([]);
       setTimeout(() => {
-        simulateBotTyping(questions[0]);
-      }, 100);
+        simulateBotTyping(questions[0], false)
+      }, 1000);
       return;
     }
 
@@ -262,7 +260,7 @@ export default function Home() {
   />
   <button
     onClick={() => handleSend(input)}
-    className="bg-emerald-600 hover:bg-emerald-700 text-black p-3 rounded-full transition duration-150"
+    className="bg-[#005e54] text-black p-5 rounded-full transition duration-150"
     aria-label="Send"
   >
     <svg
@@ -270,7 +268,7 @@ export default function Home() {
       className="h-5 w-5"
       fill="none"
       viewBox="0 0 24 24"
-      stroke="currentColor"
+      stroke="white"
     >
       <path
         strokeLinecap="round"
@@ -339,32 +337,32 @@ export default function Home() {
       setActivatingAiLoder(false);
       setStartChat(true);
 
-      const initialMessages = [
-        {
-          id: 1,
-          sender: "bot",
-          text: "Congratulations, on taking the first step towards securing your future!",
-        },
-        {
-          id: 2,
-          sender: "bot",
-          text: "My focus is to help seniors like you claim benefits that can significantly improve your quality of life.",
-        },
-        {
-          id: 3,
-          sender: "bot",
-          text: "Simply click below & message us on Whatsapp, our AI agent will help you claim all the benefits mentioned in a few button clicks.",
-          type: "choice",
-          options: ["Lets Start"],
-        },
-      ];
+    const initialMessages = [
+      {
+        id: 1,
+        sender: "bot",
+        text: "Congratulations, on taking the first step towards securing your future!",
+      },
+      {
+        id: 2,
+        sender: "bot",
+        text: "My focus is to help seniors like you claim benefits that can significantly improve your quality of life.",
+      },
+      {
+        id: 3,
+        sender: "bot",
+        text: "Simply click below & message us on Whatsapp, our AI agent will help you claim all the benefits mentioned in a few button clicks.",
+        type: "choice",
+        options: ["Lets Start"],
+      },
+    ];
 
       let delay = 0;
-      initialMessages.forEach((msg, index) => {
+      initialMessages.forEach((msg) => {
         setTimeout(() => {
           setChat((prev) => [...prev, msg]);
         }, delay);
-        delay += 800;
+        delay += 1200; // Slower delay between messages
       });
     }, 3000);
   };
@@ -425,7 +423,7 @@ export default function Home() {
             {startChat ? (
               <div
                 ref={chatBoxRef}
-                className="max-h-[60vh] overflow-y-auto p-2 space-y-2 flex flex-col"
+                className="max-h-[60vh] overflow-y-auto p-2 space-y-2 flex flex-col scrollbar-hide [&::-webkit-scrollbar]:hidden"
               >
                 <AnimatePresence initial={false}>
                   {chat.map((msg, idx) => (
@@ -434,27 +432,54 @@ export default function Home() {
                       className={`flex flex-col ${
                         msg.sender === "bot" ? "items-start" : "items-end"
                       }`}
-                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      initial={{ opacity: 0, x: msg.sender === "bot" ? -20 : 20, y: 0 }}
+                      animate={{ opacity: 1, x: 0, y: 0 }}
+                      exit={{ opacity: 0, x: msg.sender === "bot" ? -20 : 20 }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 80,
+                        damping: 15,
+                        mass: 1.2,
+                        duration: 0.8
+                      }}
                     >
                       <div className="flex h-full">
-                        {msg.sender === "bot" && (
-                          <div className="flex flex-col justify-end mr-4">
+                        {msg.sender === "bot" && idx === chat.length - 1 && (
+                          <motion.div 
+                            className="flex flex-col justify-end mr-2"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ 
+                              type: "spring",
+                              stiffness: 80,
+                              damping: 15,
+                              mass: 1.2,
+                              duration: 0.8,
+                              delay: 0.2
+                            }}
+                          >
                             <div className="w-8 h-8 flex items-center justify-center">
-                              <img
+                              <motion.img
                                 className="w-full h-full rounded-full"
                                 src={"https://www.livebenefit.org/assets/pic-DztGI3xK.png"}
-                                alt="donut 1"
+                                alt="Bot Avatar"
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 60,
+                                  damping: 12,
+                                  mass: 1.2,
+                                  duration: 0.8,
+                                  delay: 0.3
+                                }}
                               />
                             </div>
-                          </div>
+                          </motion.div>
                         )}
-                        <div className="relative max-w-xs">
-                          {/* Bubble */}
+                        <div className={`relative max-w-xs ${msg.sender === "bot" && idx !== chat.length - 1 ? "ml-10" : ""}`}>
                           <div
-                            className={`p-4 rounded-2xl bg-white text-black ${
+                            className={`p-3 rounded-2xl bg-white text-black ${
                               msg.sender === "bot"
                                 ? "rounded-bl-none"
                                 : "rounded-br-none"
@@ -463,14 +488,13 @@ export default function Home() {
                             {msg.text}
                           </div>
 
-                          {/* Tail */}
-                          {msg.sender === "bot" && (
+                          {msg.sender === "bot" && idx === chat.length - 1 && (
                             <svg
                               viewBox="120 85 60 60"
-                              className={`absolute -bottom-[1.6px] w-[34px] h-[34px] ${
+                              className={`absolute -bottom-[1.6px] w-[20px] h-[20px] ${
                                 msg.sender === "bot"
-                                  ? "left-[-26px]"
-                                  : "right-[-26px] scale-x-[-1]"
+                                  ? "left-[-15px]"
+                                  : "right-[-15px] scale-x-[-1]"
                               }`}
                               fill="#ffffff"
                             >
@@ -486,7 +510,14 @@ export default function Home() {
                           className="flex flex-wrap gap-2 mt-3 ml-10"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
+                          transition={{ 
+                            type: "spring",
+                            stiffness: 60,
+                            damping: 12,
+                            mass: 1.2,
+                            delay: 0.3,
+                            duration: 0.8
+                          }}
                         >
                           {msg.options.map((opt, i) => (
                             <motion.button
@@ -495,7 +526,7 @@ export default function Home() {
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                                style={{ backgroundColor: "#005e54" }}
-                              className=" text-white font-bold px-4 py-1 rounded-xl hover:bg-[#005e54]"
+                              className=" text-white font-bold px-5 py-2 rounded-xl hover:bg-[#005e54]"
                             >
                               {opt}
                             </motion.button>
@@ -514,9 +545,15 @@ export default function Home() {
 
                 {typing && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.8 }}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 80,
+                      damping: 15,
+                      mass: 1.2,
+                      duration: 0.8
+                    }}
                     className="flex items-center gap-2"
                   >
                     <img
@@ -525,9 +562,15 @@ export default function Home() {
                       className="w-8 h-8 rounded-full"
                     />
                     <motion.div
-                      initial={{ scale: 0.9 }}
+                      initial={{ scale: 0.8 }}
                       animate={{ scale: 1 }}
-                      transition={{ duration: 0.5 }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 80,
+                        damping: 15,
+                        mass: 1.2,
+                        duration: 0.8
+                      }}
                       className="max-w-xs p-2 rounded-lg text-sm bg-white text-gray-800 flex items-center gap-1"
                     >
                       <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>

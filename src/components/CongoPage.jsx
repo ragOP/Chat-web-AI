@@ -5,7 +5,7 @@ import benifit2 from "../assets/benifit2.webp";
 import benifit3 from "../assets/benifit3.webp";
 import benifit4 from "../assets/benifit4.webp";
 import center from "../assets/center.png";
-
+import LoaderWithStates from "./LoaderWithStates";
 const CongratulationsPage = ({
   isMedicare=true,
   isCreditDebt=true,
@@ -15,6 +15,11 @@ const CongratulationsPage = ({
   name,
 }) => {
   const [totalBenefits, setTotalBenefits] = useState(0);
+  const [showCongratulation, setShowCongratulation] = useState(false);
+
+  setTimeout(() => {
+    setShowCongratulation(true);
+  }, 9000);
 
   useEffect(() => {
     const total = [
@@ -51,8 +56,8 @@ const CongratulationsPage = ({
   );
 
   return (
-
     <>
+    {showCongratulation?<>
       <div>
         {/* Black Top Header */}
         <div className="w-full bg-black text-white py-4 flex justify-center items-center space-x-2">
@@ -139,6 +144,7 @@ const CongratulationsPage = ({
         Beware of other fraudulent & similar looking websites that might look exactly like ours, we have no affiliation with them. This is the only official website to claim your Burial Protection Plan with the domain name burialprotectionplan.org.
       </p>
     </div>
+    </>: <LoaderWithStates />}
     </>
   );
 };
