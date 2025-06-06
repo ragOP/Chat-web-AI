@@ -779,7 +779,7 @@ const renderUserInput = () => {
                   Beware of other fraudulent & similar looking websites that
                   might look exactly like ours, we have no affiliation with
                   them. This is the only official website to claim your Burial
-                  Protection Plan with the domain name burialprotectionplan.org
+                  Protection Plan with the domain name mybenefitsai.org
                 </p>
               </footer>
             </div>}
