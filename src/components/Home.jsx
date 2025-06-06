@@ -52,7 +52,7 @@ const questions = [
   { id: 15, text: "Okay, and do you have a credit card debt of $10,000 or more?", type: "choice", options: ["Yes", "No"], audio: debtAudio },
 
   // SPLIT EXERCISE STEP
-  { id: 16, text: "I got it,Just one last question!", type: "info", audio: got },
+  { id: 16, text: "I got it, Just one last question!", type: "info", audio: got },
   { id: 17, text: "Do you exercise at least once a week?", type: "choice", options: ["Yes", "No"] ,audio: exerciseAudio},
 ];
 
