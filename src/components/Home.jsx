@@ -56,10 +56,11 @@ const questions = [
   },
   {
     id: 8,
-    text: "Great, we're almost there! \n Do you have a car that you drive at least once a week?",
+    text: "Great, we're almost there!\nDo you have a car that you drive at least once a week?",
     type: "choice",
     options: ["Yes", "No"],
-    audio: carAudio
+    audio: carAudio,
+    style: { whiteSpace: "pre-line" }
   },
   {
     id: 9,
@@ -70,10 +71,11 @@ const questions = [
   },
   {
     id: 10,
-    text: "Alright, we're almost done. \nHave you faced any motor vehicle accidents in the last 2 years?",
+    text: "Alright, we're almost done.\nHave you faced any motor vehicle accidents in the last 2 years?",
     type: "choice",
     options: ["Yes", "No"],
-    audio: accidentAudio
+    audio: accidentAudio,
+    style: { whiteSpace: "pre-line" }
   },
   {
     id: 11,
