@@ -4,8 +4,10 @@ import benifit1 from "../assets/benifit1.webp";
 import benifit2 from "../assets/benifit2.webp";
 import benifit3 from "../assets/benifit3.webp";
 import benifit4 from "../assets/benifit4.webp";
-import center from "../assets/center.png";
 import LoaderWithStates from "./LoaderWithStates";
+import firstmessage from "../assets/Congratulations We-ve fo 1.wav";
+import secondmessage from "../assets/So go ahead claim and en 1.wav";
+
 const CongratulationsPage = ({
   isMedicare = true,
   isCreditDebt = true,
@@ -19,7 +21,20 @@ const CongratulationsPage = ({
 
   setTimeout(() => {
     setShowCongratulation(true);
-  }, 9000);
+  }, 16000);
+
+  useEffect(() => {
+    const audio = new Audio(firstmessage);
+    if (showCongratulation) {
+      audio.play();
+    }
+    setTimeout(() => {
+      const audio2 = new Audio(secondmessage);
+      if (showCongratulation) {
+        audio2.play();
+      }
+    }, 24000);
+  }, [showCongratulation]);
 
   useEffect(() => {
     const total = [

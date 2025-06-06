@@ -4,9 +4,9 @@ const states = [
   { message: "Scanning Benefits", percentage: 12 },
   { message: "Analyzing Eligibility", percentage: 25 },
   { message: "Matching Location", percentage: 47 },
-  { message: "Locking Subsidies", percentage: 65 },
-  { message: "Securing Access", percentage: 87 },
-  { message: "Securing Access", percentage: 95 },
+  { message: "Matching Location", percentage: 65 },
+  { message: "Locking Subsidies", percentage: 87 },
+  { message: "Locking Subsidies", percentage: 95 },
   { message: "Securing Access", percentage: 100 },
 ];
 
@@ -16,7 +16,7 @@ const LoaderWithStates = ({ onComplete }) => {
 
   useEffect(() => {
     let startTime = Date.now();
-    const totalDuration = 15000; // 8 seconds total
+    const totalDuration = 15000; // 15 seconds total
 
     const updateProgress = () => {
       const elapsed = Date.now() - startTime;

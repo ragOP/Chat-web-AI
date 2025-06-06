@@ -4,70 +4,96 @@ import { ChevronRight } from "lucide-react";
 import InfinityLoader from "./InfinityLoader";
 import CongratulationsPage from "./CongoPage";
 import botAvatar from "../assets/pic-DztGI3xK.png";
+import nameAudio from "../assets/Great Let-s start with y 1.wav";
+import ageAudio from "../assets/Okay and whats your age 1.wav";
+import zipcodeAudio from "../assets/Nice and what-s your zip 1.wav";
+import emailAudio from "../assets/So far so good may i kno 1.wav";
+import medicareAudio from "../assets/Thank you Now are you o 3.wav";
+import alzheimersAudio from "../assets/Do you have any of the me 1.wav";
+import homeAudio from "../assets/Okay next do you own you 2.wav";
+import carAudio from "../assets/Great we-re almost there 3.wav";
+import DUIAudio from "../assets/And do you have any DUIs 1.wav";
+import accidentAudio from "../assets/Have you faced any motor 1.wav";
+import childAudio from "../assets/Do you have any children 2.wav";
+import debtAudio from "../assets/Okay and do you have a c 4.wav";
+import exerciseAudio from "../assets/Do you exercise at least 2.wav";
+import firstquestion from "../assets/Congratulations on taking 2 (1).wav";
+import secondquestion from "../assets/Let-s just get to know yo 2.wav";
+import thirdquestion from "../assets/Tap the button below and 2.wav";
 
 const questions = [
-  { id: 1, text: "What's your full name?", type: "text", keyType: "alphabet" },
-  { id: 2, text: "Okay, what is your age today?", type: "text", keyType: "numeric" },
-  { id: 3, text: "Nice, and what's your zip code?", type: "text", keyType: "numeric" },
+  { id: 1, text: "What's your full name?", type: "text", keyType: "alphabet", audio: nameAudio },
+  { id: 2, text: "Okay, what is your age today?", type: "text", keyType: "numeric", audio: ageAudio },
+  { id: 3, text: "Nice, and what's your zip code?", type: "text", keyType: "numeric", audio: zipcodeAudio },
   {
     id: 4,
     text: "So far so good! May I know your email?",
     type: "text",
     keyType: "alphabet",
+    audio: emailAudio
   },
   {
     id: 5,
     text: "Thank you. Now, are you on medicare?",
     type: "choice",
     options: ["Yes", "No"],
+    audio: medicareAudio
   },
   {
     id: 6,
     text: "Do you have any of the following health conditions?",
     type: "choice",
     options: ["Alzheimers", "Diabetes", "Hypertension", "Arthritis", "No"],
+    audio: alzheimersAudio
   },
   {
     id: 7,
     text: "Do you own your home or rent?",
     type: "choice",
     options: ["I Own", "I Rent"],
+    audio: homeAudio
   },
   {
     id: 8,
     text: "Great, we're almost there! Do you have a car that you drive at least once a week?",
     type: "choice",
     options: ["Yes", "No"],
+    audio: carAudio
   },
   {
     id: 9,
     text: "And do you have any DUIs in the last 6 months?",
     type: "choice",
     options: ["Yes", "No"],
+    audio: DUIAudio
   },
   {
     id: 10,
     text: "Alright, we're almost done. Have you faced any motor vehicle accidents in the last 2 years?",
     type: "choice",
     options: ["Yes", "No"],
+    audio: accidentAudio
   },
   {
     id: 11,
     text: "Do you have any children between the age of 18-64?",
     type: "choice",
     options: ["Yes", "No"],
+    audio: childAudio
   },
   {
     id: 12,
     text: "Okay, and do you have a credit card debt of $10,000 or more?",
     type: "choice",
     options: ["Yes", "No"],
+    audio: debtAudio
   },
   {
     id: 13,
     text: "I got it, just one last question! Do you exercise at least once a week?",
     type: "choice",
     options: ["Yes", "No"],
+    audio: exerciseAudio
   },
 ];
 
@@ -82,6 +108,7 @@ export default function Home() {
   const [typing, setTyping] = useState(false);
   const [finalmessage, setFinalMessage] = useState(false);
   const chatBoxRef = useRef(null);
+  const audioRef = useRef(null);
 
   const [isMedicare, setIsMedicare] = useState(true);
   const [isCreditDebt, setIsCreditDebt] = useState(false);
@@ -148,21 +175,37 @@ export default function Home() {
     }
   }, [chat, typing]);
 
+  // Add audio player function
+  const playMessageAudio = (audioUrl) => {
+    if (audioUrl && audioRef.current) {
+      audioRef.current.src = audioUrl;
+      audioRef.current.play().catch(error => {
+        console.log("Audio playback failed:", error);
+      });
+    }
+  };
+
   const simulateBotTyping = (question, showTyping = true) => {
     if(showTyping){
       setTyping(true);
     }
     setTimeout(() => {
-      setChat((prev) => [
-        ...prev,
-        {
-          id: question.id,
-          sender: "bot",
-          text: question.text,
-          type: question.type,
-          options: question.options,
-        },
-      ]);
+      setChat((prev) => {
+        const newChat = [
+          ...prev,
+          {
+            id: question.id,
+            sender: "bot",
+            text: question.text,
+            type: question.type,
+            options: question.options,
+            audio: question.audio
+          },
+        ];
+        // Play audio after adding the message
+        playMessageAudio(question.audio);
+        return newChat;
+      });
       setTyping(false);
     }, showTyping ? 2000 : 10);
   };
@@ -217,6 +260,7 @@ export default function Home() {
     if (nextStep < questions.length) {
       setStep(nextStep);
       setChat(updatedChat);
+      // Play audio for the next question
       simulateBotTyping(questions[nextStep]);
     } else {
       setChat(updatedChat);
@@ -231,7 +275,7 @@ export default function Home() {
     if (
       choice === "Lets Start" &&
       step === 0 &&
-      chat.some((m) => m.text.includes("Simply click below"))
+      chat.some((m) => m.text.includes("Tap the button"))
     ) {
       setChat([]);
       setTimeout(() => {
@@ -293,24 +337,24 @@ export default function Home() {
     // Optional: transform the keys to match your backend schema
     const payload = {
       fullName: allAnswers["What's your full name?"],
-      age: allAnswers["What's your Running Age?"],
-      zipcode: allAnswers["What's your zipcode?"],
-      email: allAnswers["What is your email address?"],
-      medicare: allAnswers["Are you on Medicare?"],
+      age: allAnswers["Okay, what is your age today?"],
+      zipcode: allAnswers["Nice, and what's your zip code?"],
+      email: allAnswers["So far so good! May I know your email?"],
+      medicare: allAnswers["Thank you. Now, are you on medicare?"],
       healthConditions:
         allAnswers["Do you have any of the following health conditions?"],
       housingStatus: allAnswers["Do you own your home or rent?"],
-      drivesWeekly: allAnswers["Do you drive atleast once a week?"],
-      recentDUI: allAnswers["Do you have any DUIs in the last 6 months?"],
+      drivesWeekly: allAnswers["Great, we're almost there! Do you have a car that you drive at least once a week?"],
+      recentDUI: allAnswers["And do you have any DUIs in the last 6 months?"],
       accidents:
         allAnswers[
-          "Have you faced any motor vehicle accidents in the last 2 years?"
+          "Alright, we're almost done. Have you faced any motor vehicle accidents in the last 2 years?"
         ],
       hasChildren:
         allAnswers["Do you have any children between the age of 18-64?"],
       creditCardDebt:
-        allAnswers["Do you have a credit card debt of 10,000 or more?"],
-      exercises: allAnswers["Do you exercise at least once a week?"],
+        allAnswers["Okay, and do you have a credit card debt of $10,000 or more?"],
+      exercises: allAnswers["I got it, just one last question! Do you exercise at least once a week?"],
     };
 
     try {
@@ -339,30 +383,38 @@ export default function Home() {
       setActivatingAiLoder(false);
       setStartChat(true);
 
-    const initialMessages = [
-      {
-        id: 1,
-        sender: "bot",
-        text: "Congratulations, on taking the first step towards securing your future!",
-      },
-      {
-        id: 2,
-        sender: "bot",
-        text: "My focus is to help seniors like you claim benefits that can significantly improve your quality of life.",
-      },
-      {
-        id: 3,
-        sender: "bot",
-        text: "Simply click below & message us on Whatsapp, our AI agent will help you claim all the benefits mentioned in a few button clicks.",
-        type: "choice",
-        options: ["Lets Start"],
-      },
-    ];
+      const initialMessages = [
+        {
+          id: 1,
+          sender: "bot",
+          text: "Congratulations on taking the first step toward claiming the benefits you rightfully deserve!",
+          audio: firstquestion
+        },
+        {
+          id: 2,
+          sender: "bot",
+          text: "Let's just get to know you a little better, so I can help unlock all the benefits, discounts, and allowances you might qualify for.",
+          audio: secondquestion
+        },
+        {
+          id: 3,
+          sender: "bot",
+          text: "Tap the button below and we'll get started — it only takes a minute.",
+          type: "choice",
+          options: ["Lets Start"],
+          audio: thirdquestion
+        },
+      ];
 
       let delay = 0;
       initialMessages.forEach((msg) => {
         setTimeout(() => {
-          setChat((prev) => [...prev, msg]);
+          setChat((prev) => {
+            const newChat = [...prev, msg];
+            // Play audio for each initial message
+            playMessageAudio(msg.audio);
+            return newChat;
+          });
         }, delay);
         delay += 1200; // Slower delay between messages
       });
@@ -382,6 +434,7 @@ export default function Home() {
     <>
     {!finalmessage? (
       <>
+      <audio ref={audioRef} style={{ display: 'none' }} />
       <div>
         {/* Black Top Header */}
         <div className="w-full bg-black text-white py-4 flex justify-center items-center space-x-2">
