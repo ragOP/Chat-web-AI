@@ -26,80 +26,35 @@ const questions = [
   { id: 1, text: "What's your full name?", type: "text", keyType: "alphabet", audio: nameAudio },
   { id: 2, text: "Okay, what is your age today?", type: "text", keyType: "numeric", audio: ageAudio },
   { id: 3, text: "Nice, and what's your zip code?", type: "text", keyType: "numeric", audio: zipcodeAudio },
-  {
-    id: 4,
-    text: "So far so good!\nMay I know your email?",
-    type: "text",
-    keyType: "alphabet",
-    audio: emailAudio,
-    style: { whiteSpace: "pre-line" }
-  },
-  {
-    id: 5,
-    text: "Thank you. Now, are you on medicare?",
-    type: "choice",
-    options: ["Yes", "No"],
-    audio: medicareAudio
-  },
-  {
-    id: 6,
-    text: "Do you have any of the following health conditions?",
-    type: "choice",
-    options: ["Alzheimers", "Diabetes", "Hypertension", "Arthritis", "No"],
-    audio: alzheimersAudio
-  },
-  {
-    id: 7,
-    text: "Do you own your home or rent?",
-    type: "choice",
-    options: ["I Own", "I Rent"],
-    audio: homeAudio
-  },
-  {
-    id: 8,
-    text: "Great, we're almost there!\nDo you have a car that you drive at least once a week?",
-    type: "choice",
-    options: ["Yes", "No"],
-    audio: carAudio,
-    style: { whiteSpace: "pre-line" }
-  },
-  {
-    id: 9,
-    text: "And do you have any DUIs in the last 6 months?",
-    type: "choice",
-    options: ["Yes", "No"],
-    audio: DUIAudio
-  },
-  {
-    id: 10,
-    text: "Alright, we're almost done.\nHave you faced any motor vehicle accidents in the last 2 years?",
-    type: "choice",
-    options: ["Yes", "No"],
-    audio: accidentAudio,
-    style: { whiteSpace: "pre-line" }
-  },
-  {
-    id: 11,
-    text: "Do you have any children between the age of 18-64?",
-    type: "choice",
-    options: ["Yes", "No"],
-    audio: childAudio
-  },
-  {
-    id: 12,
-    text: "Okay, and do you have a credit card debt of $10,000 or more?",
-    type: "choice",
-    options: ["Yes", "No"],
-    audio: debtAudio
-  },
-  {
-    id: 13,
-    text: "I got it, just one last question! Do you exercise at least once a week?",
-    type: "choice",
-    options: ["Yes", "No"],
-    audio: exerciseAudio
-  },
+
+  // SPLIT EMAIL STEP
+  { id: 4, text: "So far so good!", type: "info", audio: emailAudio },
+  { id: 5, text: "May I know your email?", type: "text", keyType: "alphabet" },
+
+  // SPLIT MEDICARE STEP
+  { id: 6, text: "Thank you.", type: "info", audio: medicareAudio },
+  { id: 7, text: "Now, are you on medicare?", type: "choice", options: ["Yes", "No"] },
+
+  { id: 8, text: "Do you have any of the following health conditions?", type: "choice", options: ["Alzheimers", "Diabetes", "Hypertension", "Arthritis", "No"], audio: alzheimersAudio },
+  { id: 9, text: "Do you own your home or rent?", type: "choice", options: ["I Own", "I Rent"], audio: homeAudio },
+
+  // SPLIT CAR STEP
+  { id: 10, text: "Great, we're almost there!", type: "info", audio: carAudio },
+  { id: 11, text: "Do you have a car that you drive at least once a week?", type: "choice", options: ["Yes", "No"] },
+
+  // SPLIT ACCIDENT STEP
+  { id: 12, text: "Alright, we're almost done.", type: "info", audio: accidentAudio },
+  { id: 13, text: "Have you faced any motor vehicle accidents in the last 2 years?", type: "choice", options: ["Yes", "No"] },
+
+  { id: 14, text: "Do you have any children between the age of 18-64?", type: "choice", options: ["Yes", "No"], audio: childAudio },
+  { id: 15, text: "Okay, and do you have a credit card debt of $10,000 or more?", type: "choice", options: ["Yes", "No"], audio: debtAudio },
+
+  // SPLIT EXERCISE STEP
+  { id: 16, text: "I got it,", type: "info", audio: exerciseAudio },
+  { id: 17, text: "Just one last question! Do you exercise at least once a week?", type: "choice", options: ["Yes", "No"] },
 ];
+
+
 
 export default function Home() {
   const [showInitialMessage, setShowInitialMessage] = useState(true);
@@ -214,66 +169,103 @@ export default function Home() {
     }, showTyping ? 2000 : 10);
   };
 
-  const handleSend = (response) => {
-    const currentQuestion = questions[step];
+const handleSend = (response) => {
+  const currentQuestion = questions[step];
 
-    if(currentQuestion.id === 3 && !validatePincode(response)){
-      alert("Please enter a valid pincode");
-      return
-    }
+  if (currentQuestion.id === 3 && !validatePincode(response)) {
+    alert("Please enter a valid pincode");
+    return;
+  }
 
-    if(currentQuestion.id === 4 && !validateEmail(response)){
-      alert("Please enter a valid email");
-      return
-    }
-    switch (currentQuestion.id) {
-      case 1:
-        setName(response);
-        break;
-      case 7:
-        setIsDiscountedInsurance(response === "I Own");
-        break;
-      case 8:
-        setIsComponsation(response === "Yes");
-        break;
-      case 9:
-        setIsACA(response === "Yes");
-        break;
-      case 12:
-        setIsCreditDebt(response === "Yes");
-        break;
-      default:
-        break;
-    }
+  if (currentQuestion.id === 5 && !validateEmail(response)) {
+    alert("Please enter a valid email");
+    return;
+  }
 
-    // Save answer
-    const updatedAnswers = {
-      ...answers,
-      [currentQuestion.text]: response,
-    };
-    setAnswers(updatedAnswers);
+  switch (currentQuestion.id) {
+    case 1:
+      setName(response);
+      break;
+    case 9:
+      setIsDiscountedInsurance(response === "I Own");
+      break;
+    case 11:
+      setIsComponsation(response === "Yes");
+      break;
+    case 13:
+      setIsACA(response === "Yes");
+      break;
+    case 15:
+      setIsCreditDebt(response === "Yes");
+      break;
+    default:
+      break;
+  }
 
-    // Add user message to chat
-    const updatedChat = [
-      ...chat,
-      { id: chat.length + 1, sender: "user", text: response },
+  const updatedAnswers = {
+    ...answers,
+    [currentQuestion.text]: response,
+  };
+  setAnswers(updatedAnswers);
+
+  const updatedChat = [
+    ...chat,
+    { id: chat.length + 1, sender: "user", text: response },
+  ];
+  setChat(updatedChat);
+  setInput("");
+
+  let nextStep = step + 1;
+
+  // Auto-bundle an 'info' + the next real question
+  if (
+    nextStep < questions.length &&
+    questions[nextStep].type === "info" &&
+    nextStep + 1 < questions.length
+  ) {
+    const infoMsg = questions[nextStep];
+    const realMsg = questions[nextStep + 1];
+
+    const combined = [
+      {
+        id: infoMsg.id,
+        sender: "bot",
+        text: infoMsg.text,
+        type: "info",
+      },
+      {
+        id: realMsg.id,
+        sender: "bot",
+        text: realMsg.text,
+        type: realMsg.type,
+        options: realMsg.options,
+        audio: infoMsg.audio, // NOTE: play audio from the info part
+      },
     ];
 
-    const nextStep = step + 1;
+    setChat((prev) => [...prev, ...combined]);
+    setStep(nextStep + 1);
 
-    if (nextStep < questions.length) {
-      setStep(nextStep);
-      setChat(updatedChat);
-      // Play audio for the next question
-      simulateBotTyping(questions[nextStep]);
-    } else {
-      setChat(updatedChat);
-      setFinalMessage(true);
-      handleFinalAnswers(updatedAnswers); // Call final submission
-    }
+    // Delay to ensure messages render first before playing audio
+    setTimeout(() => {
+      playMessageAudio(infoMsg.audio);
+    }, 300);
 
-    setInput("");
-  };
+    return;
+  }
+
+  // If not a bundle, just do normal step
+  if (nextStep < questions.length) {
+    setStep(nextStep);
+    simulateBotTyping(questions[nextStep]);
+  } else {
+    setFinalMessage(true);
+    handleFinalAnswers(updatedAnswers);
+  }
+};
+
+
+
 
   const handleChoiceClick = (choice) => {
     if (
@@ -291,51 +283,49 @@ export default function Home() {
     handleSend(choice); // Otherwise, handle as usual
   };
 
-  const renderUserInput = () => {
-    if (typing || step >= questions.length) return null;
+const renderUserInput = () => {
+  if (typing || step >= questions.length) return null;
 
-    const current = questions[step];
-    if (current.type === "text") {
-      return (
-        <div className="mt-3 w-full flex flex-col items-end">
-          <div className="flex gap-2 mt-1">
-         
-  <input
-    value={input}
-    onChange={(e) => setInput(e.target.value)}
-    onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
-    className="flex-grow rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-base"
-    placeholder="Type your message..."
-    style={{ fontSize: '16px' }}
-  />
-  <button
-    onClick={() => handleSend(input)}
-    className="bg-[#005e54] text-black p-5 rounded-full transition duration-150"
-    aria-label="Send"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="white"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M5 13l4 4L19 7"
-      />
-    </svg>
-  </button>
-</div>
+  const current = questions[step];
+  if (current.type === "text") {
+    return (
+      <div className="mt-3 w-full flex flex-col items-end">
+        <div className="flex gap-2 mt-1">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
+            className="flex-grow rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-base"
+            placeholder="Type your message..."
+            style={{ fontSize: '16px' }}
+          />
+          <button
+            onClick={() => handleSend(input)}
+            className="bg-[#005e54] text-black p-5 rounded-full transition duration-150"
+            aria-label="Send"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return null; // no input for info or choice types here
+};
 
-          </div>
-      
-      );
-    }
-    return null;
-  };
 
   const handleFinalAnswers = async (allAnswers) => {
     // Optional: transform the keys to match your backend schema
