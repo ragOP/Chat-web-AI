@@ -27,10 +27,11 @@ const questions = [
   { id: 3, text: "Nice, and what's your zip code?", type: "text", keyType: "numeric", audio: zipcodeAudio },
   {
     id: 4,
-    text: "So far so good! May I know your email?",
+    text: "So far so good!\nMay I know your email?",
     type: "text",
     keyType: "alphabet",
-    audio: emailAudio
+    audio: emailAudio,
+    style: { whiteSpace: "pre-line" }
   },
   {
     id: 5,
@@ -55,7 +56,7 @@ const questions = [
   },
   {
     id: 8,
-    text: "Great, we're almost there! Do you have a car that you drive at least once a week?",
+    text: "Great, we're almost there! \n Do you have a car that you drive at least once a week?",
     type: "choice",
     options: ["Yes", "No"],
     audio: carAudio
@@ -69,7 +70,7 @@ const questions = [
   },
   {
     id: 10,
-    text: "Alright, we're almost done. Have you faced any motor vehicle accidents in the last 2 years?",
+    text: "Alright, we're almost done. \nHave you faced any motor vehicle accidents in the last 2 years?",
     type: "choice",
     options: ["Yes", "No"],
     audio: accidentAudio
@@ -564,7 +565,8 @@ export default function Home() {
                             }`}
                             style={{
                               transform: "translateZ(0)",
-                              backfaceVisibility: "hidden"
+                              backfaceVisibility: "hidden",
+                              whiteSpace: "pre-line"
                             }}
                           >
                             {msg.text}
