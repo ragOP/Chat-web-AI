@@ -35,7 +35,7 @@ const questions = [
   { id: 6, text: "Thank you.", type: "info", audio: medicareAudio },
   { id: 7, text: "Now, are you on medicare?", type: "choice", options: ["Yes", "No"] },
 
-  { id: 8, text: "Do you have any of the following health conditions?", type: "choice", options: ["Alzheimers", "Diabetes", "Hypertension", "Arthritis", "No"], audio: alzheimersAudio },
+  { id: 8, text: "Do you have any of the following mentioned health conditions?", type: "choice", options: ["Alzheimers", "Diabetes", "Hypertension", "Arthritis", "No"], audio: alzheimersAudio },
   { id: 9, text: "Do you own your home or rent?", type: "choice", options: ["I Own", "I Rent"], audio: homeAudio },
 
   // SPLIT CAR STEP
@@ -387,7 +387,7 @@ const renderUserInput = () => {
         {
           id: 2,
           sender: "bot",
-          text: "Let's just get to know you a little better, so I can help unlock all the benefits, discounts, and allowances you might qualify for.",
+          text: "Let's just get to know you a little better, so I can help unlock all the benefits, subsidies, and allowances you might qualify for.",
           audio: secondquestion
         },
         {
@@ -756,7 +756,7 @@ const renderUserInput = () => {
                   <p className="text-sm mt-2">
                     <i>
                       <span className="text-[#005e54] font-bold">69</span>{" "}
-                      Peoples Are <span className="font-bold">Claiming</span>{" "}
+                      People Are <span className="font-bold">Claiming</span>{" "}
                       Right Now!
                     </i>
                   </p>
