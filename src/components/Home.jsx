@@ -12,6 +12,8 @@ import medicareAudio from "../assets/Thank you Now are you o 3.wav";
 import alzheimersAudio from "../assets/Do you have any of the me 1.wav";
 import homeAudio from "../assets/Okay next do you own you 2.wav";
 import carAudio from "../assets/Great we-re almost there 3.wav";
+import have from "../assets/abc.wav";
+import got from "../assets/goat.wav";
 import DUIAudio from "../assets/And do you have any DUIs 1.wav";
 import accidentAudio from "../assets/Have you faced any motor 1.wav";
 import childAudio from "../assets/Do you have any children 2.wav";
@@ -40,7 +42,7 @@ const questions = [
 
   // SPLIT CAR STEP
   { id: 10, text: "Great, we're almost there!", type: "info", audio: carAudio },
-  { id: 11, text: "Do you have a car that you drive at least once a week?", type: "choice", options: ["Yes", "No"] },
+  { id: 11, text: "Do you have a car that you drive at least once a week?",  audio:have, type: "choice", options: ["Yes", "No"] },
 
   // SPLIT ACCIDENT STEP
   { id: 12, text: "Alright, we're almost done.", type: "info", audio: accidentAudio },
@@ -50,8 +52,8 @@ const questions = [
   { id: 15, text: "Okay, and do you have a credit card debt of $10,000 or more?", type: "choice", options: ["Yes", "No"], audio: debtAudio },
 
   // SPLIT EXERCISE STEP
-  { id: 16, text: "I got it,", type: "info", audio: exerciseAudio },
-  { id: 17, text: "Just one last question! Do you exercise at least once a week?", type: "choice", options: ["Yes", "No"] },
+  { id: 16, text: "I got it,", type: "info", audio: got },
+  { id: 17, text: "Just one last question! Do you exercise at least once a week?", type: "choice", options: ["Yes", "No"] ,audio: exerciseAudio},
 ];
 
 
