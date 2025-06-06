@@ -560,7 +560,7 @@ export default function Home() {
                             <motion.button
                               key={i}
                               onClick={() => handleChoiceClick(opt)}
-                              className="text-white font-bold px-5 py-2 rounded-xl bg-[#005e54] hover:bg-[#004a43] transition-colors duration-300"
+                              className="text-white font-bold px-6 py-4 rounded-xl bg-[#005e54] hover:bg-[#004a43] transition-colors duration-300"
                               whileHover={{ scale: 1.03 }}
                               whileTap={{ scale: 0.97 }}
                               initial={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -698,7 +698,7 @@ export default function Home() {
                     className="bg-[#005e54] flex items-center text-white text-3xl px-8 py-3 rounded-4xl hover:opacity-90"
                   >
                     {activatingAiLoder ? (
-                  <div className="flex items-center justify-center ">
+                  <div className="flex items-center justify-center w-[50vw]">
                     <InfinityLoader />
                   </div>
                 ) : (

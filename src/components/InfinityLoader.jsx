@@ -3,7 +3,7 @@ export default function InfinityLoader() {
     <div className="flex items-center justify-center space-x-3 px-3">
       <svg
         viewBox="0 0 187.3 93.7"
-        className="w-9 h-9" 
+        className="w-20 h-9" 
         fill="none"
         preserveAspectRatio="xMidYMid meet"
       >
@@ -33,7 +33,7 @@ export default function InfinityLoader() {
           fill="none"
         />
       </svg>
-      <p className="text-xl font-semibold text-gray-100">Activating AI</p>
+      {/* <p className="text-xl font-semibold text-gray-100">Activating AI</p> */}
     </div>
   );
 }
