@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
 const states = [
-  { message: "Reviewing your answer", percentage: 45 },
-  { message: "Matching best option for you", percentage: 65 },
-  { message: "Confirming your eligibility", percentage: 100 },
+  { message: "Scanning Benefits", percentage: 12 },
+  { message: "Analyzing Eligibility", percentage: 25 },
+  { message: "Matching Location", percentage: 47 },
+  { message: "Locking Subsidies", percentage: 65 },
+  { message: "Securing Access", percentage: 87 },
+  { message: "Securing Access", percentage: 95 },
+  { message: "Securing Access", percentage: 100 },
 ];
 
 const LoaderWithStates = ({ onComplete }) => {
@@ -12,7 +16,7 @@ const LoaderWithStates = ({ onComplete }) => {
 
   useEffect(() => {
     let startTime = Date.now();
-    const totalDuration = 8000; // 8 seconds total
+    const totalDuration = 15000; // 8 seconds total
 
     const updateProgress = () => {
       const elapsed = Date.now() - startTime;
