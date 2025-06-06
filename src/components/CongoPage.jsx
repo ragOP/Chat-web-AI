@@ -7,6 +7,7 @@ import benifit4 from "../assets/benifit4.webp";
 import LoaderWithStates from "./LoaderWithStates";
 import firstmessage from "../assets/Congratulations We-ve fo 1.wav";
 import secondmessage from "../assets/So go ahead claim and en 1.wav";
+import center from "../assets/center.png";
 
 const CongratulationsPage = ({
   isMedicare = true,
@@ -89,9 +90,9 @@ const CongratulationsPage = ({
         <>
           <div>
             {/* Black Top Header */}
-            <div className="w-full bg-black text-white py-4 flex justify-center items-center space-x-2">
+            <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
               {/* Crown icon (you can use any SVG/icon) */}
-              <div className="bg-white text-black rounded-full p-1">
+              {/* <div className="bg-white text-black rounded-full p-1">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-4 w-4"
@@ -103,7 +104,8 @@ const CongratulationsPage = ({
               </div>
               <h1 className="text-xl font-bold">
                 SeniorBenefit.Ai<sup className="text-xs align-super">®</sup>
-              </h1>
+              </h1> */}
+              <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
             </div>
 
             {/* <div

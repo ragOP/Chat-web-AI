@@ -20,6 +20,7 @@ import exerciseAudio from "../assets/Do you exercise at least 2.wav";
 import firstquestion from "../assets/Congratulations on taking 2 (1).wav";
 import secondquestion from "../assets/Let-s just get to know yo 2.wav";
 import thirdquestion from "../assets/Tap the button below and 2.wav";
+import center from "../assets/center.png";
 
 const questions = [
   { id: 1, text: "What's your full name?", type: "text", keyType: "alphabet", audio: nameAudio },
@@ -436,12 +437,12 @@ export default function Home() {
     <>
     {!finalmessage? (
       <>
-      <audio ref={audioRef} style={{ display: 'none' }} />
+      <audio playsInline ref={audioRef} style={{ display: 'none' }} />
       <div>
         {/* Black Top Header */}
-        <div className="w-full bg-black text-white py-4 flex justify-center items-center space-x-2">
+        <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
           {/* Crown icon (you can use any SVG/icon) */}
-          <div className="bg-white text-black rounded-full p-1">
+          {/* <div className="bg-white text-black rounded-full p-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-4 w-4"
@@ -453,7 +454,8 @@ export default function Home() {
           </div>
           <h1 className="text-lg font-bold">
             SeniorBenefit.Ai<sup className="text-xs align-super">®</sup>
-          </h1>
+          </h1> */}
+          <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
         </div>
 
         <div
