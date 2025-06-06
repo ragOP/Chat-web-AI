@@ -37,7 +37,7 @@ const questions = [
   { id: 6, text: "Thank you.", type: "info", audio: medicareAudio },
   { id: 7, text: "Now, are you on medicare?", type: "choice", options: ["Yes", "No"] },
 
-  { id: 8, text: "Do you have any of the following mentioned health conditions?", type: "choice", options: ["Alzheimers", "Diabetes", "Hypertension", "Arthritis", "No"], audio: alzheimersAudio },
+  { id: 8, text: "Do you have any of the mentioned health conditions?", type: "choice", options: ["Alzheimers", "Diabetes", "Hypertension", "Arthritis", "No"], audio: alzheimersAudio },
   { id: 9, text: "Do you own your home or rent?", type: "choice", options: ["I Own", "I Rent"], audio: homeAudio },
 
   // SPLIT CAR STEP
