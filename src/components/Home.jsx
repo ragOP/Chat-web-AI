@@ -15,6 +15,7 @@ import carAudio from "../assets/Great we-re almost there 3.wav";
 import have from "../assets/abc.wav";
 import got from "../assets/goat.wav";
 import DUIAudio from "../assets/And do you have any DUIs 1.wav";
+import almost from '../assets/umeer.wav'
 import accidentAudio from "../assets/Have you faced any motor 1.wav";
 import childAudio from "../assets/Do you have any children 2.wav";
 import debtAudio from "../assets/Okay and do you have a c 4.wav";
@@ -45,8 +46,8 @@ const questions = [
   { id: 11, text: "Do you have a car that you drive at least once a week?",  audio:have, type: "choice", options: ["Yes", "No"] },
 
   // SPLIT ACCIDENT STEP
-  { id: 12, text: "Alright, we're almost done.", type: "info", audio: accidentAudio },
-  { id: 13, text: "Have you faced any motor vehicle accidents in the last 2 years?", type: "choice", options: ["Yes", "No"] },
+  { id: 12, text: "Alright, we're almost done.", type: "info", audio: almost },
+  { id: 13, text: "Have you faced any motor vehicle accidents in the last 2 years?", type: "choice", options: ["Yes", "No"] ,audio: accidentAudio},
 
   { id: 14, text: "Do you have any children between the age of 18-64?", type: "choice", options: ["Yes", "No"], audio: childAudio },
   { id: 15, text: "Okay, and do you have a credit card debt of $10,000 or more?", type: "choice", options: ["Yes", "No"], audio: debtAudio },
@@ -137,14 +138,21 @@ export default function Home() {
   }, [chat, typing]);
 
   // Add audio player function
-  const playMessageAudio = (audioUrl) => {
-    if (audioUrl && audioRef.current) {
-      audioRef.current.src = audioUrl;
-      audioRef.current.play().catch(error => {
-        console.log("Audio playback failed:", error);
-      });
-    }
-  };
+const playMessageAudio = (audioUrl, onEnded = null) => {
+  if (audioUrl && audioRef.current) {
+    audioRef.current.src = audioUrl;
+    audioRef.current.play().then(() => {
+      if (onEnded) {
+        audioRef.current.onended = onEnded;
+      } else {
+        audioRef.current.onended = null;
+      }
+    }).catch((err) => {
+      console.error("Audio playback failed:", err);
+    });
+  }
+};
+
 
   const simulateBotTyping = (question, showTyping = true) => {
     if(showTyping){
@@ -174,16 +182,17 @@ export default function Home() {
 const handleSend = (response) => {
   const currentQuestion = questions[step];
 
+  // Validation
   if (currentQuestion.id === 3 && !validatePincode(response)) {
     alert("Please enter a valid pincode");
     return;
   }
-
   if (currentQuestion.id === 5 && !validateEmail(response)) {
     alert("Please enter a valid email");
     return;
   }
 
+  // Set flags
   switch (currentQuestion.id) {
     case 1:
       setName(response);
@@ -219,7 +228,7 @@ const handleSend = (response) => {
 
   let nextStep = step + 1;
 
-  // Auto-bundle an 'info' + the next real question
+  // 🔁 Handle info + question combo
   if (
     nextStep < questions.length &&
     questions[nextStep].type === "info" &&
@@ -228,12 +237,15 @@ const handleSend = (response) => {
     const infoMsg = questions[nextStep];
     const realMsg = questions[nextStep + 1];
 
-    const combined = [
+    // Render both messages together
+    setChat((prev) => [
+      ...prev,
       {
         id: infoMsg.id,
         sender: "bot",
         text: infoMsg.text,
         type: "info",
+        audio: infoMsg.audio,
       },
       {
         id: realMsg.id,
@@ -241,22 +253,22 @@ const handleSend = (response) => {
         text: realMsg.text,
         type: realMsg.type,
         options: realMsg.options,
-        audio: infoMsg.audio, // NOTE: play audio from the info part
+        audio: realMsg.audio,
       },
-    ];
+    ]);
 
-    setChat((prev) => [...prev, ...combined]);
+    // Update step to second part
     setStep(nextStep + 1);
 
-    // Delay to ensure messages render first before playing audio
-    setTimeout(() => {
-      playMessageAudio(infoMsg.audio);
-    }, 300);
+    // Play both audios sequentially
+    playMessageAudio(infoMsg.audio, () => {
+      playMessageAudio(realMsg.audio);
+    });
 
     return;
   }
 
-  // If not a bundle, just do normal step
+  // 🔚 If not bundled, continue normally
   if (nextStep < questions.length) {
     setStep(nextStep);
     simulateBotTyping(questions[nextStep]);
@@ -265,6 +277,7 @@ const handleSend = (response) => {
     handleFinalAnswers(updatedAnswers);
   }
 };
+
 
 
 
