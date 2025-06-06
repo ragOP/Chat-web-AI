@@ -409,8 +409,8 @@ export default function Home() {
         },
       ];
 
-      let delay = 0;
-      initialMessages.forEach((msg) => {
+      let delays = [500, 6500, 14000]; // Cumulative delays (0, 6s, 6s+7.5s)
+      initialMessages.forEach((msg, index) => {
         setTimeout(() => {
           setChat((prev) => {
             const newChat = [...prev, msg];
@@ -418,8 +418,7 @@ export default function Home() {
             playMessageAudio(msg.audio);
             return newChat;
           });
-        }, delay);
-        delay += 1200; // Slower delay between messages
+        }, delays[index]);
       });
     }, 3000);
   };
