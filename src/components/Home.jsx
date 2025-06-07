@@ -46,8 +46,8 @@ const questions = [
   { id: 11, text: "Do you have a car that you drive at least once a week?",  audio:have, type: "choice", options: ["Yes", "No"] },
 
   // SPLIT ACCIDENT STEP
-  { id: 12, text: "Alright, we're almost done.", type: "info", audio: almost },
-  { id: 13, text: "Have you faced any motor vehicle accidents in the last 2 years?", type: "choice", options: ["Yes", "No"] ,audio: accidentAudio},
+  { id: 13, text: "Alright, we're almost done.", type: "info", audio: almost },
+  { id: 12, text: "Have you faced any motor vehicle accidents in the last 2 years?", type: "choice", options: ["Yes", "No"] ,audio: accidentAudio},
 
   { id: 14, text: "Do you have any children between the age of 18-64?", type: "choice", options: ["Yes", "No"], audio: childAudio },
   { id: 15, text: "Okay, and do you have a credit card debt of $10,000 or more?", type: "choice", options: ["Yes", "No"], audio: debtAudio },
