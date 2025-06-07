@@ -155,30 +155,27 @@ const playMessageAudio = (audioUrl, onEnded = null) => {
 };
 
 
-  const simulateBotTyping = (question, showTyping = true) => {
-    if(showTyping){
-      setTyping(true);
-    }
-    setTimeout(() => {
-      setChat((prev) => {
-        const newChat = [
-          ...prev,
-          {
-            id: question.id,
-            sender: "bot",
-            text: question.text,
-            type: question.type,
-            options: question.options,
-            audio: question.audio
-          },
-        ];
-        // Play audio after adding the message
-        playMessageAudio(question.audio);
-        return newChat;
-      });
-      setTyping(false);
-    }, showTyping ? 2000 : 10);
-  };
+const simulateBotTyping = (question, showTyping = true) => {
+  if (showTyping) setTyping(true);
+
+  setTimeout(() => {
+    setChat((prev) => [
+      ...prev,
+      {
+        id: question.id,
+        sender: "bot",
+        text: question.text,
+        type: question.type,
+        options: question.options,
+        audio: question.audio
+      },
+    ]);
+    playMessageAudio(question.audio);
+    setTyping(false);
+  }, showTyping ? 1000 : 10); // 👈 half the delay now
+};
+
+
 
 const handleSend = (response) => {
   const currentQuestion = questions[step];
@@ -416,7 +413,7 @@ const renderUserInput = () => {
         },
       ];
 
-      let delays = [500, 6500, 14000]; // Cumulative delays (0, 6s, 6s+7.5s)
+     let delays = [500, 6500, 14000]; // Cumulative delays (0, 6s, 6s+7.5s)
       initialMessages.forEach((msg, index) => {
         setTimeout(() => {
           setChat((prev) => {
