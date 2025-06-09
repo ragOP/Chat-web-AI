@@ -21,24 +21,45 @@ const CongratulationsPage = ({
   const [showCongratulation, setShowCongratulation] = useState(false);
 
 useEffect(() => {
-  const delayTimer = setTimeout(() => {
-    setShowCongratulation(true);
-  }, 16000); // delay before showing congratulations
+  const audio1 = new Audio(firstmessage);
+  const audio2 = new Audio(secondmessage);
 
-  return () => clearTimeout(delayTimer); // cleanup
+  let audio1Ready = false;
+  let audio2Ready = false;
+
+  const checkReadyAndPlay = () => {
+    if (audio1Ready && audio2Ready) {
+      setTimeout(() => {
+        setShowCongratulation(true);
+      }, 1000); // Optional delay before showing UI
+    }
+  };
+
+  audio1.oncanplaythrough = () => {
+    audio1Ready = true;
+    checkReadyAndPlay();
+  };
+
+  audio2.oncanplaythrough = () => {
+    audio2Ready = true;
+    checkReadyAndPlay();
+  };
+
+  audio1.load(); // Trigger preload
+  audio2.load();
 }, []);
 
 useEffect(() => {
   if (!showCongratulation) return;
 
   const audio1 = new Audio(firstmessage);
+  const audio2 = new Audio(secondmessage);
 
   audio1.play().then(() => {
     audio1.onended = () => {
-      const audio2 = new Audio(secondmessage);
       audio2.play();
     };
-  }).catch(err => {
+  }).catch((err) => {
     console.warn("Audio playback failed:", err);
   });
 
