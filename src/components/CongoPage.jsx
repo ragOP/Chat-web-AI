@@ -20,22 +20,29 @@ const CongratulationsPage = ({
   const [totalBenefits, setTotalBenefits] = useState(0);
   const [showCongratulation, setShowCongratulation] = useState(false);
 
-  setTimeout(() => {
+useEffect(() => {
+  const delayTimer = setTimeout(() => {
     setShowCongratulation(true);
-  }, 16000);
+  }, 16000); // delay before showing congratulations
 
-  useEffect(() => {
-    const audio = new Audio(firstmessage);
-    if (showCongratulation) {
-      audio.play();
-    }
-    setTimeout(() => {
+  return () => clearTimeout(delayTimer); // cleanup
+}, []);
+
+useEffect(() => {
+  if (!showCongratulation) return;
+
+  const audio1 = new Audio(firstmessage);
+
+  audio1.play().then(() => {
+    audio1.onended = () => {
       const audio2 = new Audio(secondmessage);
-      if (showCongratulation) {
-        audio2.play();
-      }
-    }, 24000);
-  }, [showCongratulation]);
+      audio2.play();
+    };
+  }).catch(err => {
+    console.warn("Audio playback failed:", err);
+  });
+
+}, [showCongratulation]);
 
   useEffect(() => {
     const total = [
@@ -54,10 +61,18 @@ const CongratulationsPage = ({
   if (isComponsation) console.log("Eligible for Componsation");
   if (isACA) console.log("Eligible for ACA");
 
+  // const openLink = (phone) => {
+  //   if (phone.includes("http")) window.open(phone, "_blank");
+  //   else window.open(`tel:${phone}`, "_blank");
+  // };
   const openLink = (phone) => {
-    if (phone.includes("http")) window.open(phone, "_blank");
-    else window.open(`tel:${phone}`, "_blank");
-  };
+  if (phone.includes("http")) {
+    window.open(phone, "_blank");
+  } else {
+    window.location.href = `tel:${phone}`;
+  }
+};
+
 
   const renderCard = (title, description, img, badge, phone, call) => (
     <div className="bg-white rounded-xl w-full max-w-xl shadow-md my-6">
