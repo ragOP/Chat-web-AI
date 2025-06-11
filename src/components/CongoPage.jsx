@@ -192,8 +192,8 @@ useEffect(() => {
                   "You're eligible for a Discounted Auto Insurance Plan with all the coverages.",
                   benifit3,
                   "MUST CLAIM!",
-                  "https://www.roadwayrelief.com/get-quote-am/",
-                  "CLICK HERE TO PROCEED"
+                    "+16197753027",
+                  "CALL (619) 775-3027"
                 )}
 
               {isComponsation &&
@@ -202,8 +202,9 @@ useEffect(() => {
                   "You might be eligible for a higher compensation. Most people get 3x of their past compensations.",
                   benifit4,
                   "GET UPTO $100,000+!",
-                  "+16197753027",
-                  "CALL (619) 775-3027"
+                    "https://www.roadwayrelief.com/get-quote-am/",
+                  "CLICK HERE TO PROCEED"
+              
                 )}
 
               {isACA &&
