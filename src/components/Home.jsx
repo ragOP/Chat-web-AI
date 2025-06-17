@@ -14,7 +14,6 @@ import homeAudio from "../assets/Okay next do you own you 2.wav";
 import carAudio from "../assets/Great we-re almost there 3.wav";
 import have from "../assets/abc.wav";
 import got from "../assets/goat.wav";
-import DUIAudio from "../assets/And do you have any DUIs 1.wav";
 import almost from '../assets/umeer.wav'
 import accidentAudio from "../assets/Have you faced any motor 1.wav";
 import childAudio from "../assets/Do you have any children 2.wav";
@@ -272,6 +271,7 @@ const handleSend = (response) => {
     simulateBotTyping(questions[nextStep]);
   } else {
     setFinalMessage(true);
+    // console.log("Final Answers:", updatedAnswers);
     handleFinalAnswers(updatedAnswers);
   }
 };
@@ -346,23 +346,23 @@ const renderUserInput = () => {
       fullName: allAnswers["What's your full name?"],
       age: allAnswers["Okay, what is your age today?"],
       zipcode: allAnswers["Nice, and what's your zip code?"],
-      email: allAnswers["So far so good! May I know your email?"],
-      medicare: allAnswers["Thank you. Now, are you on medicare?"],
+      email: allAnswers["May I know your email?"],
+      medicare: allAnswers["Now, are you on medicare?"],
       healthConditions:
-        allAnswers["Do you have any of the following health conditions?"],
+        allAnswers["Do you have any of the mentioned health conditions?"],
       housingStatus: allAnswers["Do you own your home or rent?"],
-      drivesWeekly: allAnswers["Great, we're almost there! Do you have a car that you drive at least once a week?"],
-      recentDUI: allAnswers["And do you have any DUIs in the last 6 months?"],
+      drivesWeekly: allAnswers["Do you have a car that you drive at least once a week?"],
       accidents:
         allAnswers[
-          "Alright, we're almost done. Have you faced any motor vehicle accidents in the last 2 years?"
+          "Have you faced any motor vehicle accidents in the last 2 years?"
         ],
       hasChildren:
         allAnswers["Do you have any children between the age of 18-64?"],
       creditCardDebt:
         allAnswers["Okay, and do you have a credit card debt of $10,000 or more?"],
-      exercises: allAnswers["I got it, just one last question! Do you exercise at least once a week?"],
+      exercises: allAnswers["Do you exercise at least once a week?"],
     };
+
 
     try {
       const res = await fetch(
