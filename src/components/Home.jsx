@@ -189,6 +189,31 @@ const handleSend = (response) => {
     return;
   }
 
+  if(currentQuestion.id === 5){
+    try {
+      const emailPayload = {
+        email: response
+      };
+      
+      fetch("https://benifit-gpt-be.onrender.com/email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(emailPayload),
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log("✅ Email API call successful:", data);
+      })
+      .catch(err => {
+        console.error("❌ Error calling email API:", err);
+      });
+    } catch (error) {
+      console.error("❌ Error in email API call:", error);
+    }
+  }
+
   // Set flags
   switch (currentQuestion.id) {
     case 1:
