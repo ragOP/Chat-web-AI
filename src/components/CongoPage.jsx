@@ -83,7 +83,7 @@ const CongratulationsPage = () => {
     fetch(
       `https://benifit-gpt-be.onrender.com/check/offer?email=${encodeURIComponent(
         email
-      )}&name=${encodeURIComponent(name)}`
+      )}`
     )
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch offer");
@@ -169,42 +169,42 @@ const CongratulationsPage = () => {
 
   return (
     <>
-    <div>
-      <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
-        <img
-          src={center}
-          alt="logo"
-          className="w-[60%] h-[55px] object-contain"
-        />
-      </div>
-      <div className="bg-[#005e54] min-h-screen flex flex-col items-center px-4 py-8 text-white">
-        <div className="text-center mt-1">
-          <h1 className="text-3xl font-bold">Congratulations, {fullName}!</h1>
-          <p className="text-xl mt-2">
-            Here are the{" "}
-            <span className="text-yellow-400 font-bold text-2xl">
-              {totalBenefits}
-            </span>{" "}
-            Benefits You Qualify For:
+      <div>
+        <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
+          <img
+            src={center}
+            alt="logo"
+            className="w-[60%] h-[55px] object-contain"
+          />
+        </div>
+        <div className="bg-[#005e54] min-h-screen flex flex-col items-center px-4 py-8 text-white">
+          <div className="text-center mt-1">
+            <h1 className="text-3xl font-bold">Congratulations, {fullName}!</h1>
+            <p className="text-xl mt-2">
+              Here are the{" "}
+              <span className="text-yellow-400 font-bold text-2xl">
+                {totalBenefits}
+              </span>{" "}
+              Benefits You Qualify For:
+            </p>
+            <p className="italic mt-1 text-base">Go one by one!</p>
+          </div>
+          <div className="flex flex-col items-center w-full mt-6">
+            {validTags.length === 0 && (
+              <div className="text-white text-lg font-semibold my-8">
+                No benefits found for you at this time.
+              </div>
+            )}
+            {validTags.map((tag) => renderCard(BENEFIT_CARDS[tag]))}
+          </div>
+          <p className="text-sm text-white text-center px-6 mt-6 max-w-2xl">
+            Beware of other fraudulent & similar looking websites that might
+            look exactly like ours, we have no affiliation with them. This is
+            the only official website to claim your Burial Protection Plan with
+            the domain name mybenefitsai.org.
           </p>
-          <p className="italic mt-1 text-base">Go one by one!</p>
         </div>
-        <div className="flex flex-col items-center w-full mt-6">
-          {validTags.length === 0 && (
-            <div className="text-white text-lg font-semibold my-8">
-              No benefits found for you at this time.
-            </div>
-          )}
-          {validTags.map((tag) => renderCard(BENEFIT_CARDS[tag]))}
-        </div>
-        <p className="text-sm text-white text-center px-6 mt-6 max-w-2xl">
-          Beware of other fraudulent & similar looking websites that might look
-          exactly like ours, we have no affiliation with them. This is the only
-          official website to claim your Burial Protection Plan with the domain
-          name mybenefitsai.org.
-        </p>
       </div>
-    </div>
     </>
   );
 };
