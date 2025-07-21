@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom";
 import Record from "./components/Record";
 import Privacy from "./components/Privacy";
 import Email from "./components/Email";
+import NewRecord from "./components/NewRecord";
 
 function App(){
   return (
@@ -14,6 +15,7 @@ function App(){
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/email" element={<Email />} />
+      <Route path="/new-record" element={<NewRecord />} />
     </Routes>
   )
 }

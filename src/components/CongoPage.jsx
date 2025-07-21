@@ -11,10 +11,11 @@ import center from "../assets/center.png";
 
 const CongratulationsPage = ({
   isMedicare = true,
-  isCreditDebt = true,
-  isDiscountedInsurence = true,
-  isComponsation = true,
-  isACA,
+  isDebt = true,
+  isAuto = true,
+  isMVA = true,
+  isSSDI = true,
+  isMortgage = true,
   name,
 }) => {
   const [totalBenefits, setTotalBenefits] = useState(0);
@@ -68,19 +69,21 @@ useEffect(() => {
   useEffect(() => {
     const total = [
       isMedicare,
-      isCreditDebt,
-      isDiscountedInsurence,
-      isComponsation,
-      isACA,
+      isDebt,
+      isAuto,
+      isMVA,
+      isSSDI,
+      isMortgage,
     ].filter((val) => val).length;
     setTotalBenefits(total);
   }, []);
 
   if (isMedicare) console.log("Eligible for Medicare");
-  if (isCreditDebt) console.log("Eligible for Credit Debt");
-  if (isDiscountedInsurence) console.log("Eligible for Discounted Insurance");
-  if (isComponsation) console.log("Eligible for Componsation");
-  if (isACA) console.log("Eligible for ACA");
+  if (isDebt) console.log("Eligible for Debt");
+  if (isAuto) console.log("Eligible for Auto");
+  if (isMVA) console.log("Eligible for MVA");
+  if (isSSDI) console.log("Eligible for SSDI");
+  if (isMortgage) console.log("Eligible for Mortgage");
 
   // const openLink = (phone) => {
   //   if (phone.includes("http")) window.open(phone, "_blank");
@@ -176,7 +179,7 @@ useEffect(() => {
                   "CALL (323) 689-7861"
                 )}
 
-              {isCreditDebt &&
+              {isDebt &&
                 renderCard(
                   "Credit Card Debt Relief",
                   "You're qualified to claim 100% Debt Relief by end of today (RARE).",
@@ -186,9 +189,9 @@ useEffect(() => {
                   "CALL (833) 340-2442"
                 )}
 
-              {isDiscountedInsurence &&
+              {isAuto &&
                 renderCard(
-                  "Discounted Auto Insurance Plan",
+                  "Auto Insurance",
                   "You're eligible for a Discounted Auto Insurance Plan with all the coverages.",
                   benifit3,
                   "MUST CLAIM!",
@@ -196,9 +199,9 @@ useEffect(() => {
                   "CALL (619) 775-3027"
                 )}
 
-              {isComponsation &&
+              {isMVA &&
                 renderCard(
-                  "Higher Compensation For Your Accident",
+                  "MVA",
                   "You might be eligible for a higher compensation. Most people get 3x of their past compensations.",
                   benifit4,
                   "GET UPTO $100,000+!",
@@ -207,10 +210,20 @@ useEffect(() => {
               
                 )}
 
-              {isACA &&
+              {isSSDI &&
                 renderCard(
-                  "ACA",
-                  "This ACA benefit gives you thousands of dollars a year to spend on healthcare, prescriptions, etc.",
+                  "SSDI",
+                  "This SSDI benefit gives you thousands of dollars a year to spend on healthcare, prescriptions, etc.",
+                  benifit1,
+                  "EASIEST TO CLAIM",
+                  "+16197753027",
+                  "CALL (619) 775-3027"
+                )}
+
+              {isMortgage &&
+                renderCard(
+                  "Mortgage Relief",
+                  "You might be eligible for a mortgage relief. Most people get 3x of their past compensations.",
                   benifit1,
                   "EASIEST TO CLAIM",
                   "+16197753027",
