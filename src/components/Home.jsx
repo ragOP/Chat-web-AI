@@ -20,6 +20,7 @@ import firstquestion from "../assets/Congratulations on taking 2 (1).wav";
 import secondquestion from "../assets/Let-s just get to know yo 2.wav";
 import thirdquestion from "../assets/Tap the button below and 2.wav";
 import center from "../assets/center.png";
+import Confirmation from "./Confirmation";
 
 const TAGS = {
   medicare: "is_md",
@@ -157,6 +158,8 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [finalmessage, setFinalMessage] = useState(false);
+  const [email, setEmail] = useState("");
+  const [userId, setUserId] = useState("");
   const chatBoxRef = useRef(null);
   const audioRef = useRef(null);
 
@@ -232,6 +235,7 @@ export default function Home() {
         const emailPayload = {
           email: response,
         };
+        setEmail(response);
 
         fetch("https://benifit-gpt-be.onrender.com/email", {
           method: "POST",
@@ -254,7 +258,8 @@ export default function Home() {
 
     if (currentQuestion.tag) {
       let shouldTag = false;
-      if (currentQuestion.id === 7 && response === "Yes") shouldTag = true;
+      if (currentQuestion.id === 7 && (response === "Yes" || response === "No"))
+        shouldTag = true;
       if (currentQuestion.id === 8 && response !== "No") shouldTag = true;
       if (currentQuestion.id === 9 && response === "I Own") shouldTag = true;
       if (currentQuestion.id === 11 && response === "Yes") shouldTag = true;
@@ -393,10 +398,12 @@ export default function Home() {
   };
 
   const handleFinalAnswers = async (allAnswers, tagArray) => {
+    const tempUserId =
+      allAnswers["What's your full name?"].slice(0, 3).toUpperCase() +
+      Date.now().toString();
+    setUserId(tempUserId);
     const payload = {
-      user_id:
-        allAnswers["What's your full name?"].slice(0, 3).toUpperCase() +
-        Date.now().toString(),
+      user_id: tempUserId,
       fullName: allAnswers["What's your full name?"],
       age: allAnswers["Okay, what is your age today?"],
       zipcode: allAnswers["Nice, and what's your zip code?"],
@@ -838,15 +845,7 @@ export default function Home() {
           </div>
         </>
       ) : (
-        <CongratulationsPage
-          isMedicare={tags.includes(TAGS.medicare)}
-          isDebt={tags.includes(TAGS.debt)}
-          isAuto={tags.includes(TAGS.auto)}
-          isMVA={tags.includes(TAGS.mva)}
-          isSSDI={tags.includes(TAGS.ssdi)}
-          isMortgage={tags.includes(TAGS.mortgage)}
-          name={name}
-        />
+        <Confirmation email={email} name={name} userId={userId} />
       )}
     </>
   );

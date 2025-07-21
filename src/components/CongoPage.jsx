@@ -1,105 +1,130 @@
-import React, { useEffect, useState } from "react";
-
+import React, { useEffect, useState, useRef } from "react";
 import benifit1 from "../assets/benifit1.webp";
 import benifit2 from "../assets/benifit2.webp";
 import benifit3 from "../assets/benifit3.webp";
 import benifit4 from "../assets/benifit4.webp";
-import LoaderWithStates from "./LoaderWithStates";
 import firstmessage from "../assets/Congratulations We-ve fo 1.wav";
 import secondmessage from "../assets/So go ahead claim and en 1.wav";
 import center from "../assets/center.png";
+import LoaderWithStates from "./LoaderWithStates";
 
-const CongratulationsPage = ({
-  isMedicare = true,
-  isDebt = true,
-  isAuto = true,
-  isMVA = true,
-  isSSDI = true,
-  isMortgage = true,
-  name,
-}) => {
-  const [totalBenefits, setTotalBenefits] = useState(0);
-  const [showCongratulation, setShowCongratulation] = useState(false);
+const BENEFIT_CARDS = {
+  Medicare: {
+    title: "Food Allowance Card",
+    description:
+      "This food allowance card gives you thousands of dollars a year to spend on groceries, rent, prescriptions, etc.",
+    img: benifit1,
+    badge: "EASIEST TO CLAIM",
+    phone: "+13236897861",
+    call: "CALL (323) 689-7861",
+  },
+  Debt: {
+    title: "Credit Card Debt Relief",
+    description:
+      "You're qualified to claim 100% Debt Relief by end of today (RARE).",
+    img: benifit2,
+    badge: "WORTH THE MOST $$",
+    phone: "+18333402442",
+    call: "CALL (833) 340-2442",
+  },
+  Auto: {
+    title: "Auto Insurance",
+    description:
+      "You're eligible for a Discounted Auto Insurance Plan with all the coverages.",
+    img: benifit3,
+    badge: "MUST CLAIM!",
+    phone: "+16197753027",
+    call: "CALL (619) 775-3027",
+  },
+  MVA: {
+    title: "MVA",
+    description:
+      "You might be eligible for a higher compensation. Most people get 3x of their past compensations.",
+    img: benifit4,
+    badge: "GET UPTO $100,000+!",
+    phone: "https://www.roadwayrelief.com/get-quote-am/",
+    call: "CLICK HERE TO PROCEED",
+  },
+  SSDI: {
+    title: "SSDI",
+    description:
+      "This SSDI benefit gives you thousands of dollars a year to spend on healthcare, prescriptions, etc.",
+    img: benifit1,
+    badge: "EASIEST TO CLAIM",
+    phone: "+16197753027",
+    call: "CALL (619) 775-3027",
+  },
+  "Reverse Mortgage": {
+    title: "Mortgage Relief",
+    description:
+      "You might be eligible for a mortgage relief. Most people get 3x of their past compensations.",
+    img: benifit1,
+    badge: "EASIEST TO CLAIM",
+    phone: "+16197753027",
+    call: "CALL (619) 775-3027",
+  },
+};
 
-useEffect(() => {
-  const audio1 = new Audio(firstmessage);
-  const audio2 = new Audio(secondmessage);
+const CongratulationsPage = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [offer, setOffer] = useState(null);
+  const audioPlayedRef = useRef(false);
 
-  let audio1Ready = false;
-  let audio2Ready = false;
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get("email");
+    const userId = params.get("userId");
+    if (!email || !userId) {
+      setError("Missing email or userId in URL.");
+      setLoading(false);
+      return;
+    }
+    fetch(
+      `https://benifit-gpt-be.onrender.com/check/offer?email=${encodeURIComponent(
+        email
+      )}&userId=${encodeURIComponent(userId)}`
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch offer");
+        return res.json();
+      })
+      .then((data) => {
+        setOffer(data.data || data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Could not load your offer. Please try again later.");
+        setLoading(false);
+      });
+  }, []);
 
-  const checkReadyAndPlay = () => {
-    if (audio1Ready && audio2Ready) {
-      setTimeout(() => {
-        setShowCongratulation(true);
-      }, 1000); // Optional delay before showing UI
+  useEffect(() => {
+    if (!loading && offer && !audioPlayedRef.current) {
+      audioPlayedRef.current = true;
+      const audio1 = new Audio(firstmessage);
+      const audio2 = new Audio(secondmessage);
+      audio1.play().then(() => {
+        audio1.onended = () => {
+          audio2.play();
+        };
+      });
+    }
+  }, [loading, offer]);
+
+  const openLink = (phone) => {
+    if (phone.includes("http")) {
+      window.open(phone, "_blank");
+    } else {
+      window.location.href = `tel:${phone}`;
     }
   };
 
-  audio1.oncanplaythrough = () => {
-    audio1Ready = true;
-    checkReadyAndPlay();
-  };
-
-  audio2.oncanplaythrough = () => {
-    audio2Ready = true;
-    checkReadyAndPlay();
-  };
-
-  audio1.load(); // Trigger preload
-  audio2.load();
-}, []);
-
-useEffect(() => {
-  if (!showCongratulation) return;
-
-  const audio1 = new Audio(firstmessage);
-  const audio2 = new Audio(secondmessage);
-
-  audio1.play().then(() => {
-    audio1.onended = () => {
-      audio2.play();
-    };
-  }).catch((err) => {
-    console.warn("Audio playback failed:", err);
-  });
-
-}, [showCongratulation]);
-
-  useEffect(() => {
-    const total = [
-      isMedicare,
-      isDebt,
-      isAuto,
-      isMVA,
-      isSSDI,
-      isMortgage,
-    ].filter((val) => val).length;
-    setTotalBenefits(total);
-  }, []);
-
-  if (isMedicare) console.log("Eligible for Medicare");
-  if (isDebt) console.log("Eligible for Debt");
-  if (isAuto) console.log("Eligible for Auto");
-  if (isMVA) console.log("Eligible for MVA");
-  if (isSSDI) console.log("Eligible for SSDI");
-  if (isMortgage) console.log("Eligible for Mortgage");
-
-  // const openLink = (phone) => {
-  //   if (phone.includes("http")) window.open(phone, "_blank");
-  //   else window.open(`tel:${phone}`, "_blank");
-  // };
-  const openLink = (phone) => {
-  if (phone.includes("http")) {
-    window.open(phone, "_blank");
-  } else {
-    window.location.href = `tel:${phone}`;
-  }
-};
-
-
-  const renderCard = (title, description, img, badge, phone, call) => (
-    <div className="bg-white rounded-xl w-full max-w-xl shadow-md my-6">
+  const renderCard = ({ title, description, img, badge, phone, call }) => (
+    <div
+      className="bg-white rounded-xl w-full max-w-xl shadow-md my-6"
+      key={title}
+    >
       <div className="bg-red-600 text-white font-bold text-center py-2 rounded-t-md">
         {badge}
       </div>
@@ -122,126 +147,64 @@ useEffect(() => {
       </div>
     </div>
   );
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#005e54] text-white">
+        <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
+          <img
+            src={center}
+            alt="logo"
+            className="w-[60%] h-[55px] object-contain"
+          />
+        </div>
+        <div className="mt-10 text-2xl font-bold">{error}</div>
+      </div>
+    );
+  }
+  if (!offer) return null;
+
+  const { fullName = "User", tags = [] } = offer;
+  const validTags = tags.filter((tag) => BENEFIT_CARDS[tag]);
+  const totalBenefits = validTags.length;
 
   return (
     <>
-      {showCongratulation ? (
-        <>
-          <div>
-            {/* Black Top Header */}
-            <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
-              {/* Crown icon (you can use any SVG/icon) */}
-              {/* <div className="bg-white text-black rounded-full p-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M10 2l2.39 4.84L18 8.26l-4.91 4.78L14.6 18 10 15.27 5.4 18l1.51-4.96L2 8.26l5.61-.42L10 2z" />
-                </svg>
-              </div>
-              <h1 className="text-xl font-bold">
-                SeniorBenefit.Ai<sup className="text-xs align-super">®</sup>
-              </h1> */}
-              <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
+    <div>
+      <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
+        <img
+          src={center}
+          alt="logo"
+          className="w-[60%] h-[55px] object-contain"
+        />
+      </div>
+      <div className="bg-[#005e54] min-h-screen flex flex-col items-center px-4 py-8 text-white">
+        <div className="text-center mt-1">
+          <h1 className="text-3xl font-bold">Congratulations, {fullName}!</h1>
+          <p className="text-xl mt-2">
+            Here are the{" "}
+            <span className="text-yellow-400 font-bold text-2xl">
+              {totalBenefits}
+            </span>{" "}
+            Benefits You Qualify For:
+          </p>
+          <p className="italic mt-1 text-base">Go one by one!</p>
+        </div>
+        <div className="flex flex-col items-center w-full mt-6">
+          {validTags.length === 0 && (
+            <div className="text-white text-lg font-semibold my-8">
+              No benefits found for you at this time.
             </div>
-
-            {/* <div
-          className="w-full text-white text-center font-semibold italic py-2 rounded-b-full"
-          style={{ backgroundColor: "#005e54" }}
-        >
-          22,578 Seniors Helped In Last 24 Hours!
-        </div> */}
-          </div>
-
-          <div className="bg-[#005e54] min-h-screen flex flex-col items-center px-4 py-8 text-white">
-            <div className="text-center mt-1">
-              <h1 className="text-3xl font-bold">Congratulations, {name}!</h1>
-              <p className="text-xl mt-2">
-                Here are the{" "}
-                <span className="text-yellow-400 font-bold text-2xl">
-                  {totalBenefits}
-                </span>{" "}
-                Benefits You Qualify For:
-              </p>
-              <p className="italic mt-1 text-base">Go one by one!</p>
-            </div>
-
-            <div className="flex flex-col items-center w-full mt-6">
-              {isMedicare &&
-                renderCard(
-                  "Food Allowance Card",
-                  "This food allowance card gives you thousands of dollars a year to spend on groceries, rent, prescriptions, etc.",
-                  benifit1,
-                  "EASIEST TO CLAIM",
-                  "+13236897861",
-                  "CALL (323) 689-7861"
-                )}
-
-              {isDebt &&
-                renderCard(
-                  "Credit Card Debt Relief",
-                  "You're qualified to claim 100% Debt Relief by end of today (RARE).",
-                  benifit2,
-                  "WORTH THE MOST $$",
-                  "+18333402442",
-                  "CALL (833) 340-2442"
-                )}
-
-              {isAuto &&
-                renderCard(
-                  "Auto Insurance",
-                  "You're eligible for a Discounted Auto Insurance Plan with all the coverages.",
-                  benifit3,
-                  "MUST CLAIM!",
-                    "+16197753027",
-                  "CALL (619) 775-3027"
-                )}
-
-              {isMVA &&
-                renderCard(
-                  "MVA",
-                  "You might be eligible for a higher compensation. Most people get 3x of their past compensations.",
-                  benifit4,
-                  "GET UPTO $100,000+!",
-                    "https://www.roadwayrelief.com/get-quote-am/",
-                  "CLICK HERE TO PROCEED"
-              
-                )}
-
-              {isSSDI &&
-                renderCard(
-                  "SSDI",
-                  "This SSDI benefit gives you thousands of dollars a year to spend on healthcare, prescriptions, etc.",
-                  benifit1,
-                  "EASIEST TO CLAIM",
-                  "+16197753027",
-                  "CALL (619) 775-3027"
-                )}
-
-              {isMortgage &&
-                renderCard(
-                  "Mortgage Relief",
-                  "You might be eligible for a mortgage relief. Most people get 3x of their past compensations.",
-                  benifit1,
-                  "EASIEST TO CLAIM",
-                  "+16197753027",
-                  "CALL (619) 775-3027"
-                )}
-            </div>
-
-            <p className="text-sm text-white text-center px-6 mt-6 max-w-2xl">
-              Beware of other fraudulent & similar looking websites that might
-              look exactly like ours, we have no affiliation with them. This is
-              the only official website to claim your Burial Protection Plan
-              with the domain name mybenefitsai.org.
-            </p>
-          </div>
-        </>
-      ) : (
-        <LoaderWithStates />
-      )}
+          )}
+          {validTags.map((tag) => renderCard(BENEFIT_CARDS[tag]))}
+        </div>
+        <p className="text-sm text-white text-center px-6 mt-6 max-w-2xl">
+          Beware of other fraudulent & similar looking websites that might look
+          exactly like ours, we have no affiliation with them. This is the only
+          official website to claim your Burial Protection Plan with the domain
+          name mybenefitsai.org.
+        </p>
+      </div>
+    </div>
     </>
   );
 };
