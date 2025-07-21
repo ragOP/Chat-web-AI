@@ -74,16 +74,16 @@ const CongratulationsPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");
-    const userId = params.get("userId");
-    if (!email || !userId) {
-      setError("Missing email or userId in URL.");
+    const name = params.get("name");
+    if (!email || !name) {
+      setError("Missing email or name in URL.");
       setLoading(false);
       return;
     }
     fetch(
       `https://benifit-gpt-be.onrender.com/check/offer?email=${encodeURIComponent(
         email
-      )}&userId=${encodeURIComponent(userId)}`
+      )}&name=${encodeURIComponent(name)}`
     )
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch offer");
