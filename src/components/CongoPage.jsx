@@ -14,7 +14,7 @@ const BENEFIT_CARDS = {
     description:
       "This food allowance card gives you thousands of dollars a year to spend on groceries, rent, prescriptions, etc.",
     img: benifit1,
-    badge: "EASIEST TO CLAIM",
+    badge: "Easiest To Claim",
     phone: "+13236897861",
     call: "CALL (323) 689-7861",
   },
@@ -74,8 +74,7 @@ const CongratulationsPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");
-    const name = params.get("name");
-    if (!email || !name) {
+    if (!email) {
       setError("Missing email or name in URL.");
       setLoading(false);
       return;
@@ -122,34 +121,41 @@ const CongratulationsPage = () => {
 
   const renderCard = ({ title, description, img, badge, phone, call }) => (
     <div
-      className="bg-white rounded-xl w-full max-w-xl shadow-md my-6"
+      className="bg-[#3e8477] rounded-b-2xl w-full max-w-sm shadow-lg my-4 overflow-hidden"
       key={title}
     >
-      <div className="bg-red-600 text-white font-bold text-center py-2 rounded-t-md">
+      <div className="bg-red-600 text-white font-bold text-center py-2 text-sm">
         {badge}
       </div>
-      <div className="p-4 flex flex-col items-center">
-        <h2 className="text-3xl font-bold text-center text-black">{title}</h2>
-        <img src={img} alt={title} className="w-[70%] object-contain my-4" />
-        <p className="text-center text-black">{description}</p>
-        <p className="text-center my-2 font-semibold text-black">
+      <div className="p-4 flex flex-col items-center text-white">
+        <h2 className="text-xl font-bold text-center text-white mb-3">
+          {title}
+        </h2>
+        <img
+          src={img}
+          alt={title}
+          className="w-full max-w-[200px] object-contain mb-3"
+        />
+        <p className="text-center text-white text-sm mb-4">{description}</p>
+        <p className="text-center mb-3 text-sm text-black">
           Simply click below & call now to claim
         </p>
         <button
           onClick={() => openLink(phone)}
-          className="bg-green-600 text-white w-full py-3 rounded-full font-bold text-2xl"
+          className="bg-green-600 text-black w-full py-3 rounded-full font-bold text-lg hover:bg-green-700 transition-colors"
         >
           {call}
         </button>
-        <p className="text-xs text-center mt-2 text-black">
-          *Takes <strong>couple minutes</strong> on average
-        </p>
+        {/* <p className="text-xs text-center mt-2 text-white">
+          *Takes <strong>3-5 minutes</strong> on average
+        </p> */}
       </div>
     </div>
   );
+
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#005e54] text-white">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-black">
         <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
           <img
             src={center}
@@ -161,51 +167,64 @@ const CongratulationsPage = () => {
       </div>
     );
   }
+
   if (!offer) return null;
 
   const { fullName = "User", tags = [] } = offer;
   const validTags = tags.filter((tag) => BENEFIT_CARDS[tag]);
-  const totalBenefits = validTags.length;
+  // const totalBenefits = validTags.length;
 
   return (
-    <>
-      <div>
-        <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
-          <img
-            src={center}
-            alt="logo"
-            className="w-[60%] h-[55px] object-contain"
-          />
-        </div>
-        <div className="bg-[#005e54] min-h-screen flex flex-col items-center px-4 py-8 text-white">
-          <div className="text-center mt-1">
-            <h1 className="text-3xl font-bold">Congratulations, {fullName}!</h1>
-            <p className="text-xl mt-2">
-              Here are the{" "}
-              <span className="text-yellow-400 font-bold text-2xl">
-                {totalBenefits}
-              </span>{" "}
-              Benefits You Qualify For:
-            </p>
-            <p className="italic mt-1 text-base">Go one by one!</p>
-          </div>
-          <div className="flex flex-col items-center w-full mt-6">
-            {validTags.length === 0 && (
-              <div className="text-white text-lg font-semibold my-8">
-                No benefits found for you at this time.
-              </div>
-            )}
-            {validTags.map((tag) => renderCard(BENEFIT_CARDS[tag]))}
-          </div>
-          <p className="text-sm text-white text-center px-6 mt-6 max-w-2xl">
-            Beware of other fraudulent & similar looking websites that might
-            look exactly like ours, we have no affiliation with them. This is
-            the only official website to claim your Burial Protection Plan with
-            the domain name mybenefitsai.org.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
+        <img
+          src={center}
+          alt="logo"
+          className="w-[60%] h-[55px] object-contain"
+        />
       </div>
-    </>
+
+      <div className="px-4 py-6">
+        <div className="text-left mb-6 px-2 max-w-sm mx-auto">
+          <h1 className="text-3xl font-bold text-black leading-tight mb-6">
+            Congratulations,
+            <br />
+            {fullName}! 🎉
+          </h1>
+          <p className="text-xl text-black mb-6 leading-tight">
+            We've found that you immediately qualify for these{" "}
+            <span className="text-green-600 font-bold">these benefits</span>{" "}
+            worth thousands of dollars combined.
+          </p>
+
+          <div className="bg-[#cbefda] rounded-4xl p-3 mx-auto max-w-md mb-6 text-center">
+            <p className="text-lg text-black tracking-tight">
+              Claim all of your benefits by calling on their official hotline's
+              below, one after one.{" "}
+              <span className="font-bold">
+                Each benefit call takes 3-5 minutes.
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center">
+          {validTags.length === 0 && (
+            <div className="text-black text-lg font-semibold my-8">
+              No benefits found for you at this time.
+            </div>
+          )}
+          {validTags.map((tag) => renderCard(BENEFIT_CARDS[tag]))}
+        </div>
+
+        <p className="text-xs text-gray-600 text-center px-6 mt-6 max-w-2xl mx-auto">
+          Beware of other fraudulent & similar looking websites that might look
+          exactly like ours, we have no affiliation with them. This is the only
+          official website to claim your Burial Protection Plan with the domain
+          name mybenefitsai.org.
+        </p>
+      </div>
+    </div>
   );
 };
 
