@@ -137,12 +137,12 @@ const CongratulationsPage = () => {
           className="w-full max-w-[200px] object-contain mb-3"
         />
         <p className="text-center text-white text-sm mb-4">{description}</p>
-        <p className="text-center mb-3 text-sm text-black">
+        <p className="text-center mb-3 text-sm text-white">
           Simply click below & call now to claim
         </p>
         <button
           onClick={() => openLink(phone)}
-          className="bg-green-600 text-black w-full py-3 rounded-full font-bold text-lg hover:bg-green-700 transition-colors"
+          className="bg-green-600 text-white w-full py-3 rounded-full font-bold text-lg hover:bg-green-700 transition-colors"
         >
           {call}
         </button>
