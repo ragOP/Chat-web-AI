@@ -7,6 +7,7 @@ import firstmessage from "../assets/Congratulations We-ve fo 1.wav";
 import secondmessage from "../assets/So go ahead claim and en 1.wav";
 import center from "../assets/center.png";
 import LoaderWithStates from "./LoaderWithStates";
+import "./shimmer.css";
 
 const BENEFIT_CARDS = {
   Medicare: {
@@ -45,24 +46,24 @@ const BENEFIT_CARDS = {
     phone: "https://www.roadwayrelief.com/get-quote-am/",
     call: "CLICK HERE TO PROCEED",
   },
-  SSDI: {
-    title: "SSDI",
-    description:
-      "This SSDI benefit gives you thousands of dollars a year to spend on healthcare, prescriptions, etc.",
-    img: benifit1,
-    badge: "EASIEST TO CLAIM",
-    phone: "+16197753027",
-    call: "CALL (619) 775-3027",
-  },
-  "Reverse Mortgage": {
-    title: "Mortgage Relief",
-    description:
-      "You might be eligible for a mortgage relief. Most people get 3x of their past compensations.",
-    img: benifit1,
-    badge: "EASIEST TO CLAIM",
-    phone: "+16197753027",
-    call: "CALL (619) 775-3027",
-  },
+  // SSDI: {
+  //   title: "SSDI",
+  //   description:
+  //     "This SSDI benefit gives you thousands of dollars a year to spend on healthcare, prescriptions, etc.",
+  //   img: benifit1,
+  //   badge: "EASIEST TO CLAIM",
+  //   phone: "+16197753027",
+  //   call: "CALL (619) 775-3027",
+  // },
+  // "Reverse Mortgage": {
+  //   title: "Mortgage Relief",
+  //   description:
+  //     "You might be eligible for a mortgage relief. Most people get 3x of their past compensations.",
+  //   img: benifit1,
+  //   badge: "EASIEST TO CLAIM",
+  //   phone: "+16197753027",
+  //   call: "CALL (619) 775-3027",
+  // },
 };
 
 const CongratulationsPage = () => {
@@ -142,7 +143,7 @@ const CongratulationsPage = () => {
         </p>
         <button
           onClick={() => openLink(phone)}
-          className="bg-green-600 text-white w-full py-3 rounded-full font-bold text-lg hover:bg-green-700 transition-colors"
+          className="bg-green-600 text-white w-full py-3 rounded-full font-bold text-lg hover:bg-green-700 transition-colors shimmer"
         >
           {call}
         </button>
