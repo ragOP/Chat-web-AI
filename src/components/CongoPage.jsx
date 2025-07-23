@@ -21,7 +21,7 @@ const BENEFIT_CARDS = {
   Debt: {
     title: "Credit Card Debt Relief",
     description:
-      "You're qualified to claim 100% Debt Relief by end of today (RARE).",
+      "Takes 10 Minutes Or More",
     img: benifit2,
     badge: "WORTH THE MOST $$",
     phone: "+18333402442",
@@ -32,7 +32,7 @@ const BENEFIT_CARDS = {
     description:
       "You're eligible for a Discounted Auto Insurance Plan with all the coverages.",
     img: benifit3,
-    badge: "MUST CLAIM!",
+    badge: "Assured Monthly Savings!",
     phone: "+16197753027",
     call: "CALL (619) 775-3027",
   },
@@ -41,7 +41,7 @@ const BENEFIT_CARDS = {
     description:
       "You might be eligible for a higher compensation. Most people get 3x of their past compensations.",
     img: benifit4,
-    badge: "GET UPTO $100,000+!",
+    badge: "Could Be Worth $100,000",
     phone: "https://www.roadwayrelief.com/get-quote-am/",
     call: "CLICK HERE TO PROCEED",
   },
@@ -192,7 +192,7 @@ const CongratulationsPage = () => {
             {fullName}! 🎉
           </h1>
           <p className="text-xl text-black mb-6 leading-tight">
-            We've found that you immediately qualify for these{" "}
+            We've found that you immediately qualify for {" "}
             <span className="text-green-600 font-bold">these benefits</span>{" "}
             worth thousands of dollars combined.
           </p>
