@@ -21,16 +21,16 @@ const BENEFIT_CARDS = {
   Debt: {
     title: "Credit Card Debt Relief",
     description:
-      "Takes 10 Minutes Or More",
+      "You are eligible to get all your debt relieved under the new Emergency Debt Relief program.",
     img: benifit2,
-    badge: "WORTH THE MOST $$",
+    badge: "Takes 10 Minutes Or More",
     phone: "+18333402442",
     call: "CALL (833) 340-2442",
   },
   Auto: {
     title: "Auto Insurance",
     description:
-      "You're eligible for a Discounted Auto Insurance Plan with all the coverages.",
+      "You're eligible for a Discounted Auto Insurance Plan with all the coverage.",
     img: benifit3,
     badge: "Assured Monthly Savings!",
     phone: "+16197753027",
@@ -41,7 +41,7 @@ const BENEFIT_CARDS = {
     description:
       "You might be eligible for a higher compensation. Most people get 3x of their past compensations.",
     img: benifit4,
-    badge: "Could Be Worth $100,000",
+    badge: "Could Be Worth $100,000+",
     phone: "https://www.roadwayrelief.com/get-quote-am/",
     call: "CLICK HERE TO PROCEED",
   },
