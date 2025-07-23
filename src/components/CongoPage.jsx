@@ -220,7 +220,7 @@ const CongratulationsPage = () => {
         <p className="text-xs text-gray-600 text-center px-6 mt-6 max-w-2xl mx-auto">
           Beware of other fraudulent & similar looking websites that might look
           exactly like ours, we have no affiliation with them. This is the only
-          official website to claim your Burial Protection Plan with the domain
+          official website to claim your Benefits with the domain
           name mybenefitsai.org.
         </p>
       </div>
