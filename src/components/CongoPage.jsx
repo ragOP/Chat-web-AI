@@ -74,15 +74,15 @@ const CongratulationsPage = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const email = params.get("email");
-    if (!email) {
-      setError("Missing email or name in URL.");
+    const userId = params.get("userId");
+    if (!userId) {
+      setError("Missing userId in URL.");
       setLoading(false);
       return;
     }
     fetch(
-      `https://benifit-gpt-be.onrender.com/check/offer?email=${encodeURIComponent(
-        email
+      `https://benifit-gpt-be.onrender.com/check/offer?userId=${encodeURIComponent(
+        userId
       )}`
     )
       .then((res) => {
