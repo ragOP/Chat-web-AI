@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import benifit1 from "../assets/benifit1.webp";
+import benifit1 from "../assets/card.png";
 import benifit2 from "../assets/benifit2.webp";
 import benifit3 from "../assets/benifit3.webp";
 import benifit4 from "../assets/benifit4.webp";
