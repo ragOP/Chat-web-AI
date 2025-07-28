@@ -14,7 +14,7 @@ function App(){
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/email" element={<Email />} />
-      <Route path="/new-record" element={<NewRxecord />} />
+      <Route path="/new-record" element={<NewRecord />} />
       <Route path="/congratulations" element={<CongratulationsPage />} />
     </Routes>
   )
