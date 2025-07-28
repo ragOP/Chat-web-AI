@@ -12,6 +12,43 @@ const NewRecord = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState("all");
+const isToday = (date) => {
+  const d = new Date(date);
+  const now = new Date();
+  return (
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear()
+  );
+};
+
+const isYesterday = (date) => {
+  const d = new Date(date);
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return (
+    d.getDate() === yesterday.getDate() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getFullYear() === yesterday.getFullYear()
+  );
+};
+
+const isThisWeek = (date) => {
+  const now = new Date();
+  const d = new Date(date);
+  const firstDayOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+  const lastDayOfWeek = new Date(now.setDate(firstDayOfWeek.getDate() + 6));
+  return d >= firstDayOfWeek && d <= lastDayOfWeek;
+};
+
+const filteredData = data.filter((row) => {
+  if (filter === "today") return isToday(row.createdAt);
+  if (filter === "yesterday") return isYesterday(row.createdAt);
+  if (filter === "week") return isThisWeek(row.createdAt);
+  return true;
+});
+
 
   useEffect(() => {
     fetch("https://benifit-gpt-be.onrender.com/response/all")
@@ -35,6 +72,22 @@ const NewRecord = () => {
         <div className="text-center text-red-600 text-base">{error}</div>
       ) : (
         <div className="overflow-x-auto">
+          <div className="flex flex-wrap justify-center gap-2 mb-4">
+  {["all", "today", "yesterday", "week"].map((key) => (
+    <button
+      key={key}
+      onClick={() => setFilter(key)}
+      className={`px-3 py-1 rounded-full text-sm font-semibold border ${
+        filter === key
+          ? "bg-blue-500 text-white"
+          : "bg-gray-100 text-gray-800"
+      }`}
+    >
+      {key.charAt(0).toUpperCase() + key.slice(1)}
+    </button>
+  ))}
+</div>
+
           <table className="w-full border-collapse min-w-[700px] text-base">
             <thead>
               <tr className="bg-gray-50 text-gray-900 border-b border-gray-300">
@@ -65,14 +118,14 @@ const NewRecord = () => {
               </tr>
             </thead>
             <tbody>
-              {data.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-6 text-gray-500">
                     No records found.
                   </td>
                 </tr>
               ) : (
-                data.map((row, i) => (
+                filteredData.map((row, i) => (
                   <tr
                     key={row._id}
                     className={
