@@ -13,6 +13,9 @@ const NewRecord = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [startDate, setStartDate] = useState("");
+const [endDate, setEndDate] = useState("");
+
 const isToday = (date) => {
   const d = new Date(date);
   const now = new Date();
@@ -43,11 +46,18 @@ const isThisWeek = (date) => {
 };
 
 const filteredData = data.filter((row) => {
-  if (filter === "today") return isToday(row.createdAt);
-  if (filter === "yesterday") return isYesterday(row.createdAt);
-  if (filter === "week") return isThisWeek(row.createdAt);
+  const created = new Date(row.createdAt);
+  if (filter === "today") return isToday(created);
+  if (filter === "yesterday") return isYesterday(created);
+  if (filter === "week") return isThisWeek(created);
+  if (filter === "custom" && startDate && endDate) {
+    const from = new Date(startDate);
+    const to = new Date(endDate);
+    return created >= from && created <= to;
+  }
   return true;
 });
+
 
 
   useEffect(() => {
@@ -72,21 +82,39 @@ const filteredData = data.filter((row) => {
         <div className="text-center text-red-600 text-base">{error}</div>
       ) : (
         <div className="overflow-x-auto">
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
-  {["all", "today", "yesterday", "week"].map((key) => (
-    <button
-      key={key}
-      onClick={() => setFilter(key)}
-      className={`px-3 py-1 rounded-full text-sm font-semibold border ${
-        filter === key
-          ? "bg-blue-500 text-white"
-          : "bg-gray-100 text-gray-800"
-      }`}
-    >
-      {key.charAt(0).toUpperCase() + key.slice(1)}
-    </button>
-  ))}
+          
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
+  <div className="flex gap-2 items-center">
+    <label htmlFor="start" className="text-sm font-semibold">Start Date:</label>
+    <input
+      type="date"
+      id="start"
+      value={startDate}
+      onChange={(e) => {
+        setStartDate(e.target.value);
+        setFilter("custom");
+      }}
+      className="border border-gray-300 px-2 py-1 rounded text-sm"
+    />
+  </div>
+  <div className="flex gap-2 items-center">
+    <label htmlFor="end" className="text-sm font-semibold">End Date:</label>
+    <input
+      type="date"
+      id="end"
+      value={endDate}
+      onChange={(e) => {
+        setEndDate(e.target.value);
+        setFilter("custom");
+      }}
+      className="border border-gray-300 px-2 py-1 rounded text-sm"
+    />
+  </div>
 </div>
+<div className="text-center text-sm font-medium text-gray-700 mb-2">
+  Showing <span className="font-semibold">{filteredData.length}</span> record{filteredData.length !== 1 ? "s" : ""}
+</div>
+
 
           <table className="w-full border-collapse min-w-[700px] text-base">
             <thead>
