@@ -61,7 +61,7 @@ const Confirmation = ({ email, name, userId }) => {
             <div className="bg-white rounded-4xl shadow-lg p-8 max-w-md w-full">
               <div className="flex flex-col items-center">
                 {/* Envelope Icon */}
-                <div className="w-20 h-20 rounded-full border-2 border-[#005e54] bg-white flex items-center justify-center mb-8">
+                <div className="w-20 h-20 rounded-full border-2 border-[#005e54] bg-white flex items-center justify-center mb-4">
                   <svg
                     className="w-10 h-10 text-[#005e54]"
                     fill="currentColor"
@@ -71,7 +71,7 @@ const Confirmation = ({ email, name, userId }) => {
                   </svg>
                 </div>
 
-                <h2 className="text-3xl font-bold text-black mb-6 text-center">
+                <h2 className="text-3xl font-bold text-black mb-3 text-center">
                   Check Your Email!
                 </h2>
 
@@ -83,7 +83,7 @@ const Confirmation = ({ email, name, userId }) => {
             </div>
             <div className="bg-[#005e54] rounded-full px-3 py-3 mb-8 flex items-center -mt-5">
               <span className="text-sm mr-3">🥳</span>
-              <span className="text-white text-sm font-medium">
+              <span className="text-white text-xs font-bold">
                 All your benefits combined are worth <strong>$9,000+</strong>.
               </span>
             </div>
