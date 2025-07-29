@@ -46,34 +46,44 @@ const Confirmation2 = ({ email, name, userId }) => {
               22,578 Seniors Helped In Last 24 Hours!
             </div>
           </div>
-          <div className="flex justify-center items-center min-h-[70vh] px-4">
-            <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full flex flex-col items-center">
-              <div className="bg-[#005e54] rounded-full w-20 h-20 flex items-center justify-center mb-4">
-                <svg
-                  className="w-12 h-12 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+          <div className="flex justify-center items-center min-h-[70vh] px-4 flex-col">
+            <div className="bg-white rounded-4xl shadow-lg p-8 max-w-md w-full">
+              <div className="flex flex-col items-center">
+                {/* Envelope Icon */}
+                <div className="w-20 h-20 rounded-full border-2 border-[#005e54] bg-white flex items-center justify-center mb-8">
+                  <svg
+                    className="w-10 h-10 text-[#005e54]"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                  </svg>
+                </div>
+
+                <h2 className="text-3xl font-bold text-black mb-6 text-center">
+                  Check Your Email!
+                </h2>
+
+                <p className="text-black text-center mb-6 text-xl">
+                  We've just emailed your <strong>Benefits Report</strong> to{" "}
+                  {email}
+                </p>
               </div>
-              <h2 className="text-2xl font-bold text-[#005e54] mb-2 text-center">
-                Check your email!
-              </h2>
-              <p className="text-gray-700 text-center mb-4">
-                We’ve sent a confirmation email to {email}.
-                <br />
-                Please check your email to continue.
+            </div>
+            <div className="bg-[#005e54] rounded-full px-6 py-3 mb-8 flex items-center -mt-5">
+              <span className="text-sm mr-3">🥳</span>
+              <span className="text-white text-sm font-medium">
+                All your benefits combined are worth <strong>$9,000+</strong>.
+              </span>
+            </div>
+            <div className="text-center mt-5">
+              <h3 className="font-bold text-black mb-3 text-xl">
+                Didn't Get Our Email?
+              </h3>
+              <p className="text-gray-500 italic text-xl">
+                Make sure you check the Promotions and Spam tab - because this
+                is our first mail to you.
               </p>
-              <div className="text-sm text-gray-500 text-center">
-                Didn’t get the email? Check your spam folder.
-              </div>
             </div>
           </div>
         </div>
