@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import center from "../assets/center.png";
-import abcAudio from "../assets/abc.wav";
+import abcAudio from "../assets/email-audio.mp3";
 import LoaderWithStates from "./LoaderWithStates";
-import LoaderWithStates2 from "./LoaderWithStates2";
 
 const Confirmation = ({ email, name, userId }) => {
   const [show, setShow] = useState(false);
