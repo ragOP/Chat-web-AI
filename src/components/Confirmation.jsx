@@ -58,7 +58,7 @@ const Confirmation = ({ email, name, userId }) => {
               22,578 Seniors Helped In Last 24 Hours!
             </div>
           </div>
-          <div className="flex justify-center items-center min-h-[70vh] px-4 flex-col">
+          <div className="flex justify-center items-center min-h-[70vh] px-4 flex-col mt-5">
             <div className="bg-white rounded-4xl shadow-lg p-8 max-w-md w-full">
               <div className="flex flex-col items-center">
                 {/* Envelope Icon */}
@@ -82,7 +82,7 @@ const Confirmation = ({ email, name, userId }) => {
                 </p>
               </div>
             </div>
-            <div className="bg-[#005e54] rounded-full px-6 py-3 mb-8 flex items-center -mt-5">
+            <div className="bg-[#005e54] rounded-full px-3 py-3 mb-8 flex items-center -mt-5">
               <span className="text-sm mr-3">🥳</span>
               <span className="text-white text-sm font-medium">
                 All your benefits combined are worth <strong>$9,000+</strong>.
