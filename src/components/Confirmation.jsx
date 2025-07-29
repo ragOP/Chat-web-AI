@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import center from "../assets/center.png";
+import abcAudio from "../assets/abc.wav";
 import LoaderWithStates from "./LoaderWithStates";
 import LoaderWithStates2 from "./LoaderWithStates2";
 
@@ -19,10 +20,21 @@ const Confirmation = ({ email, name, userId }) => {
       body: JSON.stringify(emailPayload),
     });
   };
+
+  const playSound = () => {
+    const audio = new Audio(abcAudio);
+    audio.volume = 0.5; // Set volume to 50%
+    audio.play().catch(error => {
+      console.log("Audio playback failed:", error);
+    });
+  };
+
   useEffect(() => {
     sendEmail();
+     // Play sound when component loads
     setTimeout(() => {
       setShow(true);
+      playSound();
     }, 15000);
   }, []);
   return (
