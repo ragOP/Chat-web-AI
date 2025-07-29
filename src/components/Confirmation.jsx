@@ -11,7 +11,7 @@ const Confirmation = ({ email, name, userId }) => {
       name: name,
       userId: userId,
     };
-    fetch("https://benifit-gpt-be.onrender.com/email/submit2", {
+    fetch("https://benifit-gpt-be.onrender.com/email/submit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

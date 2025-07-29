@@ -500,7 +500,7 @@ export default function Home() {
               className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm"
               style={{ backgroundColor: "#005e54" }}
             >
-              22,578 Seniors Helped In Last 24 Hours!
+              22,578 Americans Helped In Last 24 Hours!
             </div>
           </div>
           <div
@@ -740,7 +740,7 @@ export default function Home() {
                 ) : (
                   <div className="mt-4 space-y-4">
                     <h1 className="font-bold text-3xl text-center text-black">
-                      Seniors, Get Your Free Benefits Check in Just 60 Seconds!
+                      Americans, Get Your Free Benefits Check in Just 60 Seconds!
                     </h1>
                     <div className="flex justify-center items-center mt-6 px-4 text-md font-semibold text-gray-600">
                       <div className="space-y-2 flex flex-col items-start space-x-2">
@@ -758,7 +758,7 @@ export default function Home() {
                               />
                             </svg>
                           </div>
-                          <span>Over 2M+ Seniors Helped Till Date.</span>
+                          <span>Over 2M+ Americans Helped Till Date.</span>
                         </div>
 
                         <div className="flex items-start space-x-2">
@@ -792,7 +792,7 @@ export default function Home() {
                               />
                             </svg>
                           </div>
-                          <span>Specially Made For Seniors Over 65!</span>
+                          <span>Specially Made For Americans Over 65!</span>
                         </div>
                       </div>
                     </div>
