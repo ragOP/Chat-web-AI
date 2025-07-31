@@ -54,7 +54,7 @@ const Confirmation2 = ({ email, name, userId }) => {
               className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm"
               style={{ backgroundColor: "#005e54" }}
             >
-              22,578 Seniors Helped In Last 24 Hours!
+              22,578 Americans Helped In Last 24 Hours!
             </div>
           </div>
           <div className="flex justify-center items-center min-h-[70vh] px-4 flex-col mt-5">
