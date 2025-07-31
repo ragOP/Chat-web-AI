@@ -38,7 +38,7 @@ const BENEFIT_CARDS = {
     call: "CALL (619) 775-3027",
   },
   MVA: {
-    title: "MVA",
+    title: "Vehicle Accident Compensation",
     description:
       "You might be eligible for a higher compensation. Most people get 3x of their past compensations.",
     img: benifit4,
