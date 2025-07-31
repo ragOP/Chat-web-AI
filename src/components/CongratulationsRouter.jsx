@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { CongoPage } from "./CongoPage";
+import { CongoPage2 } from "./CongoPage2";
 
-// Dummy components
-const PageA = () => <div style={{ padding: 20 }}>✅ This is Page A (ChatbotResponse)</div>;
-const PageB = () => <div style={{ padding: 20 }}>🚫 This is Page B (Not ChatbotResponse)</div>;
 
 const CongratulationsRouter = () => {
   const location = useLocation();
@@ -57,7 +56,7 @@ const CongratulationsRouter = () => {
 
   if (loading) return <div style={{ padding: 20 }}>Loading...</div>;
 
-  return pageType === "a" ? <PageA /> : <PageB />;
+  return pageType === "a" ? <CongoPage /> : <CongoPage2 />;
 };
 
 export default CongratulationsRouter;
