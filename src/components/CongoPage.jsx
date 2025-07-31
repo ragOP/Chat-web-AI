@@ -135,7 +135,7 @@ const CongratulationsPage = () => {
         <img
           src={img}
           alt={title}
-          className="w-full max-w-[200px] object-contain mb-3"
+          className="w-full max-w-[200px] object-contain mb-3 rounded-[10%]"
         />
         <p className="text-center text-white text-sm mb-4">{description}</p>
         <p className="text-center mb-3 text-sm text-white">
