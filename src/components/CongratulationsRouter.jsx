@@ -1,15 +1,11 @@
-// src/pages/NoobPage.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import axios from "axios";
 
-// Dummy PageA Component
+// Dummy components
 const PageA = () => <div style={{ padding: 20 }}>✅ This is Page A (ChatbotResponse)</div>;
-
-// Dummy PageB Component
 const PageB = () => <div style={{ padding: 20 }}>🚫 This is Page B (Not ChatbotResponse)</div>;
 
-const NoobPage = () => {
+const CongratulationsRouter = () => {
   const location = useLocation();
   const [pageType, setPageType] = useState(null); // 'a' | 'b' | null
   const [loading, setLoading] = useState(true);
@@ -31,20 +27,25 @@ const NoobPage = () => {
       }
 
       try {
-        const res = await axios.get(
+        const response = await fetch(
           `https://benifit-gpt-be.onrender.com/check/model?fullName=${fullName}`
         );
-        const { foundIn } = res.data;
 
-        if (foundIn.includes("ChatbotResponse")) {
-          console.log("👉 Rendering Page A");
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.foundIn && data.foundIn.includes("ChatbotResponse")) {
+          console.log("👉 Found in ChatbotResponse → Page A");
           setPageType("a");
         } else {
-          console.log("👉 Rendering Page B");
+          console.log("👉 Not in ChatbotResponse → Page B");
           setPageType("b");
         }
-      } catch (err) {
-        console.error("❌ API error:", err.message);
+      } catch (error) {
+        console.error("❌ Fetch error:", error);
         setPageType("b");
       } finally {
         setLoading(false);
@@ -59,4 +60,4 @@ const NoobPage = () => {
   return pageType === "a" ? <PageA /> : <PageB />;
 };
 
-export default NoobPage;
+export default CongratulationsRouter;
