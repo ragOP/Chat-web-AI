@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { CongoPage } from "./CongoPage";
-import { CongoPage2 } from "./CongoPage2";
+import  CongoPage  from "./CongoPage";
+import  CongoPage2  from "./CongoPage2";
 
 
 const CongratulationsRouter = () => {
