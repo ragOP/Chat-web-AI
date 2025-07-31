@@ -1,14 +1,22 @@
+// src/pages/NoobPage.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 
-const CongratulationsRouter = () => {
+// Dummy PageA Component
+const PageA = () => <div style={{ padding: 20 }}>✅ This is Page A (ChatbotResponse)</div>;
+
+// Dummy PageB Component
+const PageB = () => <div style={{ padding: 20 }}>🚫 This is Page B (Not ChatbotResponse)</div>;
+
+const NoobPage = () => {
   const location = useLocation();
+  const [pageType, setPageType] = useState(null); // 'a' | 'b' | null
   const [loading, setLoading] = useState(true);
 
-  const getQueryParam = (param) => {
+  const getQueryParam = (key) => {
     const params = new URLSearchParams(location.search);
-    return params.get(param);
+    return params.get(key);
   };
 
   useEffect(() => {
@@ -16,7 +24,8 @@ const CongratulationsRouter = () => {
       const fullName = getQueryParam("name");
 
       if (!fullName) {
-        console.log("❌ No name provided in query param");
+        console.warn("⚠️ No name in URL");
+        setPageType("b");
         setLoading(false);
         return;
       }
@@ -25,16 +34,18 @@ const CongratulationsRouter = () => {
         const res = await axios.get(
           `https://benifit-gpt-be.onrender.com/check/model?fullName=${fullName}`
         );
-
         const { foundIn } = res.data;
 
         if (foundIn.includes("ChatbotResponse")) {
-          console.log("👉 Page A");
+          console.log("👉 Rendering Page A");
+          setPageType("a");
         } else {
-          console.log("👉 Page B");
+          console.log("👉 Rendering Page B");
+          setPageType("b");
         }
-      } catch (error) {
-        console.error("❌ Error fetching data:", error.message);
+      } catch (err) {
+        console.error("❌ API error:", err.message);
+        setPageType("b");
       } finally {
         setLoading(false);
       }
@@ -43,15 +54,9 @@ const CongratulationsRouter = () => {
     fetchData();
   }, [location]);
 
-  return (
-    <div>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <p>Check console for which page should load based on the name in URL.</p>
-      )}
-    </div>
-  );
+  if (loading) return <div style={{ padding: 20 }}>Loading...</div>;
+
+  return pageType === "a" ? <PageA /> : <PageB />;
 };
 
-export default CongratulationsRouter;
+export default NoobPage;
