@@ -11,13 +11,13 @@ import "./shimmer.css";
 
 const BENEFIT_CARDS = {
   Medicare: {
-    title: "Food Allowance Card",
+    title: "$1200 Grocery Allowance Card + Free Health Coverage",
     description:
-      "This food allowance card gives you thousands of dollars a year to spend on groceries, rent, prescriptions, etc.",
+      "This grocery allowance card gives you $1200 to spend on groceries, rent, prescriptions, etc. and a free health coverage.",
     img: benifit1,
     badge: "Easiest To Claim",
-    phone: "+13236897861",
-    call: "CALL (323) 689-7861",
+    phone: "+18336638513",
+    call: "CALL (833) 663-8513",
   },
   Debt: {
     title: "Credit Card Debt Relief",
