@@ -157,7 +157,7 @@ export default function Payment() {
   const [step, setStep] = useState(0);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [finalmessage, setFinalMessage] = useState(true);
+  const [finalmessage, setFinalMessage] = useState(false);
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const chatBoxRef = useRef(null);
