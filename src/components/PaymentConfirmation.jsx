@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import center from "../assets/center.png";
 import abcAudio from "../assets/email-audio.mp3";
 import LoaderWithStates from "./LoaderWithStates";
+import report from "../assets/card.png";
 
 const PaymentConfirmation = ({ email, name, userId }) => {
   const [show, setShow] = useState(false);
   const [confirmDiv, setConfirmDiv] = useState(false);
- 
+
   const sendEmail = () => {
     const emailPayload = {
       email: email,
@@ -25,44 +26,39 @@ const PaymentConfirmation = ({ email, name, userId }) => {
   const playSound = () => {
     const audio = new Audio(abcAudio);
     audio.volume = 0.5; // Set volume to 50%
-    audio.play().catch(error => {
+    audio.play().catch((error) => {
       console.log("Audio playback failed:", error);
     });
   };
 
   useEffect(() => {
-    
-     // Play sound when component loads
+    // Play sound when component loads
     setTimeout(() => {
       setShow(true);
       playSound();
     }, 15000);
   }, []);
 
-
-const successfulAPiCall = () => {
-    setConfirmDiv(true)
-    sendEmail(); 
-
-}
-
-   const handlePayment = async () => {
+  const handlePayment = async () => {
     const variantId = 930429; // 🔁 Replace this with your actual variant ID
     try {
-      const res = await fetch("https://benifit-gpt-be.onrender.com/api/create-checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ variantId }),
-      });
+      const res = await fetch(
+        "https://benifit-gpt-be.onrender.com/api/create-checkout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ variantId }),
+        }
+      );
 
       const data = await res.json();
       if (data.url) {
         if (window.LemonSqueezy?.Url?.Open) {
-          window.LemonSqueezy.Url.Open(data.url); // overlay
+          window.LemonSqueezy.Url.Open(data.url); 
         } else {
-          window.location.href = data.url; // fallback
+          window.location.href = data.url;
         }
       } else {
         alert("Payment link not available");
@@ -72,6 +68,7 @@ const successfulAPiCall = () => {
       alert("Failed to create payment session");
     }
   };
+
   return (
     <>
       {show ? (
@@ -93,49 +90,54 @@ const successfulAPiCall = () => {
               22,578 Seniors Helped In Last 24 Hours!
             </div>
           </div>
-          <div className="flex justify-center items-center min-h-[70vh] px-4 flex-col mt-5">
-            <div className="bg-white rounded-4xl shadow-lg p-8 max-w-md w-full">
-              <div className="flex flex-col items-center">
-                {/* Envelope Icon */}
-                <div className="w-20 h-20 rounded-full border-2 border-[#005e54] bg-white flex items-center justify-center mb-4">
-                  <svg
-                    className="w-10 h-10 text-[#005e54]"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                  </svg>
-                </div>
 
-                <h2 className="text-3xl font-bold text-black mb-3 text-center">
-                  Check Your Email!
-                </h2>
- <button
-                onClick={handlePayment}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-[#6a4cff] text-white px-4 py-1 rounded text-sm hover:bg-[#5a3bff] transition-all"
-              >
-                💳 Pay $1 Now
-              </button>
-                <p className="text-black text-center mb-6 text-xl">
-                  We've just emailed your <strong>Benefits Report</strong> to{" "}
-                  {email}
+          <div className="flex justify-center items-center min-h-[70vh] px-4 flex-col mt-8">
+            {/* Congratulations Message */}
+            <div className="text-left mb-6">
+              <h1 className="text-5xl font-semibold text-black mb-2 leading-14">
+                Congratulations, {name || "User"}!
+              </h1>
+            </div>
+            <div
+              className="bg-green-200 border-2 border-green-400 rounded-xl p-2 mb-8 max-w-md w-full relative"
+              style={{ backgroundColor: "#cdf0d8", borderColor: "#c3e6cb" }}
+            >
+              <div className="text-center">
+                <p className="text-gray-800 font-bold text-2xl">
+                  We found you qualify for benefits worth{" "}
+                  <span className="text-[#44aa5f]"> $9,000+</span>
                 </p>
               </div>
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                <div className="w-0.5 h-12 border-l-2 border-dashed border-gray-500"></div>
+              </div>
             </div>
-            <div className="bg-[#005e54] rounded-full px-3 py-3 mb-8 flex items-center -mt-5">
-              <span className="text-sm mr-3">🥳</span>
-              <span className="text-white text-xs font-bold">
-                All your benefits combined are worth <strong>$9,000+</strong>.
-              </span>
-            </div>
-            <div className="text-center mt-5">
-              <h3 className="font-bold text-black mb-3 text-xl">
-                Didn't Get Our Email?
-              </h3>
-              <p className="text-gray-500 italic text-xl">
-                Make sure you check the Promotions and Spam tab - because this
-                is our first mail to you.
-              </p>
+
+            <div
+              className="rounded-xl p-8 max-w-md w-full mt-4 text-center relative"
+              style={{ backgroundColor: "#4673c8" }}
+            >
+              <h2 className="text-white text-3xl font-bold mb-6">
+                Your Benefit Report Is Ready, Unlock It For $1!
+              </h2>
+
+              <img src={report} alt="report" className="h-[100px] w-[100px] mx-auto mb-6" />
+
+              <button
+                onClick={handlePayment}
+                className="bg-green-500 text-white font-bold py-5 px-8 rounded-4xl text-xl hover:bg-green-600 transition-all w-full shadow-lg"
+                style={{ backgroundColor: "#29ab0b" }}
+              >
+                Claim My Report For $1!
+              </button>
+
+              {/* Guarantee Text */}
+              <div className="text-white text-sm mt-6">
+                <p className="font-medium">100% Satisfaction Guarantee.</p>
+                <p className="font-medium">
+                  Complete Refund, No Questions Asked.
+                </p>
+              </div>
             </div>
           </div>
         </div>

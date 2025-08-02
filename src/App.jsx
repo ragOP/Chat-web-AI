@@ -13,6 +13,7 @@ import CongratulationsRouter from './components/CongratulationsRouter'
 import PaymentCongratulationsPage from "./components/PaymentCongratulationsPage";
 import Payment from "./components/Payment";
 import PaymentConfirmation from "./components/PaymentConfirmation";
+import Record3 from "./components/Record3";
 function App(){
   return (
     <Routes>
@@ -31,6 +32,7 @@ function App(){
 
   <Route path="/payment" element={<Payment />} />
     <Route path="/cong-pay" element={<PaymentCongratulationsPage />} />
+    <Route path="/record3" element={<Record3 />} />
 
 
 
