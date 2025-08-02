@@ -10,7 +10,9 @@ import Raghib from "./components/Raghib";
 import CongratulationsPage2 from "./components/CongoPage2";
 import RaghibRecord from "./components/RaghibRecord";
 import CongratulationsRouter from './components/CongratulationsRouter'
-
+import PaymentCongratulationsPage from "./components/PaymentCongratulationsPage";
+import Payment from "./components/Payment";
+import PaymentConfirmation from "./components/PaymentConfirmation";
 function App(){
   return (
     <Routes>
@@ -25,6 +27,13 @@ function App(){
       <Route path="/am1" element={<Raghib />} />
       <Route path="/congratulations2" element={<CongratulationsPage2 />} />
       <Route path="/am1-record" element={<RaghibRecord />} />
+
+
+  <Route path="/payment" element={<Payment />} />
+    <Route path="/cong-pay" element={<PaymentCongratulationsPage />} />
+
+
+
     </Routes>
   )
 }
