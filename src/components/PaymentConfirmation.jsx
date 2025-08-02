@@ -5,6 +5,8 @@ import LoaderWithStates from "./LoaderWithStates";
 
 const PaymentConfirmation = ({ email, name, userId }) => {
   const [show, setShow] = useState(false);
+  const [confirmDiv, setConfirmDiv] = useState(false);
+ 
   const sendEmail = () => {
     const emailPayload = {
       email: email,
@@ -29,13 +31,20 @@ const PaymentConfirmation = ({ email, name, userId }) => {
   };
 
   useEffect(() => {
-    sendEmail();
+    
      // Play sound when component loads
     setTimeout(() => {
       setShow(true);
       playSound();
     }, 15000);
   }, []);
+
+
+const successfulAPiCall = () => {
+    setConfirmDiv(true)
+    sendEmail(); 
+
+}
 
    const handlePayment = async () => {
     const variantId = 930429; // 🔁 Replace this with your actual variant ID
