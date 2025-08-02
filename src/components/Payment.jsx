@@ -741,7 +741,7 @@ export default function Payment() {
                     <h1 className="font-bold text-3xl text-center text-black">
                       Seniors, Get Your Benefits Eligibility Check in Just 60 Seconds!
                     </h1>
-                    <div className="flex justify-center items-center mt-6 px-4 text-md font-semibold text-gray-600">
+                    <div className="flex justify-center items-center mt-6  ml-8 px-0 text-md font-semibold text-gray-600">
                       <div className="space-y-2 flex flex-col items-start space-x-2">
                         <div className="flex items-start space-x-2">
                           <div className="w-5 h-5 mt-0.5 flex items-center justify-center rounded bg-[#005e54] text-white">
@@ -801,11 +801,44 @@ export default function Payment() {
                           <InfinityLoader />
                         </div>
                       ) : (
-                        <button
+                       <button
                           onClick={handleStartAI}
-                          className="bg-[#005e54] flex items-center text-white text-3xl px-8 py-3 rounded-4xl hover:opacity-90"
+                          className="bg-[#005e54] flex items-center text-white text-3xl px-8 py-3 rounded-4xl hover:opacity-90 relative overflow-hidden"
+                          style={{ position: "relative" }}
                         >
-                          START NOW <ChevronRight className="w-8 h-8" />
+                          <span className="relative z-10 flex items-center">
+                            START NOW <ChevronRight className="w-8 h-8" />
+                          </span>
+                          {/* Shimmer effect */}
+                          <span
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                              background:
+                                "linear-gradient(120deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.1) 100%)",
+                              animation: "shimmer 2s infinite",
+                              zIndex: 1,
+                              borderRadius: "2rem",
+                              opacity: 0.7,
+                            }}
+                          />
+                          <style>
+                            {`
+                              @keyframes shimmer {
+                                0% {
+                                  transform: translateX(-100%);
+                                }
+                                100% {
+                                  transform: translateX(100%);
+                                }
+                              }
+                              .rounded-4xl {
+                                border-radius: 2rem;
+                              }
+                              button .absolute {
+                                will-change: transform;
+                              }
+                            `}
+                          </style>
                         </button>
                       )}
                       <p className="text-sm mt-2">
