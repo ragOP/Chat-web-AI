@@ -157,7 +157,7 @@ export default function Payment() {
   const [step, setStep] = useState(0);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [finalmessage, setFinalMessage] = useState(false);
+  const [finalmessage, setFinalMessage] = useState(true);
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const chatBoxRef = useRef(null);
@@ -510,7 +510,7 @@ export default function Payment() {
               <div className="flex justify-center">
                 <div className="inline-flex items-center justify-center px-6 py-2 bg-black text-white uppercase rounded-full">
                   <h2 className="text-sm font-bold whitespace-nowrap -mt-1">
-                    100% FREE, NO refyund COSTS!
+                    100% FREE, NO refund COSTS!
                   </h2>
                 </div>
               </div>
