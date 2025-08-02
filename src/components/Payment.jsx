@@ -739,7 +739,7 @@ export default function Payment() {
                 ) : (
                   <div className="mt-4 space-y-4">
                     <h1 className="font-bold text-3xl text-center text-black">
-                      Seniors, Get Your Free Benefits Check in Just 60 Seconds!
+                      Seniors, Get Your Benefits Eligibility Check in Just 60 Seconds!
                     </h1>
                     <div className="flex justify-center items-center mt-6 px-4 text-md font-semibold text-gray-600">
                       <div className="space-y-2 flex flex-col items-start space-x-2">
@@ -774,7 +774,7 @@ export default function Payment() {
                               />
                             </svg>
                           </div>
-                          <span>Completely Free & Easy.</span>
+                          <span>Just $1 (100% Refund Guarantee)</span>
                         </div>
 
                         <div className="flex items-start space-x-2">
@@ -791,7 +791,7 @@ export default function Payment() {
                               />
                             </svg>
                           </div>
-                          <span>Specially Made For Seniors Over 65!</span>
+                          <span>90% Of Users Qualify for Benefits $2500+</span>
                         </div>
                       </div>
                     </div>
