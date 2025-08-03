@@ -910,7 +910,7 @@ export default function Payment() {
           </div>
         </>
       ) : (
-        <PaymentConfirmation email={email} name={name} userId={userId} />
+        <PaymentConfirmation email={email} name={name} userId={userId} tagArray={tags} />
       )}
     </>
   );

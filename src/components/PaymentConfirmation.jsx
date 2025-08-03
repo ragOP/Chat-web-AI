@@ -4,8 +4,26 @@ import abcAudio from "../assets/email-audio.mp3";
 import LoaderWithStates from "./LoaderWithStates";
 import report from "../assets/card.png";
 
-const PaymentConfirmation = ({ email, name, userId }) => {
+const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
   const [show, setShow] = useState(false);
+  const [totalPayment, setTotalPayment] = useState(0);
+
+  useEffect(() => {
+    if (tagArray.length > 0) {
+      const total = tagArray.map((curr) => {
+        const paymentAmounts = {
+          is_md: 1000,
+          is_ssdi: 2500,
+          is_auto: 900,
+          is_mva: 5500,
+          is_debt: 6500,
+          is_rvm: 5500,
+        };
+        return paymentAmounts[curr];
+      });
+      setTotalPayment(total.reduce((acc, curr) => acc + curr, 0));
+    }
+  }, [tagArray]);
 
   const sendEmail = () => {
     const emailPayload = {
@@ -71,11 +89,17 @@ const PaymentConfirmation = ({ email, name, userId }) => {
   return (
     <>
       {show ? (
-        <div style={{ backgroundColor: "rgb(246,246,243)", minHeight: "100vh" }}>
+        <div
+          style={{ backgroundColor: "rgb(246,246,243)", minHeight: "100vh" }}
+        >
           {/* Header */}
           <div>
             <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
-              <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
+              <img
+                src={center}
+                alt="logo"
+                className="w-[60%] h-[55px] object-contain"
+              />
             </div>
             <div
               className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm"
@@ -99,7 +123,7 @@ const PaymentConfirmation = ({ email, name, userId }) => {
               <div className="text-center">
                 <p className="text-gray-800 font-bold text-2xl">
                   We found you qualify for benefits worth{" "}
-                  <span className="text-[#44aa5f]"> $9,000+</span>
+                  <span className="text-[#44aa5f]"> ${totalPayment}</span>
                 </p>
               </div>
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
@@ -114,7 +138,11 @@ const PaymentConfirmation = ({ email, name, userId }) => {
               <h2 className="text-white text-3xl font-bold mb-6">
                 Your Benefit Report Is Ready, Unlock It For $1!
               </h2>
-              <img src={report} alt="report" className="h-[100px] w-[100px] mx-auto mb-6" />
+              <img
+                src={report}
+                alt="report"
+                className="h-[100px] w-[100px] mx-auto mb-6"
+              />
               <button
                 onClick={handlePayment}
                 className="bg-green-500 text-white font-bold py-4 px-8 rounded-4xl text-xl hover:bg-green-600 transition-all w-full shadow-lg"
@@ -124,7 +152,9 @@ const PaymentConfirmation = ({ email, name, userId }) => {
               </button>
               <div className="text-white text-sm mt-6">
                 <p className="font-medium">100% Satisfaction Guarantee.</p>
-                <p className="font-medium">Complete Refund, No Questions Asked.</p>
+                <p className="font-medium">
+                  Complete Refund, No Questions Asked.
+                </p>
               </div>
             </div>
           </div>
