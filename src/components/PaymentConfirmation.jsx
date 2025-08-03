@@ -6,8 +6,6 @@ import report from "../assets/card.png";
 
 const PaymentConfirmation = ({ email, name, userId }) => {
   const [show, setShow] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState(null);
-  const [showModal, setShowModal] = useState(false);
 
   const sendEmail = () => {
     const emailPayload = {
@@ -56,8 +54,11 @@ const PaymentConfirmation = ({ email, name, userId }) => {
 
       const data = await res.json();
       if (data.url) {
-        setCheckoutUrl(data.url);
-        setShowModal(true);
+        if (window.LemonSqueezy?.Url?.Open) {
+          window.LemonSqueezy.Url.Open(data.url);
+        } else {
+          window.location.href = data.url;
+        }
       } else {
         alert("Payment link not available");
       }
@@ -76,7 +77,10 @@ const PaymentConfirmation = ({ email, name, userId }) => {
             <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
               <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
             </div>
-            <div className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm" style={{ backgroundColor: "#005e54" }}>
+            <div
+              className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm"
+              style={{ backgroundColor: "#005e54" }}
+            >
               22,578 Seniors Helped In Last 24 Hours!
             </div>
           </div>
@@ -84,11 +88,14 @@ const PaymentConfirmation = ({ email, name, userId }) => {
           {/* Main */}
           <div className="flex justify-center items-center min-h-[70vh] px-4 flex-col mt-8">
             <div className="text-left mb-6">
-              <h1 className="text-4xl font-semibold text-black mb-2 leading-14">
+              <h1 className="text-3xl font-semibold text-black mb-2 leading-14">
                 Congratulations, {name || "User"}!
               </h1>
             </div>
-            <div className="bg-green-200 border-2 border-green-400 rounded-xl p-2 mb-8 max-w-md w-full relative" style={{ backgroundColor: "#cdf0d8", borderColor: "#c3e6cb" }}>
+            <div
+              className="bg-green-200 border-2 border-green-400 rounded-xl p-2 mb-8 max-w-md w-full relative"
+              style={{ backgroundColor: "#cdf0d8", borderColor: "#c3e6cb" }}
+            >
               <div className="text-center">
                 <p className="text-gray-800 font-bold text-2xl">
                   We found you qualify for benefits worth{" "}
@@ -100,14 +107,17 @@ const PaymentConfirmation = ({ email, name, userId }) => {
               </div>
             </div>
 
-            <div className="rounded-xl p-8 max-w-md w-full mt-4 text-center relative" style={{ backgroundColor: "#4673c8" }}>
+            <div
+              className="rounded-xl p-8 max-w-md w-full mt-4 text-center relative"
+              style={{ backgroundColor: "#4673c8" }}
+            >
               <h2 className="text-white text-3xl font-bold mb-6">
                 Your Benefit Report Is Ready, Unlock It For $1!
               </h2>
               <img src={report} alt="report" className="h-[100px] w-[100px] mx-auto mb-6" />
               <button
                 onClick={handlePayment}
-                className="bg-green-500 text-white font-bold py-4 px- rounded-4xl text-xl hover:bg-green-600 transition-all w-full shadow-lg"
+                className="bg-green-500 text-white font-bold py-4 px-8 rounded-4xl text-xl hover:bg-green-600 transition-all w-full shadow-lg"
                 style={{ backgroundColor: "#29ab0b" }}
               >
                 Claim My Report For $1!
@@ -118,27 +128,6 @@ const PaymentConfirmation = ({ email, name, userId }) => {
               </div>
             </div>
           </div>
-
-          {/* Modal with iframe */}
-          {showModal && checkoutUrl && (
-            <div className="fixed inset-0 bg-white bg-opacity-60 z-50 flex justify-center items-center">
-              <div className="bg-white rounded-xl shadow-lg w-[90%] max-w-[720px] h-[90%] relative">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="absolute top-3 right-3 bg-white-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                >
-                  ✕ Close
-                </button>
-                <iframe
-                  src={checkoutUrl}
-                  className="w-full h-full rounded-b-xl"
-                  frameBorder="0"
-                  allow="payment"
-                  title="Checkout"
-                ></iframe>
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         <LoaderWithStates />

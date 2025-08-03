@@ -21,6 +21,7 @@ import secondquestion from "../assets/Let-s just get to know yo 2.wav";
 import thirdquestion from "../assets/Tap the button below and 2.wav";
 import center from "../assets/center.png";
 import PaymentConfirmation from "./PaymentConfirmation";
+import FaqAccordion from "./Faq";
 
 const TAGS = {
   medicare: "is_md",
@@ -802,45 +803,70 @@ export default function Payment() {
                           <InfinityLoader />
                         </div>
                       ) : (
-                       <button
-                          onClick={handleStartAI}
-                          className="bg-[#005e54] flex items-center text-white text-3xl px-8 py-3 rounded-4xl hover:opacity-90 relative overflow-hidden"
-                          style={{ position: "relative" }}
-                        >
-                          <span className="relative z-10 flex items-center">
-                            START NOW <ChevronRight className="w-8 h-8" />
-                          </span>
-                          {/* Shimmer effect */}
-                          <span
-                            className="absolute inset-0 pointer-events-none"
-                            style={{
-                              background:
-                                "linear-gradient(120deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.1) 100%)",
-                              animation: "shimmer 2s infinite",
-                              zIndex: 1,
-                              borderRadius: "2rem",
-                              opacity: 0.7,
-                            }}
-                          />
-                          <style>
-                            {`
-                              @keyframes shimmer {
-                                0% {
-                                  transform: translateX(-100%);
-                                }
-                                100% {
-                                  transform: translateX(100%);
-                                }
-                              }
-                              .rounded-4xl {
-                                border-radius: 2rem;
-                              }
-                              button .absolute {
-                                will-change: transform;
-                              }
-                            `}
-                          </style>
-                        </button>
+              
+  <button
+  onClick={handleStartAI}
+  className="relative overflow-hidden text-white text-3xl font-semibold px-10 py-4 rounded-full bg-[#005e54] hover:opacity-95 transition duration-300 shadow-xl flex items-center gap-3"
+>
+  {/* Emoji Hand */}
+  <span className="animate-wave text-4xl origin-[70%_70%]">👋</span>
+
+  {/* Button Text */}
+  <span className="relative z-10 flex items-center gap-2">
+    START NOW <ChevronRight className="w-8 h-8" />
+  </span>
+
+  {/* Shimmer overlay */}
+  <span
+    className="absolute inset-0 animate-betterShimmer pointer-events-none"
+    style={{
+      background:
+        "linear-gradient(130deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 70%)",
+      zIndex: 1,
+      maskImage:
+        "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+      WebkitMaskImage:
+        "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+    }}
+  />
+
+  <style jsx>{`
+    @keyframes betterShimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+    .animate-betterShimmer {
+      animation: betterShimmer 2.2s infinite linear;
+    }
+
+    @keyframes wave {
+      0%,
+      60%,
+      100% {
+        transform: rotate(0deg);
+      }
+      20% {
+        transform: rotate(15deg);
+      }
+      40% {
+        transform: rotate(-10deg);
+      }
+      80% {
+        transform: rotate(5deg);
+      }
+    }
+    .animate-wave {
+      animation: wave 2.5s infinite;
+      display: inline-block;
+    }
+  `}</style>
+</button>
+
+
                       )}
                       <p className="text-sm mt-2">
                         <i>
@@ -853,6 +879,7 @@ export default function Payment() {
                   </div>
                 )}
 
+<FaqAccordion/>
                 {!startChat && (
                   <div className="text-center space-y-4 pt-6">
                     <div className="p-3 text-sm text-black">

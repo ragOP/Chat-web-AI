@@ -23,11 +23,11 @@ function App(){
       <Route path="/email" element={<Email />} />
       {/* <Route path="/new-record" element={<NewRecord />} /> */}
       <Route path="/congratulations" element={<CongratulationsPage />} />
-            <Route path="/noob" element={<CongratulationsRouter />} />
+            {/* <Route path="/noob" element={<CongratulationsRouter />} /> */}
 
-      <Route path="/am1" element={<Raghib />} />
-      <Route path="/congratulations2" element={<CongratulationsPage2 />} />
-      <Route path="/am1-record" element={<RaghibRecord />} />
+      {/* <Route path="/am1" element={<Raghib />} /> */}
+      {/* <Route path="/congratulations2" element={<CongratulationsPage2 />} /> */}
+      {/* <Route path="/am1-record" element={<RaghibRecord />} /> */}
 
 
   <Route path="/payment" element={<Payment />} />
