@@ -14,7 +14,9 @@ const Record3 = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("https://benifit-gpt-be.onrender.com/response/all3")
+    const url = new URL("http://localhost:5000/response/all");
+  
+    fetch(url.toString())
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch");
         return res.json();
@@ -62,12 +64,15 @@ const Record3 = () => {
                 <th className="py-2 px-1 font-medium text-base tracking-tight border-b border-gray-300 text-left">
                   Created At (Florida)
                 </th>
+                <th className="py-2 px-1 font-medium text-base tracking-tight border-b border-gray-300 text-left">
+                  Origin
+                </th>
               </tr>
             </thead>
             <tbody>
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-6 text-gray-500">
+                  <td colSpan={9} className="text-center py-6 text-gray-500">
                     No records found.
                   </td>
                 </tr>
@@ -110,6 +115,9 @@ const Record3 = () => {
                       {new Date(row.createdAt).toLocaleString("en-US", {
                         timeZone: "America/New_York",
                       })}
+                    </td>
+                    <td className="py-2 px-1 text-base border-b border-gray-100 text-gray-900 text-left align-middle">
+                      {row.origin ? row.origin : "Not found"}
                     </td>
                   </tr>
                 ))

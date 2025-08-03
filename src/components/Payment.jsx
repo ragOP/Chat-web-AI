@@ -237,7 +237,7 @@ export default function Payment() {
         };
         setEmail(response);
 
-        fetch("https://benifit-gpt-be.onrender.com/email3", {
+        fetch("https://benifit-gpt-be.onrender.com/email", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -409,10 +409,11 @@ export default function Payment() {
       zipcode: allAnswers["Nice, and what's your zip code?"],
       email: allAnswers["May I know your email?"],
       tags: tagArray || tags,
+      origin: "3",
     };
     try {
       const res = await fetch(
-        "https://benifit-gpt-be.onrender.com/response/create3",
+        "https://benifit-gpt-be.onrender.com/response/create",
         {
           method: "POST",
           headers: {

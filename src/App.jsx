@@ -21,7 +21,7 @@ function App(){
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/email" element={<Email />} />
-      <Route path="/new-record" element={<NewRecord />} />
+      {/* <Route path="/new-record" element={<NewRecord />} /> */}
       <Route path="/congratulations" element={<CongratulationsPage />} />
             <Route path="/noob" element={<CongratulationsRouter />} />
 
@@ -32,7 +32,7 @@ function App(){
 
   <Route path="/payment" element={<Payment />} />
     <Route path="/cong-pay" element={<PaymentCongratulationsPage />} />
-    <Route path="/record3" element={<Record3 />} />
+    <Route path="/new-record" element={<Record3 />} />
 
 
 
