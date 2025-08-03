@@ -33,6 +33,7 @@ const PaymentConfirmation = ({ email, name, userId }) => {
   };
 
   useEffect(() => {
+    sendEmail();
     setTimeout(() => {
       setShow(true);
       playSound();
