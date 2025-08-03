@@ -86,6 +86,11 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
     }
   };
 
+  // Helper to round to nearest thousand
+  const roundToThousands = (num) => {
+    return Math.floor(num / 1000) * 1000;
+  };
+
   return (
     <>
       {show ? (
@@ -123,7 +128,9 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
               <div className="text-center">
                 <p className="text-gray-800 font-bold text-2xl">
                   We found you qualify for benefits worth{" "}
-                  <span className="text-[#44aa5f]"> ${totalPayment}</span>
+                  <span className="text-[#44aa5f]">
+                    ${roundToThousands(totalPayment)}+
+                  </span>
                 </p>
               </div>
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
