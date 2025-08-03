@@ -879,8 +879,11 @@ export default function Payment() {
                   </div>
                 )}
 
-<FaqAccordion/>
+
                 {!startChat && (
+                  <>
+                  <FaqAccordion/>
+                
                   <div className="text-center space-y-4 pt-6">
                     <div className="p-3 text-sm text-black">
                       <p>
@@ -900,6 +903,7 @@ export default function Payment() {
                       </p>
                     </footer>
                   </div>
+                    </>
                 )}
               </div>
             </div>
