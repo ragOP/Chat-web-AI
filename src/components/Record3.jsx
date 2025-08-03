@@ -14,7 +14,7 @@ const Record3 = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const url = new URL("http://localhost:5000/response/all");
+    const url = new URL("https://benifit-gpt-be.onrender.com/response/all");
   
     fetch(url.toString())
       .then((res) => {
