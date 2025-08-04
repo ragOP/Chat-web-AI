@@ -17,12 +17,14 @@ import PaymentConfirmation from "./components/PaymentConfirmation";
 import Record3 from "./components/Record3";
 import { TerminalSquare } from "lucide-react";
 import RefundPolicy from "./components/RefundPolicy";
+import Red from "./components/Red";
 function App(){
   return (
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />
+         <Route path="/pricing" element={<Red />} />
       <Route path="/terms-and-conditions" element={<Terms />} />
          <Route path="/refund-policy" element={<RefundPolicy />} />
       <Route path="/email" element={<Email />} />
