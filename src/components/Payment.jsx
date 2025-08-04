@@ -22,6 +22,7 @@ import thirdquestion from "../assets/Tap the button below and 2.wav";
 import center from "../assets/center.png";
 import PaymentConfirmation from "./PaymentConfirmation";
 import FaqAccordion from "./Faq";
+import Testimonial from "./Testimonial";
 
 const TAGS = {
   medicare: "is_md",
@@ -158,7 +159,7 @@ export default function Payment() {
   const [step, setStep] = useState(0);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [finalmessage, setFinalMessage] = useState(false);
+  const [finalmessage, setFinalMessage] = useState(true);
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const chatBoxRef = useRef(null);
@@ -461,7 +462,7 @@ export default function Payment() {
         },
       ];
 
-      let delays = [500, 6500, 14000];
+      let delays = [500, 7000, 15000];
       initialMessages.forEach((msg, index) => {
         setTimeout(() => {
           setChat((prev) => {
@@ -471,7 +472,7 @@ export default function Payment() {
           });
         }, delays[index]);
       });
-    }, 3000);
+    }, 1500);
   };
 
   const validateEmail = (email) => {
@@ -484,8 +485,8 @@ export default function Payment() {
     return pinRegex.test(pincode);
   };
 
-   const [counter, setCounter] = useState(1100);
- useEffect(() => {
+  const [counter, setCounter] = useState(1100);
+  useEffect(() => {
     if (startChat) return; // Only animate before chat starts
     let start = 1100;
     let end = 2500;
@@ -536,11 +537,11 @@ export default function Payment() {
             className="min-h-screen p-4 flex flex-col items-center"
             style={{ backgroundColor: "rgb(246,246,243)" }}
           >
-            <div className="w-full max-w-md bg-grey h-[80vh] px-4 py-1 space-y-2">
+            <div className="w-full bg-grey h-[80vh] px-4 py-1 space-y-2">
               <div className="flex justify-center">
                 <div className="inline-flex items-center justify-center px-6 py-2 bg-black text-white uppercase rounded-full">
                   <h2 className="text-sm font-bold whitespace-nowrap -mt-1">
-               Average Benefits: ${counter.toLocaleString()}+
+                    Average Benefits: ${counter.toLocaleString()}+
                   </h2>
                 </div>
               </div>
@@ -693,7 +694,7 @@ export default function Payment() {
                                 <motion.button
                                   key={i}
                                   onClick={() => handleChoiceClick(opt)}
-                                  className="text-white font-bold px-6 py-4 rounded-xl bg-[#005e54] hover:bg-[#004a43] transition-colors duration-300"
+                                  className="text-white font-bold px-6 py-4 rounded-xl bg-[#005e54] hover:bg-[#004a43] transition-colors duration-300 relative overflow-hidden"
                                   whileHover={{ scale: 1.03 }}
                                   whileTap={{ scale: 0.97 }}
                                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -707,7 +708,51 @@ export default function Payment() {
                                     duration: 0.8,
                                   }}
                                 >
-                                  {opt}
+                                  <span>{opt}</span>
+                                  {msg.id === 3 && (
+                                    <span
+                                      className="absolute inset-0 animate-betterShimmer pointer-events-none"
+                                      style={{
+                                        background:
+                                          "linear-gradient(130deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 70%)",
+                                        zIndex: 1,
+                                        maskImage:
+                                          "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+                                        WebkitMaskImage:
+                                          "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+                                      }}
+                                    />
+                                  )}
+
+                                  <style jsx>{`
+                                    @keyframes betterShimmer {
+                                      0% {
+                                        transform: translateX(-100%);
+                                      }
+                                      100% {
+                                        transform: translateX(100%);
+                                      }
+                                    }
+                                    .animate-betterShimmer {
+                                      animation: betterShimmer 2.2s infinite linear;
+                                    }
+
+                                    @keyframes slideLeftRight {
+                                      0% {
+                                        transform: translateX(-6px);
+                                      }
+                                      50% {
+                                        transform: translateX(6px);
+                                      }
+                                      100% {
+                                        transform: translateX(-6px);
+                                      }
+                                    }
+                                    .animate-slide-left-right {
+                                      animation: slideLeftRight 2s ease-in-out infinite;
+                                      display: inline-block;
+                                    }
+                                  `}</style>
                                 </motion.button>
                               ))}
                             </motion.div>
@@ -769,7 +814,8 @@ export default function Payment() {
                 ) : (
                   <div className="mt-4 space-y-4">
                     <h1 className="font-bold text-3xl text-center text-black">
-                      Seniors, Get Your Benefits Eligibility Check in Just 60 Seconds!
+                      Seniors, Get Your Benefits Eligibility Check in Just 60
+                      Seconds!
                     </h1>
                     <div className="flex justify-center items-center mt-6  ml-8 px-0 text-md font-semibold text-gray-600">
                       <div className="space-y-2 flex flex-col items-start space-x-2">
@@ -831,70 +877,64 @@ export default function Payment() {
                           <InfinityLoader />
                         </div>
                       ) : (
-              
-  <button
-  onClick={handleStartAI}
-  className="relative overflow-hidden text-white text-3xl font-semibold px-10 py-4 rounded-full bg-[#005e54] hover:opacity-95 transition duration-300 shadow-xl flex items-center gap-3"
->
-  {/* Emoji Hand */}
-  <span className="animate-wave text-4xl origin-[70%_70%]">👉</span>
+                        <button
+                          onClick={handleStartAI}
+                          className="relative overflow-hidden text-white text-3xl font-semibold px-10 py-4 rounded-full bg-[#005e54] hover:opacity-95 transition duration-300 shadow-xl flex items-center gap-3"
+                        >
+                          {/* Emoji Hand */}
+                          <span className="animate-slide-left-right text-3xl">
+                            👉
+                          </span>
 
-  {/* Button Text */}
-  <span className="relative z-10 flex items-center gap-2">
-    START NOW <ChevronRight className="w-8 h-8" />
-  </span>
+                          {/* Button Text */}
+                          <span className="relative z-10 flex items-center gap-2">
+                            START NOW <ChevronRight className="w-8 h-8" />
+                          </span>
 
-  {/* Shimmer overlay */}
-  <span
-    className="absolute inset-0 animate-betterShimmer pointer-events-none"
-    style={{
-      background:
-        "linear-gradient(130deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 70%)",
-      zIndex: 1,
-      maskImage:
-        "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
-      WebkitMaskImage:
-        "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
-    }}
-  />
+                          {/* Shimmer overlay */}
+                          <span
+                            className="absolute inset-0 animate-betterShimmer pointer-events-none"
+                            style={{
+                              background:
+                                "linear-gradient(130deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 70%)",
+                              zIndex: 1,
+                              maskImage:
+                                "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+                              WebkitMaskImage:
+                                "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+                            }}
+                          />
 
-  <style jsx>{`
-    @keyframes betterShimmer {
-      0% {
-        transform: translateX(-100%);
-      }
-      100% {
-        transform: translateX(100%);
-      }
-    }
-    .animate-betterShimmer {
-      animation: betterShimmer 2.2s infinite linear;
-    }
+                          <style jsx>{`
+                            @keyframes betterShimmer {
+                              0% {
+                                transform: translateX(-100%);
+                              }
+                              100% {
+                                transform: translateX(100%);
+                              }
+                            }
+                            .animate-betterShimmer {
+                              animation: betterShimmer 2.2s infinite linear;
+                            }
 
-    @keyframes wave {
-      0%,
-      60%,
-      100% {
-        transform: rotate(0deg);
-      }
-      20% {
-        transform: rotate(15deg);
-      }
-      40% {
-        transform: rotate(-10deg);
-      }
-      80% {
-        transform: rotate(5deg);
-      }
-    }
-    .animate-wave {
-      animation: wave 2.5s infinite;
-      display: inline-block;
-    }
-  `}</style>
-</button>
-
-
+                            @keyframes slideLeftRight {
+                              0% {
+                                transform: translateX(-6px);
+                              }
+                              50% {
+                                transform: translateX(6px);
+                              }
+                              100% {
+                                transform: translateX(-6px);
+                              }
+                            }
+                            .animate-slide-left-right {
+                              animation: slideLeftRight 2s ease-in-out infinite;
+                              display: inline-block;
+                            }
+                          `}</style>
+                        </button>
                       )}
                       <p className="text-sm mt-2">
                         <i>
@@ -906,39 +946,45 @@ export default function Payment() {
                     </div>
                   </div>
                 )}
-
+                <Testimonial />
 
                 {!startChat && (
                   <>
-                  <FaqAccordion/>
-                
-                  <div className="text-center space-y-4 pt-6">
-                    <div className="p-3 text-sm text-black">
-                      <p>
-                        <span className="font-bold text-red-500">NOTE</span>: We
-                        don't spam OR sell information & we aren't affiliated
-                        with any gov. branch. We are not sponsored by any
-                        External Private Organisation.
-                      </p>
+                    <FaqAccordion />
+                    
+
+                    <div className="text-center space-y-4 pt-6">
+                      <div className="p-3 text-sm text-black">
+                        <p>
+                          <span className="font-bold text-red-500">NOTE</span>:
+                          We don't spam OR sell information & we aren't
+                          affiliated with any gov. branch. We are not sponsored
+                          by any External Private Organisation.
+                        </p>
+                      </div>
+                      <footer className="p-3 text-center text-xs text-black">
+                        <p>
+                          Beware of other fraudulent & similar looking websites
+                          that might look exactly like ours, we have no
+                          affiliation with them. This is the only official
+                          website to claim the Benefits You're Qualified For
+                          with the domain name mybenefitsai.org
+                        </p>
+                      </footer>
                     </div>
-                    <footer className="p-3 text-center text-xs text-black">
-                      <p>
-                        Beware of other fraudulent & similar looking websites
-                        that might look exactly like ours, we have no
-                        affiliation with them. This is the only official website
-                        to claim the Benefits You're Qualified For with the
-                        domain name mybenefitsai.org
-                      </p>
-                    </footer>
-                  </div>
-                    </>
+                  </>
                 )}
               </div>
             </div>
           </div>
         </>
       ) : (
-        <PaymentConfirmation email={email} name={name} userId={userId} tagArray={tags} />
+        <PaymentConfirmation
+          email={email}
+          name={name}
+          userId={userId}
+          tagArray={tags}
+        />
       )}
     </>
   );
