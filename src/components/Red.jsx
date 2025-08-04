@@ -10,7 +10,7 @@ const Red = ({
     userId = "defaultUserId",
     tagArray = ["is_md", "is_ssdi"]
 }) => {
-    const [show, setShow] = useState(false);
+    const [show, setShow] = useState(true);
     const [totalPayment, setTotalPayment] = useState(0);
 
     useEffect(() => {
@@ -176,7 +176,7 @@ const Red = ({
                     </div>
                 </div>
             ) : (
-                <LoaderWithStates />
+                <h1></h1>
             )}
         </>
     );
