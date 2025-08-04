@@ -3,6 +3,7 @@ import CongratulationsPage from "./components/CongoPage";
 import { Route, Routes } from "react-router-dom";
 import Record from "./components/Record";
 import Privacy from "./components/Privacy";
+import Terms from "./components/Terms";
 import Email from "./components/Email";
 import NewRecord from "./components/NewRecord";
 import Confirmation from "./components/Confirmation";
@@ -14,12 +15,16 @@ import PaymentCongratulationsPage from "./components/PaymentCongratulationsPage"
 import Payment from "./components/Payment";
 import PaymentConfirmation from "./components/PaymentConfirmation";
 import Record3 from "./components/Record3";
+import { TerminalSquare } from "lucide-react";
+import RefundPolicy from "./components/RefundPolicy";
 function App(){
   return (
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms-and-conditions" element={<Terms />} />
+         <Route path="/refund-policy" element={<RefundPolicy />} />
       <Route path="/email" element={<Email />} />
       {/* <Route path="/new-record" element={<NewRecord />} /> */}
       <Route path="/congratulations" element={<CongratulationsPage />} />

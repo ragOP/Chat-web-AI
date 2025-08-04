@@ -483,6 +483,34 @@ export default function Payment() {
     const pinRegex = /^\d{5,6}$/;
     return pinRegex.test(pincode);
   };
+
+   const [counter, setCounter] = useState(1100);
+ useEffect(() => {
+    if (startChat) return; // Only animate before chat starts
+    let start = 1100;
+    let end = 2500;
+    let duration = 1800; // ms
+    let frameRate = 90; // ms per frame
+    let totalFrames = Math.round(duration / frameRate);
+    let increment = (end - start) / totalFrames;
+    let frame = 0;
+
+    const animate = () => {
+      frame++;
+      let value = Math.round(start + increment * frame);
+      if (value > end) value = end;
+      setCounter(value);
+      if (frame < totalFrames) {
+        setTimeout(animate, frameRate);
+      }
+    };
+
+    setCounter(start);
+    animate();
+
+    // Cleanup
+    return () => {};
+  }, [startChat]);
   return (
     <>
       {!finalmessage ? (
@@ -512,7 +540,7 @@ export default function Payment() {
               <div className="flex justify-center">
                 <div className="inline-flex items-center justify-center px-6 py-2 bg-black text-white uppercase rounded-full">
                   <h2 className="text-sm font-bold whitespace-nowrap -mt-1">
-                    100% FREE, NO refund COSTS!
+               Average Benefits: ${counter.toLocaleString()}+
                   </h2>
                 </div>
               </div>
@@ -809,7 +837,7 @@ export default function Payment() {
   className="relative overflow-hidden text-white text-3xl font-semibold px-10 py-4 rounded-full bg-[#005e54] hover:opacity-95 transition duration-300 shadow-xl flex items-center gap-3"
 >
   {/* Emoji Hand */}
-  <span className="animate-wave text-4xl origin-[70%_70%]">👋</span>
+  <span className="animate-wave text-4xl origin-[70%_70%]">👉</span>
 
   {/* Button Text */}
   <span className="relative z-10 flex items-center gap-2">
