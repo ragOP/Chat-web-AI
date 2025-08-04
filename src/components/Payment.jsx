@@ -946,10 +946,11 @@ export default function Payment() {
                     </div>
                   </div>
                 )}
-                <Testimonial />
+                
 
                 {!startChat && (
                   <>
+                  <Testimonial />
                     <FaqAccordion />
                     
 
