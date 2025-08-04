@@ -887,7 +887,7 @@ export default function Payment() {
                           </span>
 
                           {/* Button Text */}
-                          <span className="relative z-10 flex items-center gap-2">
+                          <span className="relative z-10 flex items-center gap-2 text-xl">
                             START NOW <ChevronRight className="w-8 h-8" />
                           </span>
 

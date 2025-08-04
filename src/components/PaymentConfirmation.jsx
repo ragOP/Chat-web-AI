@@ -136,7 +136,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
 
           {/* Main */}
           <div className="flex justify-center items-center min-h-[70vh] px-4 flex-col mt-8">
-            <div className="text-left mb-6 px-8">
+            <div className="text-left mb-6 px-4">
               <h1 className="text-4xl font-semibold text-black mb-2 leading-12">
                 Congratulations, {" "} {name || "User"}!
               </h1>
