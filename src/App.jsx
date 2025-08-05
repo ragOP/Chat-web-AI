@@ -20,6 +20,8 @@ import RefundPolicy from "./components/RefundPolicy";
 import Red from "./components/Red";
 import LanderThree from "./components/LanderThree";
 import LanderThreeConfirmation from "./components/LanderThreeConfirmation";
+import Sucess from "./components/Sucess";
+import Cancel from "./components/Cancel";
 function App(){
   return (
     <Routes>
@@ -44,6 +46,8 @@ function App(){
     <Route path="/new-record" element={<Record3 />} />
 
     <Route path="/messg1" element={<LanderThree />} />
+    <Route path="/success" element={<Sucess />} />
+    <Route path="/cancel" element={<Cancel />} />
 
     </Routes>
   )
