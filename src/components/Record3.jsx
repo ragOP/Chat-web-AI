@@ -59,6 +59,9 @@ const Record3 = () => {
                   Qualified For
                 </th>
                 <th className="py-2 px-1 font-medium text-base tracking-tight border-b border-gray-300 text-left">
+                  Message Send On
+                </th>
+                <th className="py-2 px-1 font-medium text-base tracking-tight border-b border-gray-300 text-left">
                   Created At
                 </th>
                 <th className="py-2 px-1 font-medium text-base tracking-tight border-b border-gray-300 text-left">
@@ -107,6 +110,9 @@ const Record3 = () => {
                       ) : (
                         <span className="text-gray-300">None</span>
                       )}
+                    </td>
+                    <td className="py-2 px-1 text-base border-b border-gray-100 text-gray-900 text-left align-middle">
+                      {row.sendMessageOn ? row.sendMessageOn : "Not found"}
                     </td>
                     <td className="py-2 px-1 text-base border-b border-gray-100 text-gray-900 text-left align-middle">
                       {new Date(row.createdAt).toLocaleString()}

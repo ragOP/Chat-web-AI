@@ -18,6 +18,8 @@ import Record3 from "./components/Record3";
 import { TerminalSquare } from "lucide-react";
 import RefundPolicy from "./components/RefundPolicy";
 import Red from "./components/Red";
+import LanderThree from "./components/LanderThree";
+import LanderThreeConfirmation from "./components/LanderThreeConfirmation";
 function App(){
   return (
     <Routes>
@@ -41,7 +43,7 @@ function App(){
     <Route path="/cong-pay" element={<PaymentCongratulationsPage />} />
     <Route path="/new-record" element={<Record3 />} />
 
-
+    <Route path="/messg1" element={<LanderThree />} />
 
     </Routes>
   )
