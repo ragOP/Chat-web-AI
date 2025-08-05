@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 
 const Testimonial = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
   const testimonials = [
     {
       id: 1,
@@ -43,39 +46,77 @@ const Testimonial = () => {
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face"
     }
   ]
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, testimonials.length]);
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-1 lg:px-8 py-1">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-2">
-        {testimonials.map((testimonial) => (
-          <div key={testimonial.id} className=" p-1 lg:p-8 relative flex flex-col">
-            <div className=" rounded-xl p-6 mb-6 shadow-sm relative flex-1 bg-gray-50">
-            <div className="absolute -bottom-4 left-2 w-0 h-0 border-l-[30px] border-l-transparent border-r-[30px] border-r-transparent border-t-[30px] border-t-gray-50"></div>
-              <p className="text-gray-700 italic text-sm sm:text-base leading-relaxed">
-                "{testimonial.quote}"
-              </p>
-            </div>
-            
-            <div className="flex items-center space-x-4 mt-auto">
-              <img 
-                src={testimonial.avatar} 
-                alt={testimonial.name}
-                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white shadow-md"
-                onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
-                }}
-              />
-              <div className="">
-                <h4 className="font-semibold text-gray-900 text-sm sm:text-base">
-                  {testimonial.name}
-                </h4>
-                <p className="text-gray-600 text-xs sm:text-sm">
-                  {testimonial.age}, {testimonial.location}
-                </p>
+    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-2">
+      <div className="relative">
+        {/* Slider Container */}
+        <div className="overflow-hidden">
+          <div 
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          >
+            {testimonials.map((testimonial, index) => (
+              <div key={testimonial.id} className="w-full flex-shrink-0 px-4">
+                <div className="bg-gray-50 rounded-xl p-6 shadow-sm relative">
+                  <div className="absolute -bottom-4 left-8 w-0 h-0 border-l-[30px] border-l-transparent border-r-[30px] border-r-transparent border-t-[30px] border-t-gray-50"></div>
+                  <p className="text-gray-700 italic text-sm sm:text-base leading-relaxed mb-6">
+                    "{testimonial.quote}"
+                  </p>
+                  
+                  <div className="flex items-center space-x-4">
+                    <img 
+                      src={testimonial.avatar} 
+                      alt={testimonial.name}
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white shadow-md"
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
+                      }}
+                    />
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-sm sm:text-base">
+                        {testimonial.name}
+                      </h4>
+                      <p className="text-gray-600 text-xs sm:text-sm">
+                        {testimonial.age}, {testimonial.location}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
+        </div>
+        {/* Dots Navigation */}
+        <div className="flex justify-center space-x-2 mt-6">
+          {Array.from({ length: testimonials.length }, (_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                index === currentSlide 
+                  ? 'bg-[#005e54] scale-125' 
+                  : 'bg-gray-300 hover:bg-gray-400'
+              }`}
+              aria-label={`Go to testimonial ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
