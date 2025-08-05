@@ -49,6 +49,21 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  const handlePaymentSuccess = async () => {
+    try {
+      const res = await fetch("https://benifit-gpt-be.onrender.com/api/update-record", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, isPaymentSuccess: true }),
+      });
+    } catch (err) {
+      console.error("Stripe Checkout error:", err);
+      alert("Failed to create Stripe payment session");
+    }
+  };
+
   const sendEmail = () => {
     const emailPayload = {
       email: email,
@@ -73,7 +88,6 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
   };
 
   useEffect(() => {
-    sendEmail();
     setTimeout(() => {
       setShow(true);
       playSound();
@@ -131,8 +145,12 @@ const handlePayment = async () => {
 
     const data = await res.json();
 
-    if (data.url) {
-      window.location.href = data.url; // Redirect to Stripe Checkout
+    if (data.url.includes("success")) {
+      sendEmail();
+      handlePaymentSuccess();
+      window.location.href = data.url;
+    } else if (data.url.includes("cancel")) {
+      window.location.href = data.url;
     } else {
       alert("Stripe payment link not available");
     }
