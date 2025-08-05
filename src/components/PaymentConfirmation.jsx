@@ -145,13 +145,11 @@ const handlePayment = async () => {
 
     const data = await res.json();
 
-    if (data.url.includes("success")) {
-      sendEmail();
-      handlePaymentSuccess();
+    if (data.url){
+      // sendEmail();
+      // handlePaymentSuccess();
       window.location.href = data.url;
-    } else if (data.url.includes("cancel")) {
-      window.location.href = data.url;
-    } else {
+      }  else {
       alert("Stripe payment link not available");
     }
   } catch (err) {
