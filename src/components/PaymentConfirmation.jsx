@@ -6,6 +6,10 @@ import report from "../assets/doc.png";
 import Testimonial from "./Testimonial";
 
 const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
+  // email = email || "najmiraghib@gmail.com";
+  // name = name || "User";
+  // userId = userId || "12345"; // Default userId if not provided 
+
   const [show, setShow] = useState(false);
   const [totalPayment, setTotalPayment] = useState(0);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
@@ -76,40 +80,67 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
     }, 15000);
   }, []);
 
-  const handlePayment = async () => {
-    const variantId = 930429;
-    try {
-      const res = await fetch(
-        "https://benifit-gpt-be.onrender.com/api/create-checkout",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ variantId }),
-        }
-      );
+  // const handlePayment = async () => {
+  //   const variantId = 930429;
+  //   try {
+  //     const res = await fetch(
+  //       "https://benifit-gpt-be.onrender.com/api/create-checkout",
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ variantId }),
+  //       }
+  //     );
 
-      const data = await res.json();
-      if (data.url) {
-        if (window.LemonSqueezy?.Url?.Open) {
-          window.LemonSqueezy.Url.Open(data.url);
-        } else {
-          window.location.href = data.url;
-        }
-      } else {
-        alert("Payment link not available");
-      }
-    } catch (err) {
-      console.error("Checkout error:", err);
-      alert("Failed to create payment session");
-    }
-  };
+  //     const data = await res.json();
+  //     if (data.url) {
+  //       if (window.LemonSqueezy?.Url?.Open) {
+  //         window.LemonSqueezy.Url.Open(data.url);
+  //       } else {
+  //         window.location.href = data.url;
+  //       }
+  //     } else {
+  //       alert("Payment link not available");
+  //     }
+  //   } catch (err) {
+  //     console.error("Checkout error:", err);
+  //     alert("Failed to create payment session");
+  //   }
+  // };
 
   // Helper to round to nearest thousand
   const roundToThousands = (num) => {
     return Math.floor(num / 1000) * 1000;
   };
+const handlePayment = async () => {
+  try {
+    const res = await fetch("https://benifit-gpt-be.onrender.com/api/create-checkout-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        name,
+        userId,
+        amount: 100, // $1 in cents
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.url) {
+      window.location.href = data.url; // Redirect to Stripe Checkout
+    } else {
+      alert("Stripe payment link not available");
+    }
+  } catch (err) {
+    console.error("Stripe Checkout error:", err);
+    alert("Failed to create Stripe payment session");
+  }
+};
 
   return (
     <>
