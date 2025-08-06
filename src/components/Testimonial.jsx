@@ -63,7 +63,7 @@ const Testimonial = () => {
   };
 
   return (
-    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-2">
+    <div className="w-full mx-auto px-2 sm:px-1 lg:px-8 py-2">
       <div className="relative">
         {/* Slider Container */}
         <div className="overflow-hidden">

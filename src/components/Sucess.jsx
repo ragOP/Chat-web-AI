@@ -14,7 +14,7 @@ const Sucess = () => {
           />
         </div>
         <div className="w-full text-white text-center font-semibold italic py-2 bg-[#005e54]">
-          22,578 Seniors Helped In Last 24 Hours!
+          22,578 Americans Helped In Last 24 Hours!
         </div>
       </div>
 
@@ -53,7 +53,7 @@ const Sucess = () => {
         {/* 💰 Bonus Section */}
         <div className="bg-[#005e54] text-white font-semibold mt-6 px-4 py-3 rounded-full shadow-xl text-sm flex items-center space-x-2">
           <span>🎁</span>
-          <span>Your Benefits Are Worth <strong className="text-yellow-300">$1,000+</strong></span>
+          <span>Your Benefits Are Worth <strong className="text-yellow-300">Thousand's</strong></span>
         </div>
 
         {/* Help Text */}

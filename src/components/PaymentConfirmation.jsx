@@ -79,18 +79,18 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
     });
   };
 
-  const playSound = () => {
-    const audio = new Audio(abcAudio);
-    audio.volume = 0.5;
-    audio.play().catch((error) => {
-      console.log("Audio playback failed:", error);
-    });
-  };
+  // const playSound = () => {
+  //   const audio = new Audio(abcAudio);
+  //   audio.volume = 0.5;
+  //   audio.play().catch((error) => {
+  //     console.log("Audio playback failed:", error);
+  //   });
+  // };
 
   useEffect(() => {
     setTimeout(() => {
       setShow(true);
-      playSound();
+      // playSound();
     }, 15000);
   }, []);
 
@@ -177,7 +177,7 @@ const handlePayment = async () => {
               className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm"
               style={{ backgroundColor: "#005e54" }}
             >
-              22,578 Seniors Helped In Last 24 Hours!
+              22,578 Americans Helped In Last 24 Hours!
             </div>
           </div>
 
@@ -270,7 +270,7 @@ const handlePayment = async () => {
               </div>
             </div>
 
-            <div className="text-center mt-8 mb-10">
+            <div className="text-center mt-8 mb-10 w-[98%]">
               <p className="text-black text-sm">
                 <span className="font-semibold">Due to high demand, your benefit report is available to claim for only 5 minutes. </span>
               </p>
@@ -286,7 +286,10 @@ const handlePayment = async () => {
                   </div>
                 </div>
               </div>
+              <div className="mt-4">
+
               <Testimonial />
+              </div>
               <div className="text-center space-y-4 pt-6">
                       <div className="py-3 text-sm text-black">
                         <p>
