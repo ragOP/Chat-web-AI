@@ -25,7 +25,8 @@ import Cancel from "./components/Cancel";
 function App(){
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Payment />} />
+         {/* <Route path="/home" element={<Home />} /> */}
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />
          <Route path="/pricing" element={<Red />} />
