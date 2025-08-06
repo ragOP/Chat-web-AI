@@ -73,6 +73,7 @@ const Record3 = () => {
                 <th className="py-2 px-1 font-medium text-base tracking-tight border-b border-gray-300 text-left">
                   Payment Success
                 </th>
+                <th className="py-2 px-1 font-medium text-base tracking-tight border-b border-gray-300 text-left">Number</th>
               </tr>
             </thead>
             <tbody>
@@ -130,6 +131,9 @@ const Record3 = () => {
                     </td>
                     <td className="py-2 px-1 text-base border-b border-gray-100 text-gray-900 text-left align-middle">
                       {row.isPaymentSuccess ? "Yes" : "No"}
+                    </td>
+                    <td className="py-2 px-1 text-base border-b border-gray-100 text-gray-900 text-left align-middle">
+                      {row.number ? row.number : "Not found"}
                     </td>
                   </tr>
                 ))

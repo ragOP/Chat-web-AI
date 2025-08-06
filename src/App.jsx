@@ -23,6 +23,7 @@ import LanderThreeConfirmation from "./components/LanderThreeConfirmation";
 import Sucess from "./components/Sucess";
 import Cancel from "./components/Cancel";
 import Home2 from "./components/Home2";
+import Home3 from "./components/Home3";
 function App(){
   return (
     <Routes>
@@ -50,6 +51,7 @@ function App(){
     <Route path="/messg1" element={<LanderThree />} />
     <Route path="/success" element={<Sucess />} />
     <Route path="/cancel" element={<Cancel />} />
+    <Route path="/new-page" element={<Home3 />} />
 
     </Routes>
   )
