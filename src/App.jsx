@@ -26,7 +26,7 @@ function App(){
   return (
     <Routes>
       <Route path="/" element={<Payment />} />
-         {/* <Route path="/home" element={<Home />} /> */}
+         <Route path="/free" element={<Home />} />
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />
          <Route path="/pricing" element={<Red />} />
