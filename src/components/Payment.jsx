@@ -530,7 +530,7 @@ export default function Payment() {
               className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm"
               style={{ backgroundColor: "#005e54" }}
             >
-              22,578 Seniors Helped In Last 24 Hours!
+              22,578 Americans Helped In Last 24 Hours!
             </div>
           </div>
           <div
@@ -814,7 +814,7 @@ export default function Payment() {
                 ) : (
                   <div className="mt-4 space-y-4">
                     <h1 className="font-bold text-3xl text-center text-black">
-                      Seniors, Get Your Benefits Eligibility Check in Just 60
+                      Americans, Get Your Benefits Eligibility Check in Just 60
                       Seconds!
                     </h1>
                     <div className="flex justify-center items-center mt-6  ml-8 px-0 text-md font-semibold text-gray-600">
@@ -833,7 +833,7 @@ export default function Payment() {
                               />
                             </svg>
                           </div>
-                          <span>Over 2M+ Seniors Helped Till Date.</span>
+                          <span>Over 2M+ Americans Helped Till Date.</span>
                         </div>
 
                         <div className="flex items-start space-x-2">
@@ -936,7 +936,7 @@ export default function Payment() {
                           `}</style>
                         </button>
                       )}
-                      <p className="text-sm mt-2">
+                      <p className="text-sm my-4">
                         <i>
                           <span className="text-[#005e54] font-bold">69</span>{" "}
                           People Are <span className="font-bold">Claiming</span>{" "}
