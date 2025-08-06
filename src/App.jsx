@@ -22,10 +22,11 @@ import LanderThree from "./components/LanderThree";
 import LanderThreeConfirmation from "./components/LanderThreeConfirmation";
 import Sucess from "./components/Sucess";
 import Cancel from "./components/Cancel";
+import Home2 from "./components/Home2";
 function App(){
   return (
     <Routes>
-      <Route path="/" element={<Payment />} />
+      <Route path="/" element={<Home2 />} />
          <Route path="/free" element={<Home />} />
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />
