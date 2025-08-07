@@ -19,6 +19,8 @@ import exerciseAudio from "../assets/Do you exercise at least 2.wav";
 import firstquestion from "../assets/Congratulations on taking 2 (1).wav";
 import secondquestion from "../assets/Let-s just get to know yo 2.wav";
 import thirdquestion from "../assets/Tap the button below and 2.wav";
+import phoneAudio from "../assets/phone.mp3";
+import smsAudio from "../assets/sms.mp3";
 import center from "../assets/center.png";
 import PaymentConfirmation from "./PaymentConfirmation";
 import FaqAccordion from "./Faq";
@@ -69,15 +71,17 @@ const questions = [
   // },
   {
     id: 4,
-    text: "Would you like to receive your benefits report via SMS or Whatsapp?",
+    text: "Would you like to receive your benefits report?",
     type: "choice",
     options: ["SMS", "Whatsapp"],
+    audio: smsAudio,
   },
   {
     id: 5,
-    text: "May I know your number?",
+    text: "Please enter your 10-digit phone number below:",
     type: "text",
     keyType: "numeric",
+    audio: phoneAudio,
   },
   {
     id: 6,
@@ -435,8 +439,8 @@ export default function Home3() {
       // email: allAnswers["May I know your email?"],
       tags: tagArray || tags,
       origin: `6-${utmCampaign}`,
-      sendMessageOn: allAnswers["Would you like to receive your benefits report via SMS or Whatsapp?"],
-      number: allAnswers["May I know your number?"],
+      sendMessageOn: allAnswers["Would you like to receive your benefits report?"],
+      number: allAnswers["Please enter your 10-digit phone number below:"],
     };
     try {
       const res = await fetch(
