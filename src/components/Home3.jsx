@@ -55,45 +55,45 @@ const questions = [
     keyType: "numeric",
     audio: zipcodeAudio,
   },
+  // {
+  //   id: 4,
+  //   text: "So far so good!",
+  //   type: "info",
+  //   audio: emailAudio,
+  // },
+  // {
+  //   id: 5,
+  //   text: "May I know your email?",
+  //   type: "text",
+  //   keyType: "alphabet",
+  // },
   {
     id: 4,
-    text: "So far so good!",
-    type: "info",
-    audio: emailAudio,
-  },
-  {
-    id: 5,
-    text: "May I know your email?",
-    type: "text",
-    keyType: "alphabet",
-  },
-  {
-    id: 6,
-    text: "May I know your number?",
-    type: "text",
-    keyType: "numeric",
-  },
-  {
-    id: 7,
     text: "Would you like to receive your benefits report via SMS or Whatsapp?",
     type: "choice",
     options: ["SMS", "Whatsapp"],
   },
   {
-    id: 8,
+    id: 5,
+    text: "May I know your number?",
+    type: "text",
+    keyType: "numeric",
+  },
+  {
+    id: 6,
     text: "Thank you",
     type: "info",
     audio: medicareAudio,
   },
   {
-    id: 9,
+    id: 7,
     text: "Now, are you on medicare?",
     type: "choice",
     options: ["Yes", "No"],
     tag: TAGS.medicare,
   },
   {
-    id: 10,
+    id: 8,
     text: "Do you have any of the mentioned health conditions?",
     type: "choice",
     options: ["Alzheimers", "Diabetes", "Hypertension", "Arthritis", "No"],
@@ -101,7 +101,7 @@ const questions = [
     audio: alzheimersAudio,
   },
   {
-    id: 11,
+    id: 9,
     text: "Do you own your home or rent?",
     type: "choice",
     options: ["I Own", "I Rent"],
@@ -109,20 +109,20 @@ const questions = [
     audio: homeAudio,
   },
   {
-    id: 12,
+    id: 10,
     text: "Great, We're almost there!",
     type: "info",
     audio: have,
   },
   {
-    id: 13,
+    id: 11,
     text: "Do you have a car that you drive at least once a week?",
     type: "choice",
     options: ["Yes", "No"],
     tag: TAGS.auto,
   },
   {
-    id: 14,
+    id: 12,
     text: "Have you faced any motor vehicle accidents in the last 2 years?",
     type: "choice",
     options: ["Yes", "No"],
@@ -130,19 +130,19 @@ const questions = [
     audio: accidentAudio,
   },
   {
-    id: 15,
+    id: 13,
     text: "Alright, we're almost done.",
     type: "info",
     audio: childAudio,
   },
   {
-    id: 16,
+    id: 14,
     text: "Do you have any children between the age of 18-64?",
     type: "choice",
     options: ["Yes", "No"],
   },
   {
-    id: 17,
+    id: 15,
     text: "Okay, and do you have a credit card debt of $10,000 or more?",
     type: "choice",
     options: ["Yes", "No"],
@@ -150,13 +150,13 @@ const questions = [
     audio: debtAudio,
   },
   {
-    id: 18,
+    id: 16,
     text: "I got it, Just one last question!",
     type: "info",
     audio: exerciseAudio,
   },
   {
-    id: 19,
+    id: 17,
     text: "Do you exercise at least once a week?",
     type: "choice",
     options: ["Yes", "No"],
@@ -239,46 +239,46 @@ export default function Home3() {
       alert("Please enter a valid pincode");
       return;
     }
-    if (currentQuestion.id === 5 && !validateEmail(response)) {
-      alert("Please enter a valid email");
-      return;
-    }
+    // if (currentQuestion.id === 5 && !validateEmail(response)) {
+    //   alert("Please enter a valid email");
+    //   return;
+    // }
 
-    if (currentQuestion.id === 5) {
-      try {
-        const emailPayload = {
-          email: response,
-        };
-        setEmail(response);
+    // if (currentQuestion.id === 5) {
+    //   try {
+    //     const emailPayload = {
+    //       email: response,
+    //     };
+    //     setEmail(response);
 
-        fetch("https://benifit-gpt-be.onrender.com/email", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(emailPayload),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("✅ Email API call successful:", data);
-          })
-          .catch((err) => {
-            console.error("❌ Error calling email API:", err);
-          });
-      } catch (error) {
-        console.error("❌ Error in email API call:", error);
-      }
-    }
+    //     fetch("https://benifit-gpt-be.onrender.com/email", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify(emailPayload),
+    //     })
+    //       .then((res) => res.json())
+    //       .then((data) => {
+    //         console.log("✅ Email API call successful:", data);
+    //       })
+    //       .catch((err) => {
+    //         console.error("❌ Error calling email API:", err);
+    //       });
+    //   } catch (error) {
+    //     console.error("❌ Error in email API call:", error);
+    //   }
+    // }
 
     if (currentQuestion.tag) {
       let shouldTag = false;
-      if (currentQuestion.id === 9 && (response === "Yes" || response === "No"))
+      if (currentQuestion.id === 7 && (response === "Yes" || response === "No"))
         shouldTag = true;
-      if (currentQuestion.id === 10 && response !== "No") shouldTag = true;
-      if (currentQuestion.id === 11 && response === "I Own") shouldTag = true;
+      if (currentQuestion.id === 8 && response !== "No") shouldTag = true;
+      if (currentQuestion.id === 9 && response === "I Own") shouldTag = true;
+      if (currentQuestion.id === 11 && response === "Yes") shouldTag = true;
+      if (currentQuestion.id === 12 && response === "Yes") shouldTag = true;
       if (currentQuestion.id === 13 && response === "Yes") shouldTag = true;
-      if (currentQuestion.id === 14 && response === "Yes") shouldTag = true;
-      if (currentQuestion.id === 16 && response === "Yes") shouldTag = true;
       if (shouldTag && !tags.includes(currentQuestion.tag)) {
         setTags((prev) => [...prev, currentQuestion.tag]);
       }
@@ -411,6 +411,17 @@ export default function Home3() {
     return null;
   };
 
+  const [utmCampaign, setUtmCampaign] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const campaign = params.get("utm_campaign");
+
+    if (campaign) {
+      setUtmCampaign(campaign);
+         }
+  }, []);
+
   const handleFinalAnswers = async (allAnswers, tagArray) => {
     const tempUserId =
       allAnswers["What's your full name?"].slice(0, 3).toUpperCase() +
@@ -421,9 +432,9 @@ export default function Home3() {
       fullName: allAnswers["What's your full name?"],
       age: allAnswers["Okay, what is your age today?"],
       zipcode: allAnswers["Nice, and what's your zip code?"],
-      email: allAnswers["May I know your email?"],
+      // email: allAnswers["May I know your email?"],
       tags: tagArray || tags,
-      origin: "6",
+      origin: `6-${utmCampaign}`,
       sendMessageOn: allAnswers["Would you like to receive your benefits report via SMS or Whatsapp?"],
       number: allAnswers["May I know your number?"],
     };
