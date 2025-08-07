@@ -11,7 +11,7 @@ const Testimonial = () => {
       name: "Sarah Thompson",
       age: "42",
       location: "Houston, TX",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
+      avatar: "sarah.jpg"
     },
     {
       id: 2,
@@ -19,7 +19,7 @@ const Testimonial = () => {
       name: "Michael Rodriguez",
       age: "58",
       location: "Miami, FL",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+      avatar: "mike.jpg"
     },
     {
       id: 3,
@@ -27,7 +27,7 @@ const Testimonial = () => {
       name: "Emily Carter",
       age: "35",
       location: "Columbus, OH",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face"
+      avatar: "emi.jpg"
     },
     {
       id: 4,
@@ -35,16 +35,16 @@ const Testimonial = () => {
       name: "James Wilson",
       age: "67",
       location: "Raleigh, NC",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+      avatar: "james.jpg"
     },
-    {
-      id: 5,
-      quote: "I thought benefits were too complicated, but MyBenefits AI proved me wrong. For just $1, it showed me $1,500 in debt forgiveness and food aid in seconds. The report was awesome, and I claimed it all so fast. My roommates are now using it too—thanks, MyBenefits AI!",
-      name: "Jessica Nguyen",
-      age: "29",
-      location: "San Diego, CA",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face"
-    }
+    // {
+    //   id: 5,
+    //   quote: "I thought benefits were too complicated, but MyBenefits AI proved me wrong. For just $1, it showed me $1,500 in debt forgiveness and food aid in seconds. The report was awesome, and I claimed it all so fast. My roommates are now using it too—thanks, MyBenefits AI!",
+    //   name: "Jessica Nguyen",
+    //   age: "29",
+    //   location: "San Diego, CA",
+    //   avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face"
+    // }
   ]
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -84,9 +84,7 @@ const Testimonial = () => {
                       src={testimonial.avatar} 
                       alt={testimonial.name}
                       className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white shadow-md"
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
-                      }}
+                    
                     />
                     <div>
                       <h4 className="font-semibold text-gray-900 text-sm sm:text-base">
