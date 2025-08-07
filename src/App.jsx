@@ -51,7 +51,7 @@ function App(){
     <Route path="/messg1" element={<LanderThree />} />
     <Route path="/success" element={<Sucess />} />
     <Route path="/cancel" element={<Cancel />} />
-    <Route path="/new-page" element={<Home3 />} />
+    <Route path="/messg2" element={<Home3 />} />
 
     </Routes>
   )
