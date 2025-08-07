@@ -399,6 +399,17 @@ export default function Payment() {
     return null;
   };
 
+  const [utmCampaign, setUtmCampaign] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const campaign = params.get("utm_campaign");
+
+    if (campaign) {
+      setUtmCampaign(campaign);
+         }
+  }, []);
+
   const handleFinalAnswers = async (allAnswers, tagArray) => {
     const tempUserId =
       allAnswers["What's your full name?"].slice(0, 3).toUpperCase() +
@@ -411,7 +422,7 @@ export default function Payment() {
       zipcode: allAnswers["Nice, and what's your zip code?"],
       email: allAnswers["May I know your email?"],
       tags: tagArray || tags,
-      origin: "3",
+      origin: `3-${utmCampaign}`,
     };
     try {
       const res = await fetch(
