@@ -535,6 +535,12 @@ export default function Payment() {
                 alt="logo"
                 className="w-[60%] h-[55px] object-contain"
               />
+                <a
+      href="/contact"
+      className="px-4 py-1.5 text-sm font-medium text-black bg-white rounded-full shadow hover:bg-gray-200 transition-colors"
+    >
+      Contact Us
+    </a>
             </div>
 
             <div

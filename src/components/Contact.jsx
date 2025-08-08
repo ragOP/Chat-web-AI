@@ -59,7 +59,7 @@ export default function ContactForm() {
         <form className="card" onSubmit={handleSubmit} noValidate>
           <h1 className="title">Contact Us</h1>
 
-          <div className="field">
+          <div className="field"> 
             <label htmlFor="name">Name</label>
             <input
               id="name"
