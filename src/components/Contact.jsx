@@ -131,7 +131,7 @@ export default function ContactForm() {
             <label htmlFor="consent">
               I consent to receive SMS notifications and alerts from Click Ventures LLC.
               Message frequency varies. Message &amp; data rates may apply. Text HELP to
-              (302) 316-5127 for assistance. Reply STOP to unsubscribe at any time. For
+              (570) 350-4642 for assistance. Reply STOP to unsubscribe at any time. For
               more information, please review our{" "}
               <a href="./privacy" target="_blank" rel="noreferrer">
                 Privacy Policy
