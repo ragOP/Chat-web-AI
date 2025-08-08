@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 export default function ContactForm() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -57,6 +58,9 @@ export default function ContactForm() {
     <>
       <div className="wrap">
         <form className="card" onSubmit={handleSubmit} noValidate>
+          <button className="back-btn" onClick={() => navigate("/")}>
+          ← Back to Home
+        </button>
           <h1 className="title">Contact Us</h1>
 
           <div className="field"> 
