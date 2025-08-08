@@ -971,7 +971,22 @@ export default function Home2() {
                           website to claim the Benefits You're Qualified For
                           with the domain name mybenefitsai.org
                         </p>
+                        <div className="mt-2 space-x-4">
+    <a
+      href="/contact"
+      className="text-blue-600 hover:text-blue-800 underline transition-colors"
+    >
+      Contact Us
+    </a>
+    <a
+      href="/privacy"
+      className="text-blue-600 hover:text-blue-800 underline transition-colors"
+    >
+      Privacy Policy
+    </a>
+  </div>
                       </footer>
+
                     </div>
                   </>
                 )}
