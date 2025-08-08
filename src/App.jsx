@@ -25,6 +25,7 @@ import Cancel from "./components/Cancel";
 import Home2 from "./components/Home2";
 import Home3 from "./components/Home3";
 import Home4 from "./components/Home4";
+import Contact from "./components/Contact";
 function App(){
   return (
     <Routes>
@@ -33,6 +34,7 @@ function App(){
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />
          <Route path="/pricing" element={<Red />} />
+         <Route path="/contact" element={<Contact />} />
       <Route path="/terms-and-conditions" element={<Terms />} />
          <Route path="/refund-policy" element={<RefundPolicy />} />
       <Route path="/email" element={<Email />} />
