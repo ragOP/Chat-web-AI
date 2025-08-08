@@ -14,6 +14,10 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
   const [totalPayment, setTotalPayment] = useState(0);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
 
+
+
+
+  
   useEffect(() => {
     if (tagArray.length > 0) {
       const total = tagArray.map((curr) => {
@@ -88,43 +92,13 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
   // };
 
   useEffect(() => {
+      sendEmail();
     setTimeout(() => {
       setShow(true);
       // playSound();
     }, 15000);
   }, []);
 
-  // const handlePayment = async () => {
-  //   const variantId = 930429;
-  //   try {
-  //     const res = await fetch(
-  //       "https://benifit-gpt-be.onrender.com/api/create-checkout",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({ variantId }),
-  //       }
-  //     );
-
-  //     const data = await res.json();
-  //     if (data.url) {
-  //       if (window.LemonSqueezy?.Url?.Open) {
-  //         window.LemonSqueezy.Url.Open(data.url);
-  //       } else {
-  //         window.location.href = data.url;
-  //       }
-  //     } else {
-  //       alert("Payment link not available");
-  //     }
-  //   } catch (err) {
-  //     console.error("Checkout error:", err);
-  //     alert("Failed to create payment session");
-  //   }
-  // };
-
-  // Helper to round to nearest thousand
   const roundToThousands = (num) => {
     return Math.floor(num / 1000) * 1000;
   };
@@ -146,8 +120,8 @@ const handlePayment = async () => {
     const data = await res.json();
 
     if (data.url){
-      sendEmail();
-      handlePaymentSuccess();
+    
+      // handlePaymentSuccess();
       window.location.href = data.url;
       }  else {
       alert("Stripe payment link not available");
