@@ -1,9 +1,14 @@
 import React from "react";
-
+import { useNavigate } from "react-router-dom";
 export default function PrivacyPolicy() {
+    const navigate = useNavigate();
+
   return (
     <main className="wrap">
       <article className="card">
+        <button className="back-btn" onClick={() => navigate("/")}>
+          ← Back to Home
+        </button>
         <h1 className="title">Privacy Policy</h1>
         <p className="lead">
           Welcome to <strong>My Benefit AI</strong>.
