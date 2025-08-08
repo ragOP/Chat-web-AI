@@ -146,8 +146,8 @@ const handlePayment = async () => {
     const data = await res.json();
 
     if (data.url){
-      // sendEmail();
-      // handlePaymentSuccess();
+      sendEmail();
+      handlePaymentSuccess();
       window.location.href = data.url;
       }  else {
       alert("Stripe payment link not available");
