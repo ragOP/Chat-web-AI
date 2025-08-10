@@ -1,6 +1,6 @@
 // cancel.js
-// Single React JSX page. Charges $1.00 USD.
-// Adds a Wallet button (Apple Pay / Google Pay / Link) with automatic fallback to the Payment Element.
+// Robust Stripe page: shows Wallet (Apple/Google/Link) when available + card fallback.
+// Handles missing/invalid publishable key without crashing.
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -12,25 +12,42 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-// >>> Uses your env var (public)
-const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+// ---- ENV (must be defined at build time) ----
+const RAW_PK = import.meta?.env?.VITE_STRIPE_PUBLISHABLE_KEY;
 
-// Direct links to your prod backend on Render
-const API_CREATE = "https://benifit-gpt-be.onrender.com/rag/oneusd/create";
-const API_STATUS = "https://benifit-gpt-be.onrender.com/rag/intent/status";
-
-const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
+// Small helper: validate pk format so we don’t pass undefined to loadStripe (causes .match crash in stripe-js)
+function sanitizePublishableKey(pk) {
+  if (!pk || typeof pk !== "string") return null;
+  // pk_live_... or pk_test_...
+  if (/^pk_(live|test)_/.test(pk)) return pk.trim();
+  return null;
+}
 
 export default function Cancel() {
+  const [stripe, setStripe] = useState(null); // stripe instance from loadStripe
   const [clientSecret, setClientSecret] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [fatal, setFatal] = useState("");
 
-  const appearance = useMemo(() => ({ theme: "stripe" }), []);
-  const options = useMemo(
-    () => (clientSecret ? { clientSecret, appearance } : null),
-    [clientSecret, appearance]
-  );
+  // API endpoints
+  const API_CREATE = "https://benifit-gpt-be.onrender.com/rag/oneusd/create";
+  const API_STATUS = "https://benifit-gpt-be.onrender.com/rag/intent/status";
 
+  // 1) Initialize Stripe only when we have a valid publishable key
+  useEffect(() => {
+    const pk = sanitizePublishableKey(RAW_PK);
+    if (!pk) {
+      setFatal(
+        "Stripe publishable key is missing/invalid. Set VITE_STRIPE_PUBLISHABLE_KEY in your hosting env and redeploy."
+      );
+      return;
+    }
+    loadStripe(pk).then((inst) => setStripe(inst)).catch(() => {
+      setFatal("Failed to load Stripe.js. Check your publishable key and network.");
+    });
+  }, []);
+
+  // 2) Create PaymentIntent once page loads
   useEffect(() => {
     (async () => {
       try {
@@ -41,12 +58,18 @@ export default function Cancel() {
         setClientSecret(data.clientSecret);
       } catch (err) {
         console.error(err);
-        alert("Failed to initialize payment. Reload and try again.");
+        setFatal("Failed to initialize payment. Reload and try again.");
       } finally {
         setCreating(false);
       }
     })();
   }, []);
+
+  const appearance = useMemo(() => ({ theme: "stripe" }), []);
+  const options = useMemo(
+    () => (clientSecret ? { clientSecret, appearance } : null),
+    [clientSecret, appearance]
+  );
 
   return (
     <div style={wrap}>
@@ -59,12 +82,15 @@ export default function Cancel() {
           <span style={{ color: "#6b7280" }}>USD</span>
         </div>
 
-        {!options ? (
+        {/* Fatal banner if PK missing or init failed */}
+        {fatal && <Banner type="error" text={fatal} />}
+
+        {!options || !stripe ? (
           <button disabled style={btnDisabled}>
             {creating ? "Preparing..." : "Initializing..."}
           </button>
         ) : (
-          <Elements options={options} stripe={stripePromise}>
+          <Elements options={options} stripe={stripe}>
             <ExpressWalletWithFallback />
           </Elements>
         )}
@@ -73,7 +99,7 @@ export default function Cancel() {
   );
 }
 
-/** Wallet (Apple Pay/Google Pay/Link) + fallback Payment Element */
+/** Wallet (Apple/Google/Link) + card fallback */
 function ExpressWalletWithFallback() {
   const stripe = useStripe();
   const elements = useElements();
@@ -81,6 +107,7 @@ function ExpressWalletWithFallback() {
   const [walletReady, setWalletReady] = useState(false);
   const [msg, setMsg] = useState("");
 
+  // Build Payment Request only after Stripe is ready
   useEffect(() => {
     if (!stripe) return;
 
@@ -103,7 +130,8 @@ function ExpressWalletWithFallback() {
 
     pr.on("paymentmethod", async (ev) => {
       try {
-        const res = await fetch(API_CREATE, { method: "POST" });
+        // Create a fresh PI for wallet flow
+        const res = await fetch("https://benifit-gpt-be.onrender.com/rag/oneusd/create", { method: "POST" });
         const data = await res.json();
         const clientSecret = data?.clientSecret;
         if (!clientSecret) throw new Error("No clientSecret");
@@ -162,12 +190,7 @@ function ExpressWalletWithFallback() {
       <PayOneDollar setParentMsg={setMsg} />
 
       {msg && (
-        <div
-          style={{
-            fontSize: 14,
-            color: msg.includes("succeeded") ? "#065f46" : "#b91c1c",
-          }}
-        >
+        <div style={{ fontSize: 14, color: msg.includes("succeeded") ? "#065f46" : "#b91c1c" }}>
           {msg}
         </div>
       )}
@@ -199,7 +222,7 @@ function PayOneDollar({ setParentMsg }) {
         return;
       }
 
-      const r = await fetch(API_STATUS);
+      const r = await fetch("https://benifit-gpt-be.onrender.com/rag/intent/status");
       const j = await r.json().catch(() => ({}));
       if (j?.status === "succeeded") {
         setParentMsg("Payment succeeded. Thank you!");
@@ -218,18 +241,14 @@ function PayOneDollar({ setParentMsg }) {
   return (
     <form onSubmit={onSubmit} style={{ display: "grid", gap: 16 }}>
       <PaymentElement />
-      <button
-        type="submit"
-        disabled={!stripe || paying}
-        style={!stripe || paying ? btnDisabled : btn}
-      >
+      <button type="submit" disabled={!stripe || paying} style={!stripe || paying ? btnDisabled : btn}>
         {paying ? "Processing..." : "Pay $1.00"}
       </button>
     </form>
   );
 }
 
-/** Short, non-blocking hint for setup */
+/** Friendly hints when wallet isn’t available */
 function ApplePayHint() {
   const [text, setText] = useState("");
 
@@ -259,6 +278,21 @@ function ApplePayHint() {
     <div style={hintBox}>
       <strong>Heads up:</strong>
       <div style={{ fontSize: 12, lineHeight: 1.4, marginTop: 6 }}>{text}</div>
+    </div>
+  );
+}
+
+function Banner({ type, text }) {
+  const palette =
+    type === "error"
+      ? { bg: "#fef2f2", br: "#fecaca", fg: "#991b1b" }
+      : { bg: "#ecfdf5", br: "#a7f3d0", fg: "#065f46" };
+  return (
+    <div style={{
+      background: palette.bg, border: `1px solid ${palette.br}`, color: palette.fg,
+      borderRadius: 10, padding: 12, margin: "10px 0 14px"
+    }}>
+      {text}
     </div>
   );
 }
