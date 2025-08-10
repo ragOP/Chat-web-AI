@@ -1,5 +1,14 @@
 {
- "rewrites": [
-   { "source": "/(.*)", "destination": "/" }
- ]
+  "rewrites": [
+    { "source": "/.well-known/:file*", "destination": "/.well-known/:file*" },
+    { "source": "/(.*)", "destination": "/" }
+  ],
+  "headers": [
+    {
+      "source": "/.well-known/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    }
+  ]
 }
