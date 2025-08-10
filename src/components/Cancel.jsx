@@ -1,13 +1,24 @@
+// cancel.js
+// Single-page React component (no base URL config). Uses direct links to your prod backend under /rag/*
+// Replace STRIPE_PUBLISHABLE_KEY with your real live key.
+
 import React, { useEffect, useMemo, useState } from "react";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { API, STRIPE_PUBLISHABLE_KEY } from "./config";
 
+const STRIPE_PUBLISHABLE_KEY = "pk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; // <-- put your live PK here
+
+// Direct backend URLs (no base config)
+const API_CREATE = "https://benifit-gpt-be.onrender.com/rag/intent/create";
+const API_UPDATE = "https://benifit-gpt-be.onrender.com/rag/intent/update";
+const API_STATUS = "https://benifit-gpt-be.onrender.com/rag/intent/status";
+
+// Prefilled values (editable in UI)
 const PRESET = {
   name: "Raghib Najmi",
   email: "raghib@example.com",
-  amountINR: 389,
-  product: "Soulmate Sketch"
+  amountINR: 1,
+  product: "MY BENFIT AI"
 };
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
@@ -18,13 +29,17 @@ export default function Cancel() {
   const [creating, setCreating] = useState(false);
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
-  const options = useMemo(() => (clientSecret ? { clientSecret, appearance } : null), [clientSecret, appearance]);
+  const options = useMemo(
+    () => (clientSecret ? { clientSecret, appearance } : null),
+    [clientSecret, appearance]
+  );
 
   useEffect(() => {
+    // Create PaymentIntent immediately with prefilled values
     (async () => {
       try {
         setCreating(true);
-        const res = await fetch(API.createIntent, {
+        const res = await fetch(API_CREATE, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -38,26 +53,28 @@ export default function Cancel() {
           })
         });
         const data = await res.json();
-        if (data?.clientSecret) setClientSecret(data.clientSecret);
-        else throw new Error(data?.error || "No client secret");
-      } catch (e) {
-        console.error(e);
-        alert("Failed to initialize payment. Please reload.");
+        if (!data?.clientSecret) throw new Error(data?.error || "Failed to init payment");
+        setClientSecret(data.clientSecret);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to initialize payment. Please reload this page.");
       } finally {
         setCreating(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // only once
 
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#f7fafc" }}>
-      <div style={{ width: 520, maxWidth: "95%", background: "#fff", borderRadius: 16, boxShadow: "0 10px 30px rgba(0,0,0,.08)", padding: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Pay for {form.product}</h1>
-        <p style={{ marginTop: 8, color: "#4b5563" }}>Your own form UI. Card field via Stripe Elements (no Checkout redirect).</p>
+    <div style={pageWrap}>
+      <div style={cardWrap}>
+        <h1 style={title}>Pay for {form.product}</h1>
+        <p style={subtitle}>Your own page — no Stripe Checkout redirect.</p>
 
+        {/* Your form with prefilled values */}
         <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-          <label>
-            <span style={{ fontSize: 12, color: "#6b7280" }}>Name</span>
+          <label style={labelWrap}>
+            <span style={label}>Name</span>
             <input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -65,8 +82,8 @@ export default function Cancel() {
               style={inputStyle}
             />
           </label>
-          <label>
-            <span style={{ fontSize: 12, color: "#6b7280" }}>Email</span>
+          <label style={labelWrap}>
+            <span style={label}>Email</span>
             <input
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -74,29 +91,29 @@ export default function Cancel() {
               style={inputStyle}
             />
           </label>
-          <label>
-            <span style={{ fontSize: 12, color: "#6b7280" }}>Amount (INR)</span>
+          <label style={labelWrap}>
+            <span style={label}>Amount (INR)</span>
             <input
               type="number"
               min="1"
               value={form.amountINR}
-              onChange={(e) => setForm({ ...form, amountINR: Number(e.target.value) || 0 })}
+              onChange={(e) =>
+                setForm({ ...form, amountINR: Number(e.target.value) || 0 })
+              }
               style={inputStyle}
             />
           </label>
         </div>
 
-        <hr style={{ margin: "20px 0", border: 0, borderTop: "1px solid #e5e7eb" }} />
+        <hr style={hr} />
 
-        {!options && (
-          <button disabled style={buttonStyleDisabled}>
+        {!options ? (
+          <button disabled style={buttonDisabled}>
             {creating ? "Preparing payment..." : "Initializing..."}
           </button>
-        )}
-
-        {options && (
+        ) : (
           <Elements options={options} stripe={stripePromise}>
-            <PayForm form={form} />
+            <InlinePayForm form={form} />
           </Elements>
         )}
       </div>
@@ -104,13 +121,13 @@ export default function Cancel() {
   );
 }
 
-function PayForm({ form }) {
+function InlinePayForm({ form }) {
   const stripe = useStripe();
   const elements = useElements();
   const [paying, setPaying] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handlePay = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     if (!stripe || !elements) return;
@@ -118,8 +135,8 @@ function PayForm({ form }) {
     try {
       setPaying(true);
 
-      // Sync latest amount/metadata with your backend before confirm
-      await fetch(API.updateIntent, {
+      // Keep backend intent in sync with latest amount/metadata
+      await fetch(API_UPDATE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -135,7 +152,8 @@ function PayForm({ form }) {
       const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: window.location.origin + "/success",
+          // Stay on same page (single-page flow)
+          return_url: window.location.href,
           receipt_email: form.email,
           payment_method_data: {
             billing_details: { name: form.name, email: form.email }
@@ -146,15 +164,18 @@ function PayForm({ form }) {
 
       if (error) {
         setMessage(error.message || "Payment failed. Try again.");
+        return;
+      }
+
+      // If no redirect was required, verify status with your backend
+      const res = await fetch(API_STATUS, { method: "GET" });
+      const data = await res.json();
+      if (data?.status === "succeeded") {
+        setMessage("Payment succeeded! Check your email for the receipt.");
+      } else if (data?.status) {
+        setMessage(`Payment status: ${data.status}. You’ll be notified once confirmed.`);
       } else {
-        // Check status from your server
-        const res = await fetch(API.statusIntent, { method: "GET" });
-        const data = await res.json();
-        if (data?.status === "succeeded") {
-          setMessage("Payment succeeded! Check your email for the receipt.");
-        } else {
-          setMessage("Payment processing. You’ll be notified once confirmed.");
-        }
+        setMessage("Payment processing. Please wait or refresh to check status.");
       }
     } catch (err) {
       setMessage("Something went wrong. Please try again.");
@@ -164,29 +185,52 @@ function PayForm({ form }) {
   };
 
   return (
-    <form onSubmit={handlePay} style={{ display: "grid", gap: 16 }}>
+    <form onSubmit={onSubmit} style={{ display: "grid", gap: 16 }}>
       <PaymentElement />
-      <button type="submit" disabled={!stripe || paying} style={!stripe || paying ? buttonStyleDisabled : buttonStyle}>
+      <button type="submit" disabled={!stripe || paying} style={!stripe || paying ? buttonDisabled : button}>
         {paying ? "Processing..." : `Pay ₹${form.amountINR}`}
       </button>
-      {message && <div style={{ color: message.includes("succeeded") ? "#065f46" : "#b91c1c", fontSize: 14 }}>{message}</div>}
+      {message && (
+        <div style={{ fontSize: 14, lineHeight: 1.4, color: message.includes("succeeded") ? "#065f46" : "#b91c1c" }}>
+          {message}
+        </div>
+      )}
       <small style={{ color: "#6b7280" }}>
-        You stay on this page; Stripe handles any SCA flow if required.
+        Any SCA/3-D Secure will happen inline or briefly redirect and return here.
       </small>
     </form>
   );
 }
 
+/* --- inline styles --- */
+const pageWrap = {
+  minHeight: "100vh",
+  display: "grid",
+  placeItems: "center",
+  background: "#f7fafc",
+  padding: 16
+};
+const cardWrap = {
+  width: 520,
+  maxWidth: "95%",
+  background: "#fff",
+  borderRadius: 16,
+  boxShadow: "0 10px 30px rgba(0,0,0,.08)",
+  padding: 24
+};
+const title = { margin: 0, fontSize: 22, fontWeight: 700 };
+const subtitle = { marginTop: 8, color: "#4b5563" };
+const labelWrap = { display: "grid", gap: 6 };
+const label = { fontSize: 12, color: "#6b7280" };
 const inputStyle = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 10,
   border: "1px solid #e5e7eb",
-  outline: "none",
-  marginTop: 6
+  outline: "none"
 };
-
-const buttonStyle = {
+const hr = { margin: "20px 0", border: 0, borderTop: "1px solid #e5e7eb" };
+const button = {
   padding: "12px 16px",
   borderRadius: 12,
   background: "#111827",
@@ -195,9 +239,8 @@ const buttonStyle = {
   cursor: "pointer",
   fontWeight: 600
 };
-
-const buttonStyleDisabled = {
-  ...buttonStyle,
+const buttonDisabled = {
+  ...button,
   background: "#9ca3af",
   cursor: "not-allowed"
 };
