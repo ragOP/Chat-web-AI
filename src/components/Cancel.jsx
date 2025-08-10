@@ -1,13 +1,18 @@
 // cancel.js
-// Single React JSX page. Always charges $1.00 USD.
-// Uses direct backend URLs (no base config, no extra files).
-// Drop into your existing React app and render <Cancel /> on any route/page.
+// Single React JSX page. Charges $1.00 USD.
+// Adds a Wallet button (Apple Pay / Google Pay / Link) with automatic fallback to the Payment Element.
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import {
+  Elements,
+  PaymentElement,
+  PaymentRequestButtonElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-// >>> REPLACE with your real publishable key (public; safe for client)
+// >>> Uses your env var (public)
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 // Direct links to your prod backend on Render
@@ -21,7 +26,10 @@ export default function Cancel() {
   const [creating, setCreating] = useState(false);
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
-  const options = useMemo(() => (clientSecret ? { clientSecret, appearance } : null), [clientSecret, appearance]);
+  const options = useMemo(
+    () => (clientSecret ? { clientSecret, appearance } : null),
+    [clientSecret, appearance]
+  );
 
   useEffect(() => {
     (async () => {
@@ -44,10 +52,7 @@ export default function Cancel() {
     <div style={wrap}>
       <div style={card}>
         <h1 style={title}>Pay $1.00</h1>
-        <p style={sub}>No Stripe Checkout — stays on this page.</p>
-
-        {/* --- Apple Pay visibility diagnostic (dev helper) ------------------- */}
-        <ApplePayWhyHiddenHint />
+        <p style={sub}>Wallets show when available; card form always available.</p>
 
         <div style={priceBox}>
           <span style={{ fontWeight: 700, fontSize: 24 }}>$1.00</span>
@@ -60,7 +65,7 @@ export default function Cancel() {
           </button>
         ) : (
           <Elements options={options} stripe={stripePromise}>
-            <PayOneDollar />
+            <ExpressWalletWithFallback />
           </Elements>
         )}
       </div>
@@ -68,15 +73,127 @@ export default function Cancel() {
   );
 }
 
-function PayOneDollar() {
+/** Wallet (Apple Pay/Google Pay/Link) + fallback Payment Element */
+function ExpressWalletWithFallback() {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [paymentRequest, setPaymentRequest] = useState(null);
+  const [walletReady, setWalletReady] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  // Setup Payment Request (Apple/Google/Link). Only renders if available.
+  useEffect(() => {
+    if (!stripe) return;
+
+    const pr = stripe.paymentRequest({
+      country: "US",
+      currency: "usd",
+      total: { label: "MyBenefitsAI", amount: 100 }, // $1.00 in cents
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    pr.canMakePayment().then((result) => {
+      if (result) {
+        setPaymentRequest(pr);
+        setWalletReady(true);
+      } else {
+        setWalletReady(false);
+      }
+    });
+
+    // When the user approves in wallet (Apple Pay etc.)
+    pr.on("paymentmethod", async (ev) => {
+      try {
+        // Create a fresh PI for wallet flow
+        const res = await fetch(API_CREATE, { method: "POST" });
+        const data = await res.json();
+        const clientSecret = data?.clientSecret;
+        if (!clientSecret) throw new Error("No clientSecret");
+
+        const { error, paymentIntent } = await stripe.confirmCardPayment(
+          clientSecret,
+          { payment_method: ev.paymentMethod.id },
+          { handleActions: false } // we'll handle next_action after completing the sheet
+        );
+
+        if (error) {
+          ev.complete("fail");
+          setMsg(error.message || "Wallet payment failed.");
+          return;
+        }
+
+        ev.complete("success");
+
+        // If 3DS or similar required
+        let finalPI = paymentIntent;
+        if (paymentIntent.status === "requires_action") {
+          const { error: actionErr, paymentIntent: pi2 } =
+            await stripe.confirmCardPayment(clientSecret);
+          if (actionErr) {
+            setMsg(actionErr.message || "Authentication failed.");
+            return;
+          }
+          finalPI = pi2;
+        }
+
+        if (finalPI.status === "succeeded") {
+          setMsg("Payment succeeded via Wallet. Thank you!");
+        } else {
+          setMsg(`Status: ${finalPI.status}. If pending, you'll get the result shortly.`);
+        }
+      } catch (e) {
+        console.error(e);
+        ev.complete("fail");
+        setMsg("Something went wrong with the wallet payment.");
+      }
+    });
+  }, [stripe]);
+
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      {/* Wallet button (Apple Pay / Google Pay / Link) shows only if available */}
+      {walletReady && paymentRequest ? (
+        <div style={{ marginBottom: 4 }}>
+          <PaymentRequestButtonElement
+            options={{
+              paymentRequest,
+              // appearance options are optional; default is fine
+            }}
+            onReady={() => {}}
+            onClick={() => setMsg("")}
+          />
+        </div>
+      ) : (
+        // Tiny hint to help you during setup; users rarely see this.
+        <ApplePayHint />
+      )}
+
+      {/* Always render the Payment Element as fallback */}
+      <PayOneDollar setParentMsg={setMsg} />
+
+      {msg && (
+        <div
+          style={{
+            fontSize: 14,
+            color: msg.includes("succeeded") ? "#065f46" : "#b91c1c",
+          }}
+        >
+          {msg}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PayOneDollar({ setParentMsg }) {
   const stripe = useStripe();
   const elements = useElements();
   const [paying, setPaying] = useState(false);
-  const [msg, setMsg] = useState("");
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setMsg("");
+    setParentMsg("");
     if (!stripe || !elements) return;
 
     try {
@@ -84,29 +201,26 @@ function PayOneDollar() {
 
       const { error } = await stripe.confirmPayment({
         elements,
-        confirmParams: {
-          return_url: window.location.href // single-page flow
-        },
-        redirect: "if_required"
+        confirmParams: { return_url: window.location.href },
+        redirect: "if_required",
       });
 
       if (error) {
-        setMsg(error.message || "Payment failed. Try again.");
+        setParentMsg(error.message || "Payment failed. Try again.");
         return;
       }
 
-      // Optional: check backend for final status
       const r = await fetch(API_STATUS);
       const j = await r.json().catch(() => ({}));
       if (j?.status === "succeeded") {
-        setMsg("Payment succeeded. Thank you!");
+        setParentMsg("Payment succeeded. Thank you!");
       } else if (j?.status) {
-        setMsg(`Status: ${j.status}. If pending, you'll get the result shortly.`);
+        setParentMsg(`Status: ${j.status}. If pending, you'll get the result shortly.`);
       } else {
-        setMsg("Payment processed. Check your email/statement for confirmation.");
+        setParentMsg("Payment processed. Check your email/statement for confirmation.");
       }
     } catch {
-      setMsg("Something went wrong. Please try again.");
+      setParentMsg("Something went wrong. Please try again.");
     } finally {
       setPaying(false);
     }
@@ -115,16 +229,19 @@ function PayOneDollar() {
   return (
     <form onSubmit={onSubmit} style={{ display: "grid", gap: 16 }}>
       <PaymentElement />
-      <button type="submit" disabled={!stripe || paying} style={!stripe || paying ? btnDisabled : btn}>
+      <button
+        type="submit"
+        disabled={!stripe || paying}
+        style={!stripe || paying ? btnDisabled : btn}
+      >
         {paying ? "Processing..." : "Pay $1.00"}
       </button>
-      {msg && <div style={{ fontSize: 14, color: msg.includes("succeeded") ? "#065f46" : "#b91c1c" }}>{msg}</div>}
     </form>
   );
 }
 
-/** Shows why Apple Pay might be hidden on this device/environment. */
-function ApplePayWhyHiddenHint() {
+/** Quick helper to explain why Apple Pay might be hidden */
+function ApplePayHint() {
   const [text, setText] = useState("");
 
   useEffect(() => {
@@ -133,33 +250,26 @@ function ApplePayWhyHiddenHint() {
         typeof window !== "undefined" &&
         /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-      const hasApplePayAPI =
-        typeof window !== "undefined" && !!window.ApplePaySession;
+      const hasAPI = typeof window !== "undefined" && !!window.ApplePaySession;
+      const canMakePayments = hasAPI && window.ApplePaySession.canMakePayments();
+      const domain = window?.location?.hostname || "";
 
-      // Apple says to use canMakePayments() to check availability on this device.
-      const canMakePayments =
-        hasApplePayAPI && window.ApplePaySession.canMakePayments();
-
-      const domain = typeof window !== "undefined" ? window.location.hostname : "";
-      const msgs = [];
-
-      if (!isSafari) msgs.push("Open in Safari (iOS/macOS) — Apple Pay won’t show in Chrome/Firefox.");
-      if (!hasApplePayAPI) msgs.push("This device/browser doesn’t support Apple Pay JS API.");
-      if (hasApplePayAPI && !canMakePayments)
-        msgs.push("No card in Apple Wallet on this device — add one to Wallet to see the Apple Pay option.");
-      msgs.push(`Make sure this exact domain is verified in Stripe: ${domain}`);
-
-      setText(msgs.join(" "));
+      const tips = [];
+      tips.push("Wallet button not visible? Fallback options are below.");
+      if (!isSafari) tips.push("Open in Safari (iOS/macOS) for Apple Pay.");
+      if (!hasAPI) tips.push("This device/browser doesn’t support Apple Pay.");
+      if (hasAPI && !canMakePayments) tips.push("Add a card to Apple Wallet.");
+      tips.push(`Verify this domain in Stripe: ${domain}`);
+      setText(tips.join(" "));
     } catch {
       setText("");
     }
   }, []);
 
   if (!text) return null;
-
   return (
     <div style={hintBox}>
-      <strong>Apple Pay not showing?</strong>
+      <strong>Heads up:</strong>
       <div style={{ fontSize: 12, lineHeight: 1.4, marginTop: 6 }}>{text}</div>
     </div>
   );
