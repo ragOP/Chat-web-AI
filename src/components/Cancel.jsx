@@ -46,6 +46,9 @@ export default function Cancel() {
         <h1 style={title}>Pay $1.00</h1>
         <p style={sub}>No Stripe Checkout — stays on this page.</p>
 
+        {/* --- Apple Pay visibility diagnostic (dev helper) ------------------- */}
+        <ApplePayWhyHiddenHint />
+
         <div style={priceBox}>
           <span style={{ fontWeight: 700, fontSize: 24 }}>$1.00</span>
           <span style={{ color: "#6b7280" }}>USD</span>
@@ -120,6 +123,48 @@ function PayOneDollar() {
   );
 }
 
+/** Shows why Apple Pay might be hidden on this device/environment. */
+function ApplePayWhyHiddenHint() {
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    try {
+      const isSafari =
+        typeof window !== "undefined" &&
+        /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+      const hasApplePayAPI =
+        typeof window !== "undefined" && !!window.ApplePaySession;
+
+      // Apple says to use canMakePayments() to check availability on this device.
+      const canMakePayments =
+        hasApplePayAPI && window.ApplePaySession.canMakePayments();
+
+      const domain = typeof window !== "undefined" ? window.location.hostname : "";
+      const msgs = [];
+
+      if (!isSafari) msgs.push("Open in Safari (iOS/macOS) — Apple Pay won’t show in Chrome/Firefox.");
+      if (!hasApplePayAPI) msgs.push("This device/browser doesn’t support Apple Pay JS API.");
+      if (hasApplePayAPI && !canMakePayments)
+        msgs.push("No card in Apple Wallet on this device — add one to Wallet to see the Apple Pay option.");
+      msgs.push(`Make sure this exact domain is verified in Stripe: ${domain}`);
+
+      setText(msgs.join(" "));
+    } catch {
+      setText("");
+    }
+  }, []);
+
+  if (!text) return null;
+
+  return (
+    <div style={hintBox}>
+      <strong>Apple Pay not showing?</strong>
+      <div style={{ fontSize: 12, lineHeight: 1.4, marginTop: 6 }}>{text}</div>
+    </div>
+  );
+}
+
 /* inline styles */
 const wrap = { minHeight: "100vh", display: "grid", placeItems: "center", background: "#f7fafc", padding: 16 };
 const card = { width: 420, maxWidth: "95%", background: "#fff", borderRadius: 16, boxShadow: "0 10px 30px rgba(0,0,0,.08)", padding: 24 };
@@ -128,8 +173,4 @@ const sub = { marginTop: 6, color: "#4b5563" };
 const priceBox = { display: "flex", alignItems: "baseline", gap: 8, margin: "14px 0 18px" };
 const btn = { padding: "12px 16px", borderRadius: 12, background: "#111827", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600 };
 const btnDisabled = { ...btn, background: "#9ca3af", cursor: "not-allowed" };
-
-// cancel.js
-// Single React JSX page. Always charges $1.00 USD.
-// Uses direct backend URLs (no base config, no extra files).
-// Drop into your existing React app and render <Cancel /> on any route/page.
+const hintBox = { background: "#fff7ed", border: "1px solid #fed7aa", color: "#9a3412", borderRadius: 10, padding: 12, margin: "10px 0 14px" };
