@@ -2,11 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-// === Prefilled values (you can change or set from props/state) ===
 const PRESET = {
   name: "Raghib Najmi",
   email: "raghib@example.com",
-  amountINR: 389, // in INR
+  amountINR: 389,
   product: "Soulmate Sketch"
 };
 
@@ -17,15 +16,14 @@ export default function Cancel() {
   const [form, setForm] = useState(PRESET);
   const [creating, setCreating] = useState(false);
 
-  const appearance = useMemo(() => ({ theme: "stripe", variables: { colorPrimary: "#111827" } }), []);
+  const appearance = useMemo(() => ({ theme: "stripe" }), []);
   const options = useMemo(() => (clientSecret ? { clientSecret, appearance } : null), [clientSecret, appearance]);
 
   useEffect(() => {
-    // Auto-create intent on mount with prefilled values.
     (async () => {
       try {
         setCreating(true);
-        const res = await fetch("/api/payments/create-intent", {
+        const res = await fetch("/rag/intent/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -41,23 +39,20 @@ export default function Cancel() {
         const data = await res.json();
         if (data?.clientSecret) setClientSecret(data.clientSecret);
       } catch (e) {
-        console.error("Failed to create intent:", e);
-        alert("Failed to initialize payment. Please refresh.");
+        console.error(e);
+        alert("Failed to initialize payment.");
       } finally {
         setCreating(false);
       }
     })();
-  }, []); // run once
+  }, []); // mount once
 
   return (
     <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#f7fafc" }}>
       <div style={{ width: 520, maxWidth: "95%", background: "#fff", borderRadius: 16, boxShadow: "0 10px 30px rgba(0,0,0,.08)", padding: 24 }}>
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Pay for {form.product}</h1>
-        <p style={{ marginTop: 8, color: "#4b5563" }}>
-          Using your own form UI. Card field is powered by Stripe Elements (no Checkout redirect).
-        </p>
+        <p style={{ marginTop: 8, color: "#4b5563" }}>Your own form UI. Card field via Stripe Elements.</p>
 
-        {/* Your own info form */}
         <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
           <label>
             <span style={{ fontSize: 12, color: "#6b7280" }}>Name</span>
@@ -92,14 +87,14 @@ export default function Cancel() {
         <hr style={{ margin: "20px 0", border: 0, borderTop: "1px solid #e5e7eb" }} />
 
         {!options && (
-          <button disabled className="btn" style={buttonStyleDisabled}>
+          <button disabled style={buttonStyleDisabled}>
             {creating ? "Preparing payment..." : "Initializing..."}
           </button>
         )}
 
         {options && (
           <Elements options={options} stripe={stripePromise}>
-            <PaymentForm form={form} />
+            <PayForm form={form} />
           </Elements>
         )}
       </div>
@@ -107,7 +102,7 @@ export default function Cancel() {
   );
 }
 
-function PaymentForm({ form }) {
+function PayForm({ form }) {
   const stripe = useStripe();
   const elements = useElements();
   const [paying, setPaying] = useState(false);
@@ -121,8 +116,7 @@ function PaymentForm({ form }) {
     try {
       setPaying(true);
 
-      // Optional: update intent amount/metadata if user changed fields
-      await fetch("/api/payments/update-intent", {
+      await fetch("/rag/intent/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -138,24 +132,19 @@ function PaymentForm({ form }) {
       const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          // Your custom thank-you page (or keep same page and show result)
           return_url: window.location.origin + "/success",
           receipt_email: form.email,
           payment_method_data: {
-            billing_details: {
-              name: form.name,
-              email: form.email
-            }
+            billing_details: { name: form.name, email: form.email }
           }
         },
-        redirect: "if_required" // stay on page for SCA-less flows; will redirect if needed
+        redirect: "if_required"
       });
 
       if (error) {
         setMessage(error.message || "Payment failed. Try again.");
       } else {
-        // If no redirect needed and no error, check status via our confirm endpoint
-        const res = await fetch("/api/payments/status", { method: "GET" });
+        const res = await fetch("/rag/intent/status", { method: "GET" });
         const data = await res.json();
         if (data?.status === "succeeded") {
           setMessage("Payment succeeded! Check your email for receipt.");
@@ -172,15 +161,11 @@ function PaymentForm({ form }) {
 
   return (
     <form onSubmit={handlePay} style={{ display: "grid", gap: 16 }}>
-      {/* Stripe unified PaymentElement renders your card/UPI/etc inputs in your layout */}
       <PaymentElement />
       <button type="submit" disabled={!stripe || paying} style={!stripe || paying ? buttonStyleDisabled : buttonStyle}>
         {paying ? "Processing..." : `Pay ₹${form.amountINR}`}
       </button>
       {message && <div style={{ color: message.includes("succeeded") ? "#065f46" : "#b91c1c", fontSize: 14 }}>{message}</div>}
-      <small style={{ color: "#6b7280" }}>
-        No redirect to Stripe Checkout. This is your page + Elements for secure card entry.
-      </small>
     </form>
   );
 }
