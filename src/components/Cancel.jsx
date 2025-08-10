@@ -1,4 +1,4 @@
-// cancel.js
+
 // Robust Stripe page (multi-env). Wallets when available + card fallback.
 // Supports Vite, Next.js, CRA, or window.ENV injection.
 
