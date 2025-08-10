@@ -81,14 +81,13 @@ function ExpressWalletWithFallback() {
   const [walletReady, setWalletReady] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // Setup Payment Request (Apple/Google/Link). Only renders if available.
   useEffect(() => {
     if (!stripe) return;
 
     const pr = stripe.paymentRequest({
       country: "US",
       currency: "usd",
-      total: { label: "MyBenefitsAI", amount: 100 }, // $1.00 in cents
+      total: { label: "MyBenefitsAI", amount: 100 }, // $1.00
       requestPayerName: true,
       requestPayerEmail: true,
     });
@@ -102,10 +101,8 @@ function ExpressWalletWithFallback() {
       }
     });
 
-    // When the user approves in wallet (Apple Pay etc.)
     pr.on("paymentmethod", async (ev) => {
       try {
-        // Create a fresh PI for wallet flow
         const res = await fetch(API_CREATE, { method: "POST" });
         const data = await res.json();
         const clientSecret = data?.clientSecret;
@@ -114,7 +111,7 @@ function ExpressWalletWithFallback() {
         const { error, paymentIntent } = await stripe.confirmCardPayment(
           clientSecret,
           { payment_method: ev.paymentMethod.id },
-          { handleActions: false } // we'll handle next_action after completing the sheet
+          { handleActions: false }
         );
 
         if (error) {
@@ -125,7 +122,6 @@ function ExpressWalletWithFallback() {
 
         ev.complete("success");
 
-        // If 3DS or similar required
         let finalPI = paymentIntent;
         if (paymentIntent.status === "requires_action") {
           const { error: actionErr, paymentIntent: pi2 } =
@@ -152,24 +148,17 @@ function ExpressWalletWithFallback() {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      {/* Wallet button (Apple Pay / Google Pay / Link) shows only if available */}
       {walletReady && paymentRequest ? (
         <div style={{ marginBottom: 4 }}>
           <PaymentRequestButtonElement
-            options={{
-              paymentRequest,
-              // appearance options are optional; default is fine
-            }}
-            onReady={() => {}}
+            options={{ paymentRequest }}
             onClick={() => setMsg("")}
           />
         </div>
       ) : (
-        // Tiny hint to help you during setup; users rarely see this.
         <ApplePayHint />
       )}
 
-      {/* Always render the Payment Element as fallback */}
       <PayOneDollar setParentMsg={setMsg} />
 
       {msg && (
@@ -240,7 +229,7 @@ function PayOneDollar({ setParentMsg }) {
   );
 }
 
-/** Quick helper to explain why Apple Pay might be hidden */
+/** Short, non-blocking hint for setup */
 function ApplePayHint() {
   const [text, setText] = useState("");
 
@@ -249,7 +238,6 @@ function ApplePayHint() {
       const isSafari =
         typeof window !== "undefined" &&
         /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
       const hasAPI = typeof window !== "undefined" && !!window.ApplePaySession;
       const canMakePayments = hasAPI && window.ApplePaySession.canMakePayments();
       const domain = window?.location?.hostname || "";
