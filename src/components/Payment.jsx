@@ -1016,6 +1016,7 @@ export default function Payment() {
           name={name}
           userId={userId}
           tagArray={tags}
+          stripePk={import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY}
         />
       )}
     </>

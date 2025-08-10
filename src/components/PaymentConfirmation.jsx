@@ -15,33 +15,60 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-/** ---------- Config ---------- **/
-const API_UPDATE_SUCCESS = "https://benifit-gpt-be.onrender.com/api/update-record"; // your existing success updater
-const API_EMAIL = "https://benifit-gpt-be.onrender.com/email/submit";               // your email sender
-
-// Use the same PaymentIntent endpoints you used earlier for embedded flow:
+/** ---------- Backend endpoints (same as your app) ---------- **/
+const API_UPDATE_SUCCESS = "https://benifit-gpt-be.onrender.com/api/update-record";
+const API_EMAIL = "https://benifit-gpt-be.onrender.com/email/submit";
 const API_CREATE_INTENT = "https://benifit-gpt-be.onrender.com/rag/oneusd/create";
 const API_INTENT_STATUS = "https://benifit-gpt-be.onrender.com/rag/intent/status";
 
-// Validate pk so we never call loadStripe with undefined
-const RAW_PK = import.meta?.env?.VITE_STRIPE_PUBLISHABLE_KEY ?? null;
-function getValidPk(pk) {
-  if (!pk || typeof pk !== "string") return null;
-  return /^pk_(test|live)_/i.test(pk) ? pk.trim() : null;
+/** ---------- Env/prop key resolution (bulletproof) ---------- **/
+function resolveStripePk(propPk) {
+  // 1) explicit prop wins
+  const candidates = [];
+  if (propPk) candidates.push(propPk);
+
+  // 2) window.ENV (if injected via <script> window.ENV = { STRIPE_PUBLISHABLE_KEY: 'pk_...' })
+  if (typeof window !== "undefined" && window.ENV) {
+    const w = window.ENV;
+    candidates.push(
+      w.STRIPE_PUBLISHABLE_KEY,
+      w.VITE_STRIPE_PUBLISHABLE_KEY,
+      w.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+      w.REACT_APP_STRIPE_PUBLISHABLE_KEY
+    );
+  }
+
+  // 3) Vite
+
+
+  // 4) Next / CRA
+  try {
+    // eslint-disable-next-line no-undef
+    if (typeof process !== "undefined" && process.env) {
+      // eslint-disable-next-line no-undef
+      candidates.push(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+      // eslint-disable-next-line no-undef
+      candidates.push(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+    }
+  } catch {}
+
+  for (const v of candidates) {
+    if (typeof v === "string" && /^pk_(test|live)_/i.test(v.trim())) return v.trim();
+  }
+  return null;
 }
 
-/** ====================================================================== **/
-
-const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
+const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
   email = email || "najmiraghib@gmail.com";
-  name = name || "Raghib Najmi";
-  userId = userId || "ragOP";
+  name = name || "User";
+  userId = userId || "2ewdw2";
+    
   const [show, setShow] = useState(false);
   const [totalPayment, setTotalPayment] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
-
-  // New: modal state for embedded Stripe flow
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Stripe states
   const [stripe, setStripe] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
   const [pkError, setPkError] = useState("");
@@ -49,22 +76,19 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
 
   useEffect(() => {
     if (tagArray?.length > 0) {
-      const total = tagArray.map((curr) => {
-        const paymentAmounts = {
-          is_md: 1000,
-          is_ssdi: 2500,
-          is_auto: 900,
-          is_mva: 5500,
-          is_debt: 6500,
-          is_rvm: 5500,
-        };
-        return paymentAmounts[curr] || 0;
-      });
-      setTotalPayment(total.reduce((acc, curr) => acc + curr, 0));
+      const paymentAmounts = {
+        is_md: 1000,
+        is_ssdi: 2500,
+        is_auto: 900,
+        is_mva: 5500,
+        is_debt: 6500,
+        is_rvm: 5500,
+      };
+      const total = tagArray.map((k) => paymentAmounts[k] || 0).reduce((a, b) => a + b, 0);
+      setTotalPayment(total);
     }
   }, [tagArray]);
 
-  // Countdown timer
   useEffect(() => {
     if (show && timeLeft > 0) {
       const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
@@ -72,11 +96,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
     }
   }, [show, timeLeft]);
 
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
+  const formatTime = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const handlePaymentSuccess = async () => {
     try {
@@ -91,61 +111,65 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
   };
 
   const sendEmail = () => {
-    const emailPayload = { email, name, userId };
     fetch(API_EMAIL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(emailPayload),
+      body: JSON.stringify({ email, name, userId }),
     }).catch(() => {});
   };
 
-  // Show page after 15s (kept same)
   useEffect(() => {
     sendEmail();
     const t = setTimeout(() => setShow(true), 15000);
     return () => clearTimeout(t);
   }, []);
 
-  // Open modal → init Stripe + PaymentIntent
   const openPayModal = async () => {
     setPkError("");
     setInitializingPI(true);
     try {
-      // 1) Load Stripe only when pk is valid
+      // 1) resolve pk across toolchains
+      const pk = resolveStripePk(stripePk);
+      if (!pk) {
+        setPkError(
+          "Stripe publishable key missing/invalid. Pass stripePk prop or set VITE_/NEXT_PUBLIC_/REACT_APP_ env, or window.ENV."
+        );
+        setModalOpen(true);
+        return;
+      }
+
+      // 2) load stripe once
       if (!stripe) {
-        const pk = getValidPk(RAW_PK);
-        if (!pk) {
-          setPkError("Stripe publishable key missing/invalid. Set VITE_STRIPE_PUBLISHABLE_KEY and rebuild.");
-          setInitializingPI(false);
-          setModalOpen(true);
-          return;
-        }
         const inst = await loadStripe(pk);
         setStripe(inst);
       }
 
-      // 2) Create PaymentIntent on your backend
+      // 3) create PaymentIntent
       const res = await fetch(API_CREATE_INTENT, { method: "POST" });
       const data = await res.json();
       if (!data?.clientSecret) throw new Error(data?.error || "No clientSecret");
       setClientSecret(data.clientSecret);
 
-      // 3) Show modal
       setModalOpen(true);
     } catch (e) {
       console.error(e);
       setPkError("Failed to initialize payment. Please refresh and try again.");
-      setModalOpen(true); // still show modal so user sees the error banner
+      setModalOpen(true);
     } finally {
       setInitializingPI(false);
     }
   };
 
-  const appearance = useMemo(() => ({ theme: "stripe", variables: { colorPrimary: "#111827" } }), []);
+  const appearance = useMemo(
+    () => ({ theme: "stripe", variables: { colorPrimary: "#111827", borderRadius: "12px" } }),
+    []
+  );
   const elementsOptions = useMemo(
-    () => (clientSecret ? ({ clientSecret, appearance }) : null),
+    () => (clientSecret ? { clientSecret, appearance } : null),
     [clientSecret, appearance]
   );
+
+  const roundToThousands = (n) => Math.floor(n / 1000) * 1000;
 
   return (
     <>
@@ -172,7 +196,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
               </h1>
             </div>
 
-            {/* You qualify banner */}
+            {/* Qualify banner */}
             <div
               className="bg-green-200 border-2 border-green-400 rounded-xl p-2 mb-8 max-w-md w-full relative"
               style={{ backgroundColor: "#cdf0d8", borderColor: "#c3e6cb" }}
@@ -180,7 +204,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
               <div className="text-center">
                 <p className="text-gray-800 text-2xl">
                   We found you qualify for benefits{" "}
-                  <span className="text-[#44aa5f] font-bold">${Math.floor(totalPayment / 1000) * 1000}+</span>
+                  <span className="text-[#44aa5f] font-bold">${roundToThousands(totalPayment)}+</span>
                 </p>
               </div>
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
@@ -188,7 +212,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
               </div>
             </div>
 
-            {/* CTA Card */}
+            {/* CTA card */}
             <div
               className="rounded-xl p-8 max-w-md w-full mt-4 text-center relative"
               style={{ backgroundColor: "#4673c8", boxShadow: "0 12px 30px #4673c8" }}
@@ -198,7 +222,6 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
               </h2>
               <img src={report} alt="report" className="h-[100px] w-[100px] mx-auto mb-6" />
 
-              {/* OPEN MODAL INSTEAD OF REDIRECT */}
               <button
                 onClick={openPayModal}
                 disabled={initializingPI}
@@ -231,9 +254,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
             {/* Timer + testimonials + notes */}
             <div className="text-center mt-8 mb-10 w-[98%]">
               <p className="text-black text-sm">
-                <span className="font-semibold">
-                  Due to high demand, your benefit report is available to claim for only 5 minutes.
-                </span>
+                <span className="font-semibold">Due to high demand, your benefit report is available to claim for only 5 minutes.</span>
               </p>
 
               <div className="mt-4">
@@ -282,15 +303,11 @@ const PaymentConfirmation = ({ email, name, userId, tagArray }) => {
 
                 <div style={modalHeader}>
                   <div style={{ fontWeight: 700, fontSize: 18 }}>Complete Payment — $1.00</div>
-                  <button onClick={() => setModalOpen(false)} style={closeBtn}>
-                    ×
-                  </button>
+                  <button onClick={() => setModalOpen(false)} style={closeBtn}>×</button>
                 </div>
 
-                {/* Error if PK missing */}
                 {pkError && <div style={errBox}>{pkError}</div>}
 
-                {/* Stripe Elements when ready */}
                 {stripe && elementsOptions ? (
                   <Elements stripe={stripe} options={elementsOptions}>
                     <WalletAndForm
@@ -328,7 +345,6 @@ function WalletAndForm({ onSuccess }) {
   const [msg, setMsg] = useState("");
   const [paying, setPaying] = useState(false);
 
-  // Setup Payment Request for Apple Pay / Google Pay / Link
   useEffect(() => {
     if (!stripe) return;
     const pr = stripe.paymentRequest({
@@ -338,7 +354,6 @@ function WalletAndForm({ onSuccess }) {
       requestPayerName: true,
       requestPayerEmail: true,
     });
-
     pr.canMakePayment().then((result) => {
       if (result) {
         setPaymentRequest(pr);
@@ -348,7 +363,6 @@ function WalletAndForm({ onSuccess }) {
 
     pr.on("paymentmethod", async (ev) => {
       try {
-        // Create fresh intent for wallet flow (keeps it snappy)
         const r = await fetch(API_CREATE_INTENT, { method: "POST" });
         const d = await r.json();
         const cs = d?.clientSecret;
@@ -392,7 +406,6 @@ function WalletAndForm({ onSuccess }) {
     });
   }, [stripe, onSuccess]);
 
-  // Card form submit
   const onSubmit = async (e) => {
     e.preventDefault();
     setMsg("");
@@ -431,7 +444,6 @@ function WalletAndForm({ onSuccess }) {
 
   return (
     <div style={{ display: "grid", gap: 14 }}>
-      {/* Wallet button (Apple/Google/Link) */}
       {walletReady && paymentRequest ? (
         <div style={{ marginBottom: 4, borderRadius: 12, overflow: "hidden" }}>
           <PaymentRequestButtonElement options={{ paymentRequest }} onClick={() => setMsg("")} />
@@ -440,7 +452,6 @@ function WalletAndForm({ onSuccess }) {
         <ApplePayHint />
       )}
 
-      {/* Card form */}
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
         <div style={elementShell}>
           <PaymentElement />
@@ -457,13 +468,12 @@ function WalletAndForm({ onSuccess }) {
   );
 }
 
-/** ====== Small hints when Apple Pay is hidden (non-blocking) ====== */
+/** ====== Helper: Apple Pay hint (non-blocking) ====== */
 function ApplePayHint() {
   const [text, setText] = useState("");
   useEffect(() => {
     try {
-      const isSafari =
-        typeof window !== "undefined" && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const isSafari = typeof window !== "undefined" && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       const hasAPI = typeof window !== "undefined" && !!window.ApplePaySession;
       const canMakePayments = hasAPI && window.ApplePaySession.canMakePayments();
       const domain = window?.location?.hostname || "";
@@ -474,9 +484,7 @@ function ApplePayHint() {
       if (hasAPI && !canMakePayments) tips.push(" Add a card to Apple Wallet.");
       tips.push(` Verify this domain in Stripe: ${domain}`);
       setText(tips.join(" "));
-    } catch {
-      setText("");
-    }
+    } catch { setText(""); }
   }, []);
   if (!text) return null;
   return <div style={hintBox}>{text}</div>;
@@ -529,46 +537,13 @@ const skeletonBox = {
   animation: "shine 1.2s infinite",
 };
 
-const secureNote = {
-  marginTop: 12,
-  fontSize: 12,
-  color: "#4b5563",
-};
+const secureNote = { marginTop: 12, fontSize: 12, color: "#4b5563" };
+const elementShell = { border: "1px solid #e5e7eb", borderRadius: 12, padding: 12, background: "#fff" };
 
-const elementShell = {
-  border: "1px solid #e5e7eb",
-  borderRadius: 12,
-  padding: 12,
-  background: "#fff",
-};
-
-const btn = {
-  padding: "12px 16px",
-  borderRadius: 12,
-  background: "#111827",
-  color: "#fff",
-  border: "none",
-  cursor: "pointer",
-  fontWeight: 700,
-};
+const btn = { padding: "12px 16px", borderRadius: 12, background: "#111827", color: "#fff", border: "none", cursor: "pointer", fontWeight: 700 };
 const btnDisabled = { ...btn, background: "#9ca3af", cursor: "not-allowed" };
 
-const hintBox = {
-  background: "#fff7ed",
-  border: "1px solid #fed7aa",
-  color: "#9a3412",
-  borderRadius: 10,
-  padding: 10,
-  fontSize: 12,
-};
-
-const errBox = {
-  background: "#fef2f2",
-  border: "1px solid #fecaca",
-  color: "#991b1b",
-  borderRadius: 10,
-  padding: 12,
-  marginBottom: 10,
-};
+const hintBox = { background: "#fff7ed", border: "1px solid #fed7aa", color: "#9a3412", borderRadius: 10, padding: 10, fontSize: 12 };
+const errBox = { background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b", borderRadius: 10, padding: 12, marginBottom: 10 };
 
 export default PaymentConfirmation;
