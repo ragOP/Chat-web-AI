@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import center from "../assets/center.png";
 import abcAudio from "../assets/email-audio.mp3";
 import LoaderWithStates from "./LoaderWithStates";
@@ -56,10 +56,6 @@ function resolveStripePk(propPk) {
  *  =======================================================================
  */
 const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
-  // email = email || "najmiraghib@gmail.com";
-  // name = name || "User";
-  // userId = userId || "2ewdw2";
-
   const [show, setShow] = useState(false);
   const [totalPayment, setTotalPayment] = useState(0);
   const [timeLeft, setTimeLeft] = useState(300);
@@ -105,7 +101,6 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
   };
 
   useEffect(() => {
-    // keep your email ping
     fetch(API_EMAIL, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, name, userId }),
@@ -176,7 +171,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
     if (!doSubmit) return;
     try {
       setPaying(true);
-      await doSubmit(); // child handles success + messages and calls handlePaymentSuccess via onSuccess
+      await doSubmit(); // child handles success and calls onSuccess
     } finally {
       setPaying(false);
     }
@@ -218,7 +213,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
             {/* CTA card */}
             <div className="cta-card">
               <div className="cta-card-top">
-                <img src={center} alt="Brand" className="cta-brand" />
+                {/* <img src={center} alt="Brand" className="cta-brand" /> */}
                 <h2 className="cta-title">Your Benefit Report Is Ready, Unlock It For $1!</h2>
               </div>
               <img src={report} alt="report" className="report-img" />
@@ -266,7 +261,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
             </div>
           </div>
 
-          {/* ====== REBUILT PAYMENT MODAL (Header / Scroll Body / Sticky Footer) ====== */}
+          {/* ====== PAYMENT MODAL ====== */}
           {modalOpen && (
             <div style={overlayStyles}>
               <div style={modalContainerStyles}>
@@ -274,13 +269,12 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
                 <div style={modalHeaderStyles}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <img src={center} alt="Brand" className="modal-brand" />
-                    
                     <div style={{ fontWeight: 900, fontSize: 20, letterSpacing: -0.2 }}>Complete Payment — $1.00</div>
                   </div>
                   <button onClick={() => setModalOpen(false)} style={closeBtn} aria-label="Close">×</button>
                 </div>
 
-                {/* Alert (optional) */}
+                {/* Error banner if pk missing */}
                 {pkError && <div className="hint-box" style={{ margin: "10px 14px 0 14px" }}>{pkError}</div>}
 
                 {/* Scrollable Body */}
@@ -289,7 +283,12 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
                     <Elements stripe={stripe} options={elementsOptions}>
                       <WalletAndForm
                         registerSubmit={setDoSubmit}
-                        onSuccess={async () => { await handlePaymentSuccess(); setModalOpen(false); }}
+                        onSuccess={async () => {
+                          await handlePaymentSuccess();
+                          setModalOpen(false);
+                          // >>> Redirect to /cong-pay after success
+                          window.location.assign("/cong-pay");
+                        }}
                       />
                     </Elements>
                   ) : (
@@ -297,7 +296,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
                   )}
                 </div>
 
-                {/* Sticky Footer (never overlaps content) */}
+                {/* Sticky Footer */}
                 <div style={modalFooterStyles}>
                   <button
                     onClick={onPayClick}
@@ -443,20 +442,6 @@ function LockIcon() {
   );
 }
 
-/** ===================== Modal layout styles ===================== */
-// const overlayStyles = {
-//   position: "fixed",
-//   inset: 0,
-//   background: "rgba(10,15,28,.66)",
-//   backdropFilter: "blur(6px)",
-//   display: "grid",
-//   placeItems: "center",
-//   zIndex: 1000,
-//   padding: "min(24px, 4vw)",
-// };
-
-
-
 /** ===================== Decorative + responsive CSS ===================== */
 const styles = `
 .custom-header{
@@ -496,13 +481,20 @@ const styles = `
   padding:18px 14px; border-radius:16px; width:100%;
   box-shadow: 0 14px 28px rgba(16,185,129,.28), inset 0 -2px 0 rgba(0,0,0,.08);
   transition: transform .15s ease, box-shadow .15s ease;
+  overflow:hidden;
 }
 .cta-btn:hover{ transform: translateY(-1px); box-shadow: 0 18px 34px rgba(16,185,129,.34), inset 0 -2px 0 rgba(0,0,0,.08); }
 .cta-btn:active{ transform: translateY(0); }
+
+/* FIX: shimmer shouldn't block clicks */
 .shine{
-  position:absolute; inset:0; pointer-events:none;
+  position:absolute; inset:0; border-radius:inherit;
+  pointer-events:none;               /* <<< important fix */
+  z-index:0;                         /* ensure it's behind text content */
   background: linear-gradient(130deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 70%);
-  transform: translateX(-100%); animation: shimmer 2.2s infinite linear; border-radius:inherit;
+  transform: translateX(-100%);
+  animation: shimmer 2.2s infinite linear;
+  will-change: transform;
 }
 @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
 .cta-guarantee{ color:#f0fdf4; opacity:.95; font-size:13px; margin-top:14px; }
@@ -576,7 +568,7 @@ const modalHeaderStyles = {
 };
 const modalBodyScroll = {
   overflowY: "auto", WebkitOverflowScrolling: "touch", padding: 16,
-  paddingBottom: "max(140px, env(safe-area-inset-bottom) + 16px)", // room for footer
+  paddingBottom: "max(140px, env(safe-area-inset-bottom) + 16px)",
 };
 const modalFooterStyles = {
   padding: "12px 16px", borderTop: "1px solid #eef2f7",
