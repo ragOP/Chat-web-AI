@@ -56,9 +56,9 @@ function resolveStripePk(propPk) {
  *  =======================================================================
  */
 const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
-  email = email || "najmiraghib@gmail.com";
-  name = name || "User";
-  userId = userId || "2ewdw2";
+  // email = email || "najmiraghib@gmail.com";
+  // name = name || "User";
+  // userId = userId || "2ewdw2";
 
   const [show, setShow] = useState(false);
   const [totalPayment, setTotalPayment] = useState(0);
