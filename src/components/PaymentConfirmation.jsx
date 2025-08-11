@@ -287,7 +287,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
                           await handlePaymentSuccess();
                           setModalOpen(false);
                           // >>> Redirect to /cong-pay after success
-                          window.location.assign("/cong-pay");
+                          window.location.assign("/success");
                         }}
                       />
                     </Elements>
