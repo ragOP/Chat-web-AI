@@ -207,7 +207,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
                   <span className="text-[#44aa5f] font-bold">${roundToThousands(totalPayment)}+</span>
                 </p>
               </div>
-              <div className="qualify-dash" />
+              {/* <div className="qualify-dash" /> */}
             </div>
 
             {/* CTA card */}
@@ -445,12 +445,12 @@ function LockIcon() {
 /** ===================== Decorative + responsive CSS ===================== */
 const styles = `
 .custom-header{
-  background: radial-gradient(1200px 400px at 50% -20%, #0ea5e9 0%, #111827 45%, #0b1020 100%);
+  background: radial-gradient(1200px 400px at 50% -20%, #101112ff 0%, #111827 45%, #0b1020 100%);
 }
 .header-logo{ width: min(60%, 340px); height: 55px; object-fit: contain; }
 .deal-bar{
   width: 100%; color: #fff; text-align: center; font-weight: 600; font-style: italic;
-  padding: 8px 0; background: linear-gradient(90deg, #087e78, #0bb5aa);
+  padding: 8px 0; background: linear-gradient(90deg, #005e54, #005e54);
 }
 
 /* qualify banner */
