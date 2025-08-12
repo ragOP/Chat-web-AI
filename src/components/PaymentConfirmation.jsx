@@ -279,7 +279,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
             <div className="qualify-banner">
               <div className="text-center">
                 <p className="text-gray-800 text-2xl">
-                  We found you qualify for benefits{" "} worths
+                  We found you qualify for benefits {" "} worths
                   <span className="text-[#44aa5f] font-bold">${roundToThousands(totalPayment)}+</span>
                 </p>
               </div>
