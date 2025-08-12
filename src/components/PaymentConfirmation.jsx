@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import center from "../assets/center.png";
 import abcAudio from "../assets/email-audio.mp3";
@@ -44,7 +45,6 @@ async function analyticsPost(path, payload = {}) {
       credentials: "omit",
       body: JSON.stringify(payload),
     });
-    // ignore failures silently for analytics
     await res.json().catch(() => ({}));
   } catch {}
 }
@@ -216,7 +216,6 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
       sessionId: getOrCreateSessionId(),
       meta: { source: "payment_confirmation_cta" },
     }).catch(()=>{});
-    // optimistic bump
     setCtaClicks((prev) => (typeof prev === "number" ? prev + 1 : prev));
     await openPayModal();
   };
@@ -272,7 +271,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
           <div className="flex justify-center items-center min-h-[70vh] px-4 flex-col mt-8">
             <div className="text-left mb-6 px-4">
               <h1 className="text-4xl font-semibold text-black mb-2 leading-12">
-                Congratulations, {name || "User"}!
+                Congratulations, {name || "User"}! 🎉
               </h1>
             </div>
 
@@ -280,7 +279,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
             <div className="qualify-banner">
               <div className="text-center">
                 <p className="text-gray-800 text-2xl">
-                  We found you qualify for benefits{" "}
+                  We found you qualify for benefits{" "} worths
                   <span className="text-[#44aa5f] font-bold">${roundToThousands(totalPayment)}+</span>
                 </p>
               </div>
@@ -295,10 +294,7 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
 
               <button onClick={onCtaClick} disabled={initializingPI} className="cta-btn">
                 {initializingPI ? "Preparing Payment..." : "Claim My Report For $1!"}
-                {/* counter pill inside the button */}
-                {/* {typeof ctaClicks === "number" && (
-                  <span className="cta-count"> {ctaClicks.toLocaleString()} </span>
-                )} */}
+                {/* <span className="cta-count">{typeof ctaClicks === "number" ? ctaClicks.toLocaleString() : ""}</span> */}
                 <span className="shine" />
               </button>
               {ctaErr && (
@@ -368,7 +364,13 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
                         onSuccess={async () => {
                           await handlePaymentSuccess();
                           setModalOpen(false);
-                          window.location.assign("/success");
+                          // ===== Redirect to /congratulations with name=<emailOrName> =====
+                          const dest = 
+                            (name && name.trim()) ||
+                              (name && name.trim()) ||
+                              "User"
+                          ;
+                          window.location.assign(`/congratulations?name=${dest}`);
                         }}
                       />
                     </Elements>
@@ -654,3 +656,4 @@ const modalFooterStyles = {
 };
 
 export default PaymentConfirmation;
+

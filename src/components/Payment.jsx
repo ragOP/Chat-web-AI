@@ -25,7 +25,6 @@ import PaymentConfirmation from "./PaymentConfirmation";
 import FaqAccordion from "./Faq";
 import Testimonial from "./Testimonial";
 
-
 const TAGS = {
   medicare: "is_md",
   ssdi: "is_ssdi",
@@ -36,52 +35,13 @@ const TAGS = {
 };
 
 const questions = [
-  {
-    id: 1,
-    text: "What's your full name?",
-    type: "text",
-    keyType: "alphabet",
-    audio: nameAudio,
-  },
-  {
-    id: 2,
-    text: "Okay, what is your age today?",
-    type: "text",
-    keyType: "numeric",
-    audio: ageAudio,
-  },
-  {
-    id: 3,
-    text: "Nice, and what's your zip code?",
-    type: "text",
-    keyType: "numeric",
-    audio: zipcodeAudio,
-  },
-  {
-    id: 4,
-    text: "So far so good!",
-    type: "info",
-    audio: emailAudio,
-  },
-  {
-    id: 5,
-    text: "May I know your email?",
-    type: "text",
-    keyType: "alphabet",
-  },
-  {
-    id: 6,
-    text: "Thank you",
-    type: "info",
-    audio: medicareAudio,
-  },
-  {
-    id: 7,
-    text: "Now, are you on medicare?",
-    type: "choice",
-    options: ["Yes", "No"],
-    tag: TAGS.medicare,
-  },
+  { id: 1, text: "What's your full name?", type: "text", keyType: "alphabet", audio: nameAudio },
+  { id: 2, text: "Okay, what is your age today?", type: "text", keyType: "numeric", audio: ageAudio },
+  { id: 3, text: "Nice, and what's your zip code?", type: "text", keyType: "numeric", audio: zipcodeAudio },
+  { id: 4, text: "So far so good!", type: "info", audio: emailAudio },
+  { id: 5, text: "May I know your email?", type: "text", keyType: "alphabet" },
+  { id: 6, text: "Thank you", type: "info", audio: medicareAudio },
+  { id: 7, text: "Now, are you on medicare?", type: "choice", options: ["Yes", "No"], tag: TAGS.medicare },
   {
     id: 8,
     text: "Do you have any of the mentioned health conditions?",
@@ -90,67 +50,15 @@ const questions = [
     tag: TAGS.ssdi,
     audio: alzheimersAudio,
   },
-  {
-    id: 9,
-    text: "Do you own your home or rent?",
-    type: "choice",
-    options: ["I Own", "I Rent"],
-    tag: TAGS.mortgage,
-    audio: homeAudio,
-  },
-  {
-    id: 10,
-    text: "Great, We're almost there!",
-    type: "info",
-    audio: have,
-  },
-  {
-    id: 11,
-    text: "Do you have a car that you drive at least once a week?",
-    type: "choice",
-    options: ["Yes", "No"],
-    tag: TAGS.auto,
-  },
-  {
-    id: 12,
-    text: "Have you faced any motor vehicle accidents in the last 2 years?",
-    type: "choice",
-    options: ["Yes", "No"],
-    tag: TAGS.mva,
-    audio: accidentAudio,
-  },
-  {
-    id: 13,
-    text: "Alright, we're almost done.",
-    type: "info",
-    audio: childAudio,
-  },
-  {
-    id: 14,
-    text: "Do you have any children between the age of 18-64?",
-    type: "choice",
-    options: ["Yes", "No"],
-  },
-  {
-    id: 15,
-    text: "Okay, and do you have a credit card debt of $10,000 or more?",
-    type: "choice",
-    options: ["Yes", "No"],
-    tag: TAGS.debt,
-    audio: debtAudio,
-  },
-  {
-    id: 16,
-    text: "I got it, Just one last question!",
-    type: "info",
-    audio: exerciseAudio,
-  },
-  {
-    id: 17,
-    text: "Do you exercise at least once a week?",
-    type: "choice",
-    options: ["Yes", "No"],
-  },
+  { id: 9, text: "Do you own your home or rent?", type: "choice", options: ["I Own", "I Rent"], tag: TAGS.mortgage, audio: homeAudio },
+  { id: 10, text: "Great, We're almost there!", type: "info", audio: have },
+  { id: 11, text: "Do you have a car that you drive at least once a week?", type: "choice", options: ["Yes", "No"], tag: TAGS.auto },
+  { id: 12, text: "Have you faced any motor vehicle accidents in the last 2 years?", type: "choice", options: ["Yes", "No"], tag: TAGS.mva, audio: accidentAudio },
+  { id: 13, text: "Alright, we're almost done.", type: "info", audio: childAudio },
+  { id: 14, text: "Do you have any children between the age of 18-64?", type: "choice", options: ["Yes", "No"] },
+  { id: 15, text: "Okay, and do you have a credit card debt of $10,000 or more?", type: "choice", options: ["Yes", "No"], tag: TAGS.debt, audio: debtAudio },
+  { id: 16, text: "I got it, Just one last question!", type: "info", audio: exerciseAudio },
+  { id: 17, text: "Do you exercise at least once a week?", type: "choice", options: ["Yes", "No"] },
 ];
 
 export default function Payment() {
@@ -172,12 +80,22 @@ export default function Payment() {
   const [count, setCount] = useState(null);
   const [err, setErr] = useState(null);
 
+  // --- helper: safely set/replace a query param without reloading
+  const setQueryParam = (key, value) => {
+    try {
+      const url = new URL(window.location.href);
+      if (value === undefined || value === null || value === "") {
+        url.searchParams.delete(key);
+      } else {
+        url.searchParams.set(key, value);
+      }
+      window.history.replaceState({}, "", url.toString());
+    } catch (_) {}
+  };
+
   // 1) log a homepage view on first mount
   useEffect(() => {
-    logPageView("/")
-      .catch(() => {
-        // don’t block UI on analytics failures
-      });
+    logPageView("/").catch(() => {});
   }, []);
 
   // 2) fetch homepage view count; auto refresh every 15s
@@ -195,7 +113,7 @@ export default function Payment() {
       }
     };
     load();
-    const id = setInterval(load, 15000); // refresh every 15s
+    const id = setInterval(load, 15000);
     return () => {
       mounted = false;
       clearInterval(id);
@@ -205,10 +123,7 @@ export default function Payment() {
   useEffect(() => {
     if (chatBoxRef.current) {
       setTimeout(() => {
-        chatBoxRef.current.scrollTo({
-          top: chatBoxRef.current.scrollHeight,
-          behavior: "smooth",
-        });
+        chatBoxRef.current.scrollTo({ top: chatBoxRef.current.scrollHeight, behavior: "smooth" });
       }, 100);
     }
   }, [chat, typing]);
@@ -219,11 +134,8 @@ export default function Payment() {
       audioRef.current
         .play()
         .then(() => {
-          if (onEnded) {
-            audioRef.current.onended = onEnded;
-          } else {
-            audioRef.current.onended = null;
-          }
+          if (onEnded) audioRef.current.onended = onEnded;
+          else audioRef.current.onended = null;
         })
         .catch((err) => {
           console.error("Audio playback failed:", err);
@@ -233,26 +145,25 @@ export default function Payment() {
 
   const simulateBotTyping = (question, showTyping = true) => {
     if (showTyping) setTyping(true);
-
-    setTimeout(
-      () => {
-        setChat((prev) => [
-          ...prev,
-          {
-            id: question.id,
-            sender: "bot",
-            text: question.text,
-            type: question.type,
-            options: question.options,
-            audio: question.audio,
-          },
-        ]);
-        playMessageAudio(question.audio);
-        setTyping(false);
-      },
-      showTyping ? 1000 : 10
-    );
+    setTimeout(() => {
+      setChat((prev) => [
+        ...prev,
+        {
+          id: question.id,
+          sender: "bot",
+          text: question.text,
+          type: question.type,
+          options: question.options,
+          audio: question.audio,
+        },
+      ]);
+      playMessageAudio(question.audio);
+      setTyping(false);
+    }, showTyping ? 1000 : 10);
   };
+
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePincode = (pincode) => /^\d{5,6}$/.test(pincode);
 
   const handleSend = (response) => {
     const currentQuestion = questions[step];
@@ -266,18 +177,19 @@ export default function Payment() {
       return;
     }
 
+    // when ZIP captured -> append zipcode=value to URL (preserve existing params)
+    if (currentQuestion.id === 3) {
+      setQueryParam("zipcode", String(response).trim());
+      // keep utm_campaign if present; nothing to do because replaceState preserves other params
+    }
+
     if (currentQuestion.id === 5) {
       try {
-        const emailPayload = {
-          email: response,
-        };
+        const emailPayload = { email: response };
         setEmail(response);
-
         fetch("https://benifit-gpt-be.onrender.com/email", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(emailPayload),
         })
           .then((res) => res.json())
@@ -294,8 +206,7 @@ export default function Payment() {
 
     if (currentQuestion.tag) {
       let shouldTag = false;
-      if (currentQuestion.id === 7 && (response === "Yes" || response === "No"))
-        shouldTag = true;
+      if (currentQuestion.id === 7 && (response === "Yes" || response === "No")) shouldTag = true;
       if (currentQuestion.id === 8 && response !== "No") shouldTag = true;
       if (currentQuestion.id === 9 && response === "I Own") shouldTag = true;
       if (currentQuestion.id === 11 && response === "Yes") shouldTag = true;
@@ -314,38 +225,22 @@ export default function Payment() {
         break;
     }
 
-    const updatedAnswers = {
-      ...answers,
-      [currentQuestion.text]: response,
-    };
+    const updatedAnswers = { ...answers, [currentQuestion.text]: response };
     setAnswers(updatedAnswers);
 
-    const updatedChat = [
-      ...chat,
-      { id: chat.length + 1, sender: "user", text: response },
-    ];
+    const updatedChat = [...chat, { id: chat.length + 1, sender: "user", text: response }];
     setChat(updatedChat);
     setInput("");
 
     let nextStep = step + 1;
 
-    if (
-      nextStep < questions.length &&
-      questions[nextStep].type === "info" &&
-      nextStep + 1 < questions.length
-    ) {
+    if (nextStep < questions.length && questions[nextStep].type === "info" && nextStep + 1 < questions.length) {
       const infoMsg = questions[nextStep];
       const realMsg = questions[nextStep + 1];
 
       setChat((prev) => [
         ...prev,
-        {
-          id: infoMsg.id,
-          sender: "bot",
-          text: infoMsg.text,
-          type: "info",
-          audio: infoMsg.audio,
-        },
+        { id: infoMsg.id, sender: "bot", text: infoMsg.text, type: "info", audio: infoMsg.audio },
         {
           id: realMsg.id,
           sender: "bot",
@@ -375,24 +270,18 @@ export default function Payment() {
   };
 
   const handleChoiceClick = (choice) => {
-    if (
-      choice === "Lets Start" &&
-      step === 0 &&
-      chat.some((m) => m.text.includes("Tap the button"))
-    ) {
+    if (choice === "Lets Start" && step === 0 && chat.some((m) => m.text.includes("Tap the button"))) {
       setChat([]);
       setTimeout(() => {
         simulateBotTyping(questions[0], false);
       }, 1000);
       return;
     }
-
     handleSend(choice);
   };
 
   const renderUserInput = () => {
     if (typing || step >= questions.length) return null;
-
     const current = questions[step];
     if (current.type === "text") {
       return (
@@ -411,19 +300,8 @@ export default function Payment() {
               className="bg-[#005e54] text-black p-5 rounded-full transition duration-150"
               aria-label="Send"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="white"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="white">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
             </button>
           </div>
@@ -434,20 +312,14 @@ export default function Payment() {
   };
 
   const [utmCampaign, setUtmCampaign] = useState(null);
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const campaign = params.get("utm_campaign");
-
-    if (campaign) {
-      setUtmCampaign(campaign);
-    }
+    if (campaign) setUtmCampaign(campaign);
   }, []);
 
   const handleFinalAnswers = async (allAnswers, tagArray) => {
-    const tempUserId =
-      allAnswers["What's your full name?"].slice(0, 3).toUpperCase() +
-      Date.now().toString();
+    const tempUserId = allAnswers["What's your full name?"].slice(0, 3).toUpperCase() + Date.now().toString();
     setUserId(tempUserId);
     const payload = {
       user_id: tempUserId,
@@ -459,17 +331,11 @@ export default function Payment() {
       origin: `3-${utmCampaign}`,
     };
     try {
-      const res = await fetch(
-        "https://benifit-gpt-be.onrender.com/response/create",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
+      const res = await fetch("https://benifit-gpt-be.onrender.com/response/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       const data = await res.json();
       console.log("✅ Successfully submitted:", data);
     } catch (err) {
@@ -478,20 +344,11 @@ export default function Payment() {
   };
 
   const handleStartAI = () => {
-    // 🔴 NEW: log "START NOW" button click to your analytics
-    logButtonClick({
-      page: "/",
-      buttonId: "start-now",
-      userId: null,
-      meta: { source: "hero", utmCampaign },
-    }).catch(() => {});
-
+    logButtonClick({ page: "/", buttonId: "start-now", userId: null, meta: { source: "hero", utmCampaign } }).catch(() => {});
     setActivatingAiLoder(true);
-
     setTimeout(() => {
       setActivatingAiLoder(false);
       setStartChat(true);
-
       const initialMessages = [
         {
           id: 1,
@@ -514,7 +371,6 @@ export default function Payment() {
           audio: thirdquestion,
         },
       ];
-
       let delays = [500, 7000, 15000];
       initialMessages.forEach((msg, index) => {
         setTimeout(() => {
@@ -528,23 +384,13 @@ export default function Payment() {
     }, 1500);
   };
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePincode = (pincode) => {
-    const pinRegex = /^\d{5,6}$/;
-    return pinRegex.test(pincode);
-  };
-
   const [counter, setCounter] = useState(1100);
   useEffect(() => {
-    if (startChat) return; // Only animate before chat starts
+    if (startChat) return;
     let start = 1100;
     let end = 2500;
-    let duration = 1800; // ms
-    let frameRate = 90; // ms per frame
+    let duration = 1800;
+    let frameRate = 90;
     let totalFrames = Math.round(duration / frameRate);
     let increment = (end - start) / totalFrames;
     let frame = 0;
@@ -554,17 +400,14 @@ export default function Payment() {
       let value = Math.round(start + increment * frame);
       if (value > end) value = end;
       setCounter(value);
-      if (frame < totalFrames) {
-        setTimeout(animate, frameRate);
-      }
+      if (frame < totalFrames) setTimeout(animate, frameRate);
     };
 
     setCounter(start);
     animate();
-
-    // Cleanup
     return () => {};
   }, [startChat]);
+
   return (
     <>
       {!finalmessage ? (
@@ -572,138 +415,64 @@ export default function Payment() {
           <audio playsInline ref={audioRef} style={{ display: "none" }} />
           <div>
             <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
-              <img
-                src={center}
-                alt="logo"
-                className="w-[60%] h-[55px] object-contain"
-              />
-                {/* <a
-      href="/contact"
-      className="px-4 py-1.5 text-sm font-medium text-black bg-white rounded-full shadow hover:bg-gray-200 transition-colors"
-    >
-      Contact Us
-    </a> */}
+              <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
             </div>
 
-            <div
-              className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm"
-              style={{ backgroundColor: "#005e54" }}
-            >
+            <div className="w-full text-white text-center font-semibold italic py-2 rounded-b-full text-sm" style={{ backgroundColor: "#005e54" }}>
               22,578 Americans Helped In Last 24 Hours!
             </div>
           </div>
-          <div
-            className="min-h-screen p-4 flex flex-col items-center"
-            style={{ backgroundColor: "rgb(246,246,243)" }}
-          >
+          <div className="min-h-screen p-4 flex flex-col items-center" style={{ backgroundColor: "rgb(246,246,243)" }}>
             <div className="w-full bg-grey h-[80vh] px-4 py-1 space-y-2">
               <div className="flex justify-center">
                 <div className="inline-flex items-center justify-center px-6 py-2 bg-black text-white uppercase rounded-full">
-                  <h2 className="text-sm font-bold whitespace-nowrap -mt-1">
-                    Average Benefits: ${counter.toLocaleString()}+
-                  </h2>
+                  <h2 className="text-sm font-bold whitespace-nowrap -mt-1">Average Benefits: ${counter.toLocaleString()}+</h2>
                 </div>
               </div>
               <div className="flex-grow flex flex-col justify-between h-full">
                 {startChat ? (
-                  <div
-                    ref={chatBoxRef}
-                    className="max-h-[100vh] overflow-y-auto p-2 space-y-2 flex flex-col scrollbar-hide [&::-webkit-scrollbar]:hidden"
-                  >
+                  <div ref={chatBoxRef} className="max-h-[100vh] overflow-y-auto p-2 space-y-2 flex flex-col scrollbar-hide [&::-webkit-scrollbar]:hidden">
                     <AnimatePresence initial={false}>
                       {chat.map((msg, idx) => (
                         <motion.div
                           key={msg.id + "-" + idx}
-                          className={`flex flex-col ${
-                            msg.sender === "bot" ? "items-start" : "items-end"
-                          } mb-4`}
-                          initial={{
-                            opacity: 0,
-                            y: 20,
-                            scale: 0.95,
-                            x: msg.sender === "bot" ? -20 : 20,
-                          }}
-                          animate={{
-                            opacity: 1,
-                            y: 0,
-                            scale: 1,
-                            x: 0,
-                          }}
-                          exit={{
-                            opacity: 0,
-                            scale: 0.95,
-                            y: 10,
-                            x: msg.sender === "bot" ? -20 : 20,
-                          }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 120,
-                            damping: 25,
-                            mass: 1,
-                            duration: 0.8,
-                          }}
+                          className={`flex flex-col ${msg.sender === "bot" ? "items-start" : "items-end"} mb-4`}
+                          initial={{ opacity: 0, y: 20, scale: 0.95, x: msg.sender === "bot" ? -20 : 20 }}
+                          animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: 10, x: msg.sender === "bot" ? -20 : 20 }}
+                          transition={{ type: "spring", stiffness: 120, damping: 25, mass: 1, duration: 0.8 }}
                         >
                           <div className="flex h-full">
-                            {msg.sender === "bot" &&
-                              idx === chat.length - 1 && (
-                                <motion.div
-                                  className="flex flex-col justify-end mr-2"
-                                  initial={{ opacity: 0, scale: 0.5 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{
-                                    type: "spring",
-                                    stiffness: 120,
-                                    damping: 25,
-                                    delay: 0.2,
-                                    duration: 0.8,
-                                  }}
-                                >
-                                  <div className="w-8 h-8 flex items-center justify-center">
-                                    <motion.img
-                                      className="w-full h-full rounded-full shadow-lg"
-                                      src={botAvatar}
-                                      alt="Bot Avatar"
-                                      initial={{ scale: 0.5 }}
-                                      animate={{ scale: 1 }}
-                                      transition={{
-                                        type: "spring",
-                                        stiffness: 120,
-                                        damping: 25,
-                                        delay: 0.3,
-                                        duration: 0.8,
-                                      }}
-                                    />
-                                  </div>
-                                </motion.div>
-                              )}
+                            {msg.sender === "bot" && idx === chat.length - 1 && (
+                              <motion.div
+                                className="flex flex-col justify-end mr-2"
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ type: "spring", stiffness: 120, damping: 25, delay: 0.2, duration: 0.8 }}
+                              >
+                                <div className="w-8 h-8 flex items-center justify-center">
+                                  <motion.img
+                                    className="w-full h-full rounded-full shadow-lg"
+                                    src={botAvatar}
+                                    alt="Bot Avatar"
+                                    initial={{ scale: 0.5 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 120, damping: 25, delay: 0.3, duration: 0.8 }}
+                                  />
+                                </div>
+                              </motion.div>
+                            )}
                             <motion.div
-                              className={`relative max-w-xs ${
-                                msg.sender === "bot"
-                                  ? idx === chat.length - 1
-                                    ? "ml-1"
-                                    : "ml-10"
-                                  : "mr-1"
-                              }`}
+                              className={`relative max-w-xs ${msg.sender === "bot" ? (idx === chat.length - 1 ? "ml-1" : "ml-10") : "mr-1"}`}
                               initial={{ scale: 0.95 }}
                               animate={{ scale: 1 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 120,
-                                damping: 25,
-                                duration: 0.8,
-                              }}
+                              transition={{ type: "spring", stiffness: 120, damping: 25, duration: 0.8 }}
                             >
                               <div
                                 className={`p-3 rounded-2xl shadow-sm ${
-                                  msg.sender === "bot"
-                                    ? "bg-white text-black rounded-bl-none"
-                                    : "bg-[#005e54] text-white rounded-br-none"
+                                  msg.sender === "bot" ? "bg-white text-black rounded-bl-none" : "bg-[#005e54] text-white rounded-br-none"
                                 }`}
-                                style={{
-                                  transform: "translateZ(0)",
-                                  backfaceVisibility: "hidden",
-                                  whiteSpace: "pre-line",
-                                }}
+                                style={{ transform: "translateZ(0)", backfaceVisibility: "hidden", whiteSpace: "pre-line" }}
                               >
                                 {msg.text}
                               </div>
@@ -711,23 +480,11 @@ export default function Payment() {
                               {msg.sender === "bot" && (
                                 <motion.svg
                                   viewBox="120 85 60 60"
-                                  className={`absolute -bottom-[1.6px] w-[20px] h-[20px] ${
-                                    msg.sender === "bot"
-                                      ? "left-[-15px]"
-                                      : "right-[-15px] scale-x-[-1]"
-                                  }`}
-                                  fill={
-                                    msg.sender === "bot" ? "#ffffff" : "#005e54"
-                                  }
+                                  className={`absolute -bottom-[1.6px] w-[20px] h-[20px] ${msg.sender === "bot" ? "left-[-15px]" : "right-[-15px] scale-x-[-1]"}`}
+                                  fill={msg.sender === "bot" ? "#ffffff" : "#005e54"}
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
-                                  transition={{
-                                    type: "spring",
-                                    stiffness: 120,
-                                    damping: 25,
-                                    delay: 0.2,
-                                    duration: 0.8,
-                                  }}
+                                  transition={{ type: "spring", stiffness: 120, damping: 25, delay: 0.2, duration: 0.8 }}
                                 >
                                   <path d="M 167 92 V 92 V 142 H 130 C 155 134 163 123 167 93" />
                                 </motion.svg>
@@ -740,14 +497,7 @@ export default function Payment() {
                               className="flex flex-wrap gap-2 mt-3 ml-10"
                               initial={{ opacity: 0, y: 10, scale: 0.95 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 120,
-                                damping: 25,
-                                mass: 1,
-                                delay: 0.4,
-                                duration: 0.8,
-                              }}
+                              transition={{ type: "spring", stiffness: 120, damping: 25, mass: 1, delay: 0.4, duration: 0.8 }}
                             >
                               {msg.options.map((opt, i) => (
                                 <motion.button
@@ -758,14 +508,7 @@ export default function Payment() {
                                   whileTap={{ scale: 0.97 }}
                                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  transition={{
-                                    type: "spring",
-                                    stiffness: 120,
-                                    damping: 25,
-                                    mass: 1,
-                                    delay: 0.4 + i * 0.15,
-                                    duration: 0.8,
-                                  }}
+                                  transition={{ type: "spring", stiffness: 120, damping: 25, mass: 1, delay: 0.4 + i * 0.15, duration: 0.8 }}
                                 >
                                   <span>{opt}</span>
                                   {msg.id === 3 && (
@@ -775,10 +518,8 @@ export default function Payment() {
                                         background:
                                           "linear-gradient(130deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 70%)",
                                         zIndex: 1,
-                                        maskImage:
-                                          "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
-                                        WebkitMaskImage:
-                                          "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+                                        maskImage: "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+                                        WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
                                       }}
                                     />
                                   )}
@@ -795,7 +536,6 @@ export default function Payment() {
                                     .animate-betterShimmer {
                                       animation: betterShimmer 2.2s infinite linear;
                                     }
-
                                     @keyframes slideLeftRight {
                                       0% {
                                         transform: translateX(-6px);
@@ -817,10 +557,7 @@ export default function Payment() {
                             </motion.div>
                           )}
 
-                          {idx === chat.length - 1 &&
-                            msg.sender === "bot" &&
-                            msg.type === "text" &&
-                            renderUserInput()}
+                          {idx === chat.length - 1 && msg.sender === "bot" && msg.type === "text" && renderUserInput()}
                         </motion.div>
                       ))}
                     </AnimatePresence>
@@ -830,37 +567,14 @@ export default function Payment() {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 120,
-                          damping: 25,
-                          mass: 1,
-                          duration: 0.8,
-                        }}
+                        transition={{ type: "spring", stiffness: 120, damping: 25, mass: 1, duration: 0.8 }}
                         className="flex items-center gap-2 mt-2"
                       >
-                        <motion.img
-                          src={botAvatar}
-                          alt="Bot"
-                          className="w-8 h-8 rounded-full shadow-lg"
-                          initial={{ scale: 0.5 }}
-                          animate={{ scale: 1 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 120,
-                            damping: 25,
-                            duration: 0.8,
-                          }}
-                        />
+                        <motion.img src={botAvatar} alt="Bot" className="w-8 h-8 rounded-full shadow-lg" initial={{ scale: 0.5 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 120, damping: 25, duration: 0.8 }} />
                         <motion.div
                           initial={{ scale: 0.95, x: -10 }}
                           animate={{ scale: 1, x: 0 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 120,
-                            damping: 25,
-                            duration: 0.8,
-                          }}
+                          transition={{ type: "spring", stiffness: 120, damping: 25, duration: 0.8 }}
                           className="max-w-xs p-3 rounded-2xl shadow-sm bg-white text-gray-800 flex items-center gap-2"
                         >
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
@@ -872,19 +586,12 @@ export default function Payment() {
                   </div>
                 ) : (
                   <div className="mt-4 space-y-4">
-                    <h1 className="font-bold text-3xl text-center text-black">
-                      Americans, Get Your Benefits Eligibility Check in Just 60
-                      Seconds!
-                    </h1>
+                    <h1 className="font-bold text-3xl text-center text-black">Americans, Get Your Benefits Eligibility Check in Just 60 Seconds!</h1>
                     <div className="flex justify-center items-center mt-6  ml-8 px-0 text-md font-semibold text-gray-600">
                       <div className="space-y-2 flex flex-col items-start space-x-2">
                         <div className="flex items-start space-x-2">
                           <div className="w-5 h-5 mt-0.5 flex items-center justify-center rounded bg-[#005e54] text-white">
-                            <svg
-                              className="w-3.5 h-3.5"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                               <path
                                 fillRule="evenodd"
                                 d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
@@ -897,11 +604,7 @@ export default function Payment() {
 
                         <div className="flex items-start space-x-2">
                           <div className="w-5 h-5 mt-0.5 flex items-center justify-center rounded bg-[#005e54] text-white">
-                            <svg
-                              className="w-3.5 h-3.5"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                               <path
                                 fillRule="evenodd"
                                 d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
@@ -914,11 +617,7 @@ export default function Payment() {
 
                         <div className="flex items-start space-x-2">
                           <div className="w-5 h-5 mt-0.5 flex items-center justify-center rounded bg-[#005e54] text-white">
-                            <svg
-                              className="w-3.5 h-3.5"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                               <path
                                 fillRule="evenodd"
                                 d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
@@ -940,30 +639,19 @@ export default function Payment() {
                           onClick={handleStartAI}
                           className="relative overflow-hidden text-white text-3xl font-semibold px-10 py-4 rounded-full bg-[#005e54] hover:opacity-95 transition duration-300 shadow-xl flex items-center gap-3"
                         >
-                          {/* Emoji Hand */}
-                          <span className="animate-slide-left-right text-3xl">
-                            👉
-                          </span>
-
-                          {/* Button Text */}
+                          <span className="animate-slide-left-right text-3xl">👉</span>
                           <span className="relative z-10 flex items-center gap-2 text-xl">
                             START NOW <ChevronRight className="w-8 h-8" />
                           </span>
-
-                          {/* Shimmer overlay */}
                           <span
                             className="absolute inset-0 animate-betterShimmer pointer-events-none"
                             style={{
-                              background:
-                                "linear-gradient(130deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 70%)",
+                              background: "linear-gradient(130deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 70%)",
                               zIndex: 1,
-                              maskImage:
-                                "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
-                              WebkitMaskImage:
-                                "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+                              maskImage: "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+                              WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
                             }}
                           />
-
                           <style jsx>{`
                             @keyframes betterShimmer {
                               0% {
@@ -976,7 +664,6 @@ export default function Payment() {
                             .animate-betterShimmer {
                               animation: betterShimmer 2.2s infinite linear;
                             }
-
                             @keyframes slideLeftRight {
                               0% {
                                 transform: translateX(-6px);
@@ -997,15 +684,12 @@ export default function Payment() {
                       )}
                       <p className="text-sm my-4">
                         <i>
-                          <span className="text-[#005e54] font-bold">69</span>{" "}
-                          People Are <span className="font-bold">Claiming</span>{" "}
-                          Right Now!
+                          <span className="text-[#005e54] font-bold">69</span> People Are <span className="font-bold">Claiming</span> Right Now!
                         </i>
                       </p>
                     </div>
                   </div>
                 )}
-                
 
                 {!startChat && (
                   <>
@@ -1015,31 +699,20 @@ export default function Payment() {
                     <div className="text-center space-y-4 pt-6">
                       <div className="p-3 text-sm text-black">
                         <p>
-                          <span className="font-bold text-red-500">NOTE</span>:
-                          We don't spam OR sell information & we aren't
-                          affiliated with any gov. branch. We are not sponsored
-                          by any External Private Organisation.
+                          <span className="font-bold text-red-500">NOTE</span>: We don't spam OR sell information & we aren't affiliated with any
+                          gov. branch. We are not sponsored by any External Private Organisation.
                         </p>
                       </div>
                       <footer className="p-3 text-center text-xs text-black">
                         <p>
-                          Beware of other fraudulent & similar looking websites
-                          that might look exactly like ours, we have no
-                          affiliation with them. This is the only official
-                          website to claim the Benefits You're Qualified For
-                          with the domain name mybenefitsai.org
+                          Beware of other fraudulent & similar looking websites that might look exactly like ours, we have no affiliation with them.
+                          This is the only official website to claim the Benefits You're Qualified For with the domain name mybenefitsai.org
                         </p>
                         <div className="mt-2 space-x-4">
-                          <a
-                            href="/contact"
-                            className="text-blue-600 hover:text-blue-800 underline transition-colors"
-                          >
+                          <a href="/contact" className="text-blue-600 hover:text-blue-800 underline transition-colors">
                             Contact Us
                           </a>
-                          <a
-                            href="/privacy"
-                            className="text-blue-600 hover:text-blue-800 underline transition-colors"
-                          >
+                          <a href="/privacy" className="text-blue-600 hover:text-blue-800 underline transition-colors">
                             Privacy Policy
                           </a>
                         </div>
