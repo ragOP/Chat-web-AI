@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { logPageView, fetchHomepageViewCount, logButtonClick } from "./anal";
 import { ChevronRight } from "lucide-react";
 import InfinityLoader from "./InfinityLoader";
 import CongratulationsPage from "./CongoPage";
@@ -23,6 +24,7 @@ import center from "../assets/center.png";
 import PaymentConfirmation from "./PaymentConfirmation";
 import FaqAccordion from "./Faq";
 import Testimonial from "./Testimonial";
+
 
 const TAGS = {
   medicare: "is_md",
@@ -167,6 +169,38 @@ export default function Payment() {
 
   const [tags, setTags] = useState([]);
   const [name, setName] = useState("");
+  const [count, setCount] = useState(null);
+  const [err, setErr] = useState(null);
+
+  // 1) log a homepage view on first mount
+  useEffect(() => {
+    logPageView("/")
+      .catch(() => {
+        // don’t block UI on analytics failures
+      });
+  }, []);
+
+  // 2) fetch homepage view count; auto refresh every 15s
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const total = await fetchHomepageViewCount();
+        if (mounted) {
+          setCount(total);
+          setErr(null);
+        }
+      } catch (e) {
+        if (mounted) setErr(e?.message || "Failed to load count");
+      }
+    };
+    load();
+    const id = setInterval(load, 15000); // refresh every 15s
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
+  }, []);
 
   useEffect(() => {
     if (chatBoxRef.current) {
@@ -407,7 +441,7 @@ export default function Payment() {
 
     if (campaign) {
       setUtmCampaign(campaign);
-         }
+    }
   }, []);
 
   const handleFinalAnswers = async (allAnswers, tagArray) => {
@@ -444,6 +478,14 @@ export default function Payment() {
   };
 
   const handleStartAI = () => {
+    // 🔴 NEW: log "START NOW" button click to your analytics
+    logButtonClick({
+      page: "/",
+      buttonId: "start-now",
+      userId: null,
+      meta: { source: "hero", utmCampaign },
+    }).catch(() => {});
+
     setActivatingAiLoder(true);
 
     setTimeout(() => {
@@ -967,9 +1009,8 @@ export default function Payment() {
 
                 {!startChat && (
                   <>
-                  <Testimonial />
+                    <Testimonial />
                     <FaqAccordion />
-                    
 
                     <div className="text-center space-y-4 pt-6">
                       <div className="p-3 text-sm text-black">
@@ -989,19 +1030,19 @@ export default function Payment() {
                           with the domain name mybenefitsai.org
                         </p>
                         <div className="mt-2 space-x-4">
-    <a
-      href="/contact"
-      className="text-blue-600 hover:text-blue-800 underline transition-colors"
-    >
-      Contact Us
-    </a>
-    <a
-      href="/privacy"
-      className="text-blue-600 hover:text-blue-800 underline transition-colors"
-    >
-      Privacy Policy
-    </a>
-  </div>
+                          <a
+                            href="/contact"
+                            className="text-blue-600 hover:text-blue-800 underline transition-colors"
+                          >
+                            Contact Us
+                          </a>
+                          <a
+                            href="/privacy"
+                            className="text-blue-600 hover:text-blue-800 underline transition-colors"
+                          >
+                            Privacy Policy
+                          </a>
+                        </div>
                       </footer>
                     </div>
                   </>

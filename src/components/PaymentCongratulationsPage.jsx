@@ -9,6 +9,8 @@ import center from "../assets/center.png";
 import LoaderWithStates from "./LoaderWithStates";
 import "./shimmer.css";
 
+const API_BASE = "https://benifit-gpt-be.onrender.com";
+
 const BENEFIT_CARDS = {
   Medicare: {
     title: "Food Allowance Card",
@@ -46,32 +48,64 @@ const BENEFIT_CARDS = {
     phone: "https://www.roadwayrelief.com/get-quote-am/",
     call: "CLICK HERE TO PROCEED",
   },
-  // SSDI: {
-  //   title: "SSDI",
-  //   description:
-  //     "This SSDI benefit gives you thousands of dollars a year to spend on healthcare, prescriptions, etc.",
-  //   img: benifit1,
-  //   badge: "EASIEST TO CLAIM",
-  //   phone: "+16197753027",
-  //   call: "CALL (619) 775-3027",
-  // },
-  // "Reverse Mortgage": {
-  //   title: "Mortgage Relief",
-  //   description:
-  //     "You might be eligible for a mortgage relief. Most people get 3x of their past compensations.",
-  //   img: benifit1,
-  //   badge: "EASIEST TO CLAIM",
-  //   phone: "+16197753027",
-  //   call: "CALL (619) 775-3027",
-  // },
 };
+
+function getOrCreateSessionId() {
+  const KEY = "session_id";
+  let sid = localStorage.getItem(KEY);
+  if (!sid) {
+    sid =
+      (window.crypto && window.crypto.randomUUID && window.crypto.randomUUID()) ||
+      String(Date.now()) + Math.random().toString(16).slice(2);
+    localStorage.setItem(KEY, sid);
+  }
+  return sid;
+}
+
+async function post(path, payload = {}) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "omit",
+    body: JSON.stringify(payload),
+  });
+  let json = {};
+  try {
+    json = await res.json();
+  } catch (_) {}
+  if (!res.ok) {
+    throw new Error(json?.error || `POST ${path} failed: ${res.status}`);
+  }
+  return json;
+}
+
+async function fetchCongratsPageViews() {
+  const res = await fetch(`${API_BASE}/analytics/summary`, {
+    method: "GET",
+    credentials: "omit",
+  });
+  if (!res.ok) throw new Error(`GET /analytics/summary failed: ${res.status}`);
+  const data = await res.json();
+  const pages = data?.pages || [];
+  // Look for { _id: { type: "page_view", page: "/congratulations" }, count }
+  const row = pages.find(
+    (p) => p?._id?.type === "page_view" && p?._id?.page === "/congratulations"
+  );
+  return row?.count || 0;
+}
 
 const CongratulationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [offer, setOffer] = useState(null);
+
+  // --- page view counter state ---
+  const [pageViews, setPageViews] = useState(null);
+  const [pvError, setPvError] = useState("");
+
   const audioPlayedRef = useRef(false);
 
+  // fetch offer
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const name = params.get("name");
@@ -83,7 +117,7 @@ const CongratulationsPage = () => {
     fetch(
       `https://benifit-gpt-be.onrender.com/check/offer?name=${encodeURIComponent(
         name
-      )}`,
+      )}`
     )
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch offer");
@@ -99,6 +133,7 @@ const CongratulationsPage = () => {
       });
   }, []);
 
+  // play audio when offer loaded
   useEffect(() => {
     if (!loading && offer && !audioPlayedRef.current) {
       audioPlayedRef.current = true;
@@ -111,6 +146,45 @@ const CongratulationsPage = () => {
       });
     }
   }, [loading, offer]);
+
+  // --- log this page visit + page_view and load counter ---
+  useEffect(() => {
+    const sid = getOrCreateSessionId();
+
+    // fire-and-forget logs (don't block UI)
+    post("/analytics/congrats", {
+      userId: null,
+      sessionId: sid,
+      meta: { source: "congratulations_page" },
+    }).catch(() => {});
+
+    post("/analytics/pageview", {
+      page: "/congratulations",
+      userId: null,
+      sessionId: sid,
+      meta: { source: "congratulations_page" },
+    }).catch(() => {});
+
+    // load initial counter + refresh every 20s
+    let mounted = true;
+    const load = async () => {
+      try {
+        const count = await fetchCongratsPageViews();
+        if (mounted) {
+          setPageViews(count);
+          setPvError("");
+        }
+      } catch (e) {
+        if (mounted) setPvError(e?.message || "Failed to load page views");
+      }
+    };
+    load();
+    const t = setInterval(load, 20000);
+    return () => {
+      mounted = false;
+      clearInterval(t);
+    };
+  }, []);
 
   const openLink = (phone) => {
     if (phone.includes("http")) {
@@ -147,9 +221,6 @@ const CongratulationsPage = () => {
         >
           {call}
         </button>
-        {/* <p className="text-xs text-center mt-2 text-white">
-          *Takes <strong>3-5 minutes</strong> on average
-        </p> */}
       </div>
     </div>
   );
@@ -173,7 +244,6 @@ const CongratulationsPage = () => {
 
   const { fullName = "User", tags = [] } = offer;
   const validTags = tags.filter((tag) => BENEFIT_CARDS[tag]);
-  // const totalBenefits = validTags.length;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -187,13 +257,16 @@ const CongratulationsPage = () => {
 
       <div className="px-4 py-6">
         <div className="text-left mb-6 px-2 max-w-sm mx-auto">
-          <h1 className="text-3xl font-bold text-black leading-tight mb-6">
+          <h1 className="text-3xl font-bold text-black leading-tight mb-2">
             Congratulations,
             <br />
             {fullName}! 🎉
           </h1>
+
+     
+
           <p className="text-xl text-black mb-6 leading-tight">
-            We've found that you immediately qualify for {" "}
+            We've found that you immediately qualify for{" "}
             <span className="text-green-600 font-bold">these benefits</span>{" "}
             worth thousands of dollars combined.
           </p>
@@ -221,8 +294,8 @@ const CongratulationsPage = () => {
         <p className="text-xs text-gray-600 text-center px-6 mt-6 max-w-2xl mx-auto">
           Beware of other fraudulent & similar looking websites that might look
           exactly like ours, we have no affiliation with them. This is the only
-          official website to claim your Benefits with the domain
-          name mybenefitsai.org.
+          official website to claim your Benefits with the domain name
+          mybenefitsai.org.
         </p>
       </div>
     </div>
