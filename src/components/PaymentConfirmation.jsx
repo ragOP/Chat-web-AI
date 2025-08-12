@@ -21,6 +21,47 @@ const API_EMAIL = "https://benifit-gpt-be.onrender.com/email/submit";
 const API_CREATE_INTENT = "https://benifit-gpt-be.onrender.com/rag/oneusd/create";
 const API_INTENT_STATUS = "https://benifit-gpt-be.onrender.com/rag/intent/status";
 
+/** ---------- Analytics (for the button counter) ---------- **/
+const API_ANALYTICS_BASE = "https://benifit-gpt-be.onrender.com";
+const CTA_BUTTON_ID = "claim-report-1usd";
+
+function getOrCreateSessionId() {
+  const KEY = "session_id";
+  let sid = localStorage.getItem(KEY);
+  if (!sid) {
+    sid =
+      (window.crypto && window.crypto.randomUUID && window.crypto.randomUUID()) ||
+      String(Date.now()) + Math.random().toString(16).slice(2);
+    localStorage.setItem(KEY, sid);
+  }
+  return sid;
+}
+async function analyticsPost(path, payload = {}) {
+  try {
+    const res = await fetch(`${API_ANALYTICS_BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "omit",
+      body: JSON.stringify(payload),
+    });
+    // ignore failures silently for analytics
+    await res.json().catch(() => ({}));
+  } catch {}
+}
+async function fetchButtonCount(buttonId, page) {
+  const res = await fetch(`${API_ANALYTICS_BASE}/analytics/summary`, {
+    method: "GET",
+    credentials: "omit",
+  });
+  if (!res.ok) throw new Error(`GET /analytics/summary failed: ${res.status}`);
+  const data = await res.json();
+  const buttons = data?.buttons || [];
+  const row = buttons.find(
+    (r) => r?._id?.buttonId === buttonId && r?._id?.page === page
+  );
+  return row?.count || 0;
+}
+
 /** ---------- Publishable key resolution (env or window) ---------- **/
 function resolveStripePk(propPk) {
   const c = [];
@@ -71,6 +112,10 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
   const [doSubmit, setDoSubmit] = useState(null);
   const [paying, setPaying] = useState(false);
 
+  // ---- CTA click counter state ----
+  const [ctaClicks, setCtaClicks] = useState(null);
+  const [ctaErr, setCtaErr] = useState("");
+
   useEffect(() => {
     if (tagArray?.length) {
       const price = {
@@ -117,6 +162,23 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
     return () => { document.body.style.overflow = prev; };
   }, [modalOpen]);
 
+  // ---- Load & refresh CTA button click count (by page + buttonId) ----
+  useEffect(() => {
+    const page = window.location?.pathname || "/payment";
+    let mounted = true;
+    const load = async () => {
+      try {
+        const c = await fetchButtonCount(CTA_BUTTON_ID, page);
+        if (mounted) { setCtaClicks(c); setCtaErr(""); }
+      } catch (e) {
+        if (mounted) setCtaErr(e?.message || "Failed to load button clicks");
+      }
+    };
+    load();
+    const id = setInterval(load, 20000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
+
   const openPayModal = async () => {
     setPkError(""); setInitializingPI(true);
     try {
@@ -142,6 +204,21 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
     } finally {
       setInitializingPI(false);
     }
+  };
+
+  // ---- Button click handler: logs analytics + optimistic counter bump ----
+  const onCtaClick = async () => {
+    const page = window.location?.pathname || "/payment";
+    analyticsPost("/analytics/button", {
+      page,
+      buttonId: CTA_BUTTON_ID,
+      userId: null,
+      sessionId: getOrCreateSessionId(),
+      meta: { source: "payment_confirmation_cta" },
+    }).catch(()=>{});
+    // optimistic bump
+    setCtaClicks((prev) => (typeof prev === "number" ? prev + 1 : prev));
+    await openPayModal();
   };
 
   const appearance = useMemo(() => ({
@@ -207,21 +284,26 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
                   <span className="text-[#44aa5f] font-bold">${roundToThousands(totalPayment)}+</span>
                 </p>
               </div>
-              {/* <div className="qualify-dash" /> */}
             </div>
 
             {/* CTA card */}
             <div className="cta-card">
               <div className="cta-card-top">
-                {/* <img src={center} alt="Brand" className="cta-brand" /> */}
                 <h2 className="cta-title">Your Benefit Report Is Ready, Unlock It For $1!</h2>
               </div>
               <img src={report} alt="report" className="report-img" />
 
-              <button onClick={openPayModal} disabled={initializingPI} className="cta-btn">
+              <button onClick={onCtaClick} disabled={initializingPI} className="cta-btn">
                 {initializingPI ? "Preparing Payment..." : "Claim My Report For $1!"}
+                {/* counter pill inside the button */}
+                {/* {typeof ctaClicks === "number" && (
+                  <span className="cta-count"> {ctaClicks.toLocaleString()} </span>
+                )} */}
                 <span className="shine" />
               </button>
+              {ctaErr && (
+                <div className="hint-box" style={{ marginTop: 8 }}>{ctaErr}</div>
+              )}
 
               <div className="cta-guarantee">
                 <p className="font-medium">100% Satisfaction Guarantee.</p>
@@ -286,7 +368,6 @@ const PaymentConfirmation = ({ email, name, userId, tagArray, stripePk }) => {
                         onSuccess={async () => {
                           await handlePaymentSuccess();
                           setModalOpen(false);
-                          // >>> Redirect to /cong-pay after success
                           window.location.assign("/success");
                         }}
                       />
@@ -458,8 +539,6 @@ const styles = `
   background: #cdf0d8; border: 2px solid #c3e6cb; border-radius: 16px; padding: 12px;
   margin-bottom: 28px; max-width: 640px; width: 100%; position: relative;
 }
-.qualify-dash{ position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%);
-  width: 1px; height: 24px; border-left: 2px dashed #6b7280; }
 
 /* CTA card */
 .cta-card{
@@ -469,10 +548,6 @@ const styles = `
   box-shadow: 0 18px 42px rgba(41, 78, 160, .55);
 }
 .cta-card-top{ display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:8px; }
-.cta-brand{
-  width:36px; height:36px; border-radius:10px; object-fit:contain; background:#fff; padding:4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.1);
-}
 .cta-title{ color:#fff; font-size: clamp(18px, 3.2vw, 28px); font-weight: 800; margin:0; }
 .report-img{ height:100px; width:100px; object-fit:contain; display:block; margin:12px auto 18px auto; }
 
@@ -481,22 +556,27 @@ const styles = `
   padding:18px 14px; border-radius:16px; width:100%;
   box-shadow: 0 14px 28px rgba(16,185,129,.28), inset 0 -2px 0 rgba(0,0,0,.08);
   transition: transform .15s ease, box-shadow .15s ease;
-  overflow:hidden;
+  overflow:hidden; display:flex; align-items:center; justify-content:center; gap:8px;
 }
 .cta-btn:hover{ transform: translateY(-1px); box-shadow: 0 18px 34px rgba(16,185,129,.34), inset 0 -2px 0 rgba(0,0,0,.08); }
 .cta-btn:active{ transform: translateY(0); }
 
-/* FIX: shimmer shouldn't block clicks */
+/* counter pill INSIDE the button */
+.cta-count{
+  display:inline-block; padding:4px 10px; border-radius:999px;
+  background: rgba(255,255,255,.75); color:#052e16; font-weight:900; font-size:12px;
+}
+
+/* shimmer overlay (non-blocking) */
 .shine{
-  position:absolute; inset:0; border-radius:inherit;
-  pointer-events:none;               /* <<< important fix */
-  z-index:0;                         /* ensure it's behind text content */
+  position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:0;
   background: linear-gradient(130deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 70%);
   transform: translateX(-100%);
   animation: shimmer 2.2s infinite linear;
   will-change: transform;
 }
 @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
 .cta-guarantee{ color:#f0fdf4; opacity:.95; font-size:13px; margin-top:14px; }
 
 /* Timer */
@@ -526,12 +606,9 @@ const styles = `
 }
 .footer-pay--disabled{ background:#9ca3af; box-shadow:none; cursor:not-allowed; }
 .secure-note{ font-size:12px; color:#4b5563; text-align:center; margin-top:8px; }
-
-/* Hints */
 .hint-box{ background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:10px; padding:10px; font-size:12px; }
 .msg{ font-size:13px; color:#0f172a; margin-top:8px; }
 
-/* Responsive */
 @media (max-width: 520px){
   .header-logo{ width:min(72%, 320px); height:48px; }
 }
