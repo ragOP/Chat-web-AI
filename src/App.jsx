@@ -26,6 +26,7 @@ import Home2 from "./components/Home2";
 import Home3 from "./components/Home3";
 import Home4 from "./components/Home4";
 import Contact from "./components/Contact";
+import MesFree from "./components/MesFree";
 function App(){
   return (
     <Routes>
@@ -55,6 +56,7 @@ function App(){
     <Route path="/success" element={<Sucess />} />
     <Route path="/cancel" element={<Cancel />} />
     <Route path="/messg2" element={<Home3 />} />
+        <Route path="/mesfree" element={<MesFree />} />
     <Route path="/messg-free" element={<Home4 />} />
 
     </Routes>

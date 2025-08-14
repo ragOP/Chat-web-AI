@@ -25,7 +25,7 @@ import center from "../assets/center.png";
 import PaymentConfirmation from "./PaymentConfirmation";
 import FaqAccordion from "./Faq";
 import Testimonial from "./Testimonial";
-import TwiPaymentCon from "./TwiPaymentCon";
+import TwiMesFree from "./TwiMesFree";
 
 const TAGS = {
   medicare: "is_md",
@@ -168,7 +168,7 @@ const questions = [
   },
 ];
 
-export default function Home3() {
+export default function MesFree() {
   const [startChat, setStartChat] = useState(false);
   const [activatingAiLoder, setActivatingAiLoder] = useState(false);
   const [chat, setChat] = useState([]);
@@ -1012,7 +1012,7 @@ export default function Home3() {
           </div>
         </>
       ) : (
-        <TwiPaymentCon
+        <TwiMesFree
         number={number}
           email={email}
           name={name}
