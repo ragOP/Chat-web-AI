@@ -58,18 +58,6 @@ const questions = [
     keyType: "numeric",
     audio: zipcodeAudio,
   },
-  // {
-  //   id: 4,
-  //   text: "So far so good!",
-  //   type: "info",
-  //   audio: emailAudio,
-  // },
-  // {
-  //   id: 5,
-  //   text: "May I know your email?",
-  //   type: "text",
-  //   keyType: "alphabet",
-  // },
   {
     id: 4,
     text: "Would you like to receive your benefits report?",
@@ -186,6 +174,10 @@ export default function Home3() {
   const [tags, setTags] = useState([]);
   const [name, setName] = useState("");
 
+  // --- TF: state + hidden form ref ---
+  const [tfReady, setTfReady] = useState(false); // SDK loaded
+  const tfFormRef = useRef(null); // the hidden form TrustedForm needs
+
   useEffect(() => {
     if (chatBoxRef.current) {
       setTimeout(() => {
@@ -214,6 +206,32 @@ export default function Home3() {
         });
     }
   };
+
+  // --- TF: inject TrustedForm script once (needs a form in DOM) ---
+  useEffect(() => {
+    if (!tfFormRef.current) return;
+    if (document.getElementById("tf-sdk")) { setTfReady(true); return; }
+
+    (function loadTF() {
+      const field = "xxTrustedFormCertUrl"; // default field name
+      const provideReferrer = true;
+      const sandbox = false; // keep false in production
+
+      const s = document.createElement("script");
+      s.async = true;
+      s.id = "tf-sdk";
+      s.type = "text/javascript";
+      s.src =
+        "https://api.trustedform.com/trustedform.js" +
+        "?field=" + encodeURIComponent(field) +
+        "&provide_referrer=" + (provideReferrer ? "true" : "false") +
+        "&sandbox=" + (sandbox ? "true" : "false");
+
+      s.onload = () => setTfReady(true);
+      s.onerror = () => console.warn("TrustedForm SDK failed to load");
+      document.body.appendChild(s);
+    })();
+  }, []);
 
   const simulateBotTyping = (question, showTyping = true) => {
     if (showTyping) setTyping(true);
@@ -245,35 +263,11 @@ export default function Home3() {
       alert("Please enter a valid pincode");
       return;
     }
-    // if (currentQuestion.id === 5 && !validateEmail(response)) {
-    //   alert("Please enter a valid email");
+
+    // --- CHANGED: validate phone on Q5 ---
+    // if (currentQuestion.id === 5 && !validatePhone(response)) {
+    //   alert("Please enter a valid 10-digit phone number");
     //   return;
-    // }
-
-    // if (currentQuestion.id === 5) {
-    //   try {
-    //     const emailPayload = {
-    //       email: response,
-    //     };
-    //     setEmail(response);
-
-    //     fetch("https://benifit-gpt-be.onrender.com/email", {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify(emailPayload),
-    //     })
-    //       .then((res) => res.json())
-    //       .then((data) => {
-    //         console.log("✅ Email API call successful:", data);
-    //       })
-    //       .catch((err) => {
-    //         console.error("❌ Error calling email API:", err);
-    //       });
-    //   } catch (error) {
-    //     console.error("❌ Error in email API call:", error);
-    //   }
     // }
 
     if (currentQuestion.tag) {
@@ -293,6 +287,9 @@ export default function Home3() {
     switch (currentQuestion.id) {
       case 1:
         setName(response);
+        break;
+      case 5: // --- CHANGED: capture phone early as state ---
+        setNumber(response);
         break;
       default:
         break;
@@ -389,6 +386,7 @@ export default function Home3() {
               className="flex-grow rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-base"
               placeholder="Type your message..."
               style={{ fontSize: "16px" }}
+              inputMode={current.keyType === "numeric" ? "numeric" : "text"}
             />
             <button
               onClick={() => handleSend(input)}
@@ -425,15 +423,21 @@ export default function Home3() {
 
     if (campaign) {
       setUtmCampaign(campaign);
-         }
+    }
   }, []);
 
+  // --- CHANGED: final submit now also claims TrustedForm cert on your backend ---
   const handleFinalAnswers = async (allAnswers, tagArray) => {
     const tempUserId =
       allAnswers["What's your full name?"].slice(0, 3).toUpperCase() +
       Date.now().toString();
     setUserId(tempUserId);
     setNumber(allAnswers["Please enter your 10-digit phone number below:"]);
+
+    // --- TF: read cert URL from hidden input added by SDK ---
+    const certInput = document.querySelector('input[name="xxTrustedFormCertUrl"]');
+    const trustedform_cert_url = certInput?.value || "";
+
     const payload = {
       user_id: tempUserId,
       fullName: allAnswers["What's your full name?"],
@@ -444,7 +448,10 @@ export default function Home3() {
       origin: `6-${utmCampaign}`,
       sendMessageOn: allAnswers["Would you like to receive your benefits report?"],
       number: allAnswers["Please enter your 10-digit phone number below:"],
+      // optional: store TF URL in your lead record if you want
+      trustedform_cert_url,
     };
+
     try {
       const res = await fetch(
         "https://benifit-gpt-be.onrender.com/response/create",
@@ -456,11 +463,31 @@ export default function Home3() {
           body: JSON.stringify(payload),
         }
       );
-
       const data = await res.json();
       console.log("✅ Successfully submitted:", data);
     } catch (err) {
       console.error("❌ Error submitting chatbot answers:", err);
+    }
+
+    // --- TF: claim/retain certificate on your backend (server uses API key) ---
+    try {
+      if (trustedform_cert_url) {
+        await fetch("https://benifit-gpt-be.onrender.com/tf/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cert_url: trustedform_cert_url,
+            reference: tempUserId,
+            phone: allAnswers["Please enter your 10-digit phone number below:"],
+            vendor: "mybenefitsai",
+          }),
+        });
+        console.log("✅ TrustedForm claim requested");
+      } else {
+        console.warn("⚠️ No TrustedForm cert URL found to claim");
+      }
+    } catch (e) {
+      console.error("❌ TrustedForm claim failed", e);
     }
   };
 
@@ -517,6 +544,11 @@ export default function Home3() {
     return pinRegex.test(pincode);
   };
 
+  // --- NEW: simple US 10-digit phone (no country code) ---
+  const validatePhone = (val) => {
+    return /^\d{10}$/.test((val || "").trim());
+  };
+
   const [counter, setCounter] = useState(1100);
   useEffect(() => {
     if (startChat) return; // Only animate before chat starts
@@ -544,11 +576,15 @@ export default function Home3() {
     // Cleanup
     return () => {};
   }, [startChat]);
+
   return (
     <>
       {!finalmessage ? (
         <>
           <audio playsInline ref={audioRef} style={{ display: "none" }} />
+          {/* --- TF: Hidden form for TrustedForm SDK to inject hidden input --- */}
+          <form ref={tfFormRef} style={{ display: "none" }} aria-hidden="true" />
+
           <div>
             <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
               <img
@@ -751,7 +787,7 @@ export default function Home3() {
                                         maskImage:
                                           "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
                                         WebkitMaskImage:
-                                          "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
+                                          "linear-gradient(to right, transparent 0%, black 60%, transparent 100%)",
                                       }}
                                     />
                                   )}
@@ -982,9 +1018,8 @@ export default function Home3() {
 
                 {!startChat && (
                   <>
-                  <Testimonial />
+                    <Testimonial />
                     <FaqAccordion />
-                    
 
                     <div className="text-center space-y-4 pt-6">
                       <div className="p-3 text-sm text-black">
@@ -1013,7 +1048,7 @@ export default function Home3() {
         </>
       ) : (
         <TwiPaymentCon
-        number={number}
+          number={number}
           email={email}
           name={name}
           userId={userId}
