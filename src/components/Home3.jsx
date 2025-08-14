@@ -450,12 +450,43 @@ useEffect(() => {
     },
   ]);
 }, []);
+const __issuedIds = new Set();
 
+function generateThreeCharId() {
+  const digits = "0123456789";
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  for (let attempts = 0; attempts < 50; attempts++) {
+    const d1 = digits[Math.floor(Math.random() * 10)];
+    const d2 = digits[Math.floor(Math.random() * 10)];
+    const L  = letters[Math.floor(Math.random() * 26)];
+
+    const arr = [d1, d2, L];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+
+    const id = arr.join("");
+    if (!__issuedIds.has(id)) {
+      __issuedIds.add(id);
+      return id; // e.g. "7A4", "B25", "18G"
+    }
+  }
+
+  // ultra-rare fallback (still 2 digits + 1 letter)
+  return (
+    digits[Math.floor(Math.random() * 10)] +
+    digits[Math.floor(Math.random() * 10)] +
+    letters[Math.floor(Math.random() * 26)]
+  );
+}
   // --- CHANGED: final submit now also claims TrustedForm cert on your backend ---
   const handleFinalAnswers = async (allAnswers, tagArray) => {
-    const tempUserId =
-      allAnswers["What's your full name?"].slice(0, 3).toUpperCase() +
-      Date.now().toString();
+    
+
+      const tempUserId = generateThreeCharId();
+      console.log("tempUserId",tempUserId)
     setUserId(tempUserId);
     setNumber(allAnswers["Please enter your 10-digit phone number below:"]);
 
