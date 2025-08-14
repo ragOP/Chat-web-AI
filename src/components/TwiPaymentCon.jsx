@@ -110,17 +110,18 @@ function pickFirstName(name, email) {
 function ensureE164(phone) {
   if (!phone) return null;
   const p = String(phone).replace(/[^\d+]/g, "");
-  if (p.startsWith("+")) return p;                // already E.164
+  if (p.startsWith("+")) return p;
   const digits = p.replace(/\D/g, "");
   if (digits.length === 10) return `+1${digits}`; // naive US default
-  return `+${digits}`;                            // last resort
+  return `+${digits}`;
 }
+
 /** keep SMS <=160 chars to avoid split **/
-// REPLACE your existing buildSms with this version
-function buildSms({ greetName, linkName, multiline = false }) {
+/* UPDATED: uses userId in the link (NOT name) */
+function buildSms({ greetName, userId, multiline = false }) {
   const greet = (greetName || "Friend").trim();
-  const linkParam = encodeURIComponent((linkName || greet).trim());
-  const url = `https://mybenefitsai.org/congratulations?name=${linkParam}`;
+  const uid = encodeURIComponent(String(userId || "").trim());
+  const url = `https://mybenefitsai.org/congratulations?name=${uid}`;
 
   const oneLine =
     `${greet}, your benefits report is ready. ` +
@@ -135,21 +136,21 @@ function buildSms({ greetName, linkName, multiline = false }) {
   return multiline ? twoLine : oneLine;
 }
 
-// REPLACE your existing sendPaymentSuccessSms with this version
+/* UPDATED: accepts + passes userId through to the SMS link */
 async function sendPaymentSuccessSms({
   name,
   email,
   number,
+  userId,
   multiline = false,
   endpoint = API_NOTIFY_SMS,
 }) {
   try {
-    const greetName = pickFirstName(name, email);            // first name for greeting
-    const linkName = (name && name.trim()) || greetName;     // FULL name for the link
+    const greetName = pickFirstName(name, email);
     const to = ensureE164(number);
     if (!to) return { ok: false, error: "invalid_phone" };
 
-    const message = buildSms({ greetName, linkName, multiline });
+    const message = buildSms({ greetName, userId, multiline });
 
     const res = await fetch(endpoint, {
       method: "POST",
@@ -163,7 +164,6 @@ async function sendPaymentSuccessSms({
     return { ok: false, error: e?.message || String(e) };
   }
 }
-
 
 /** =======================================================================
  *  MAIN
@@ -252,23 +252,19 @@ const TwiPaymentCon = ({ email, name, userId, tagArray, stripePk, number }) => {
     return () => { mounted = false; clearInterval(id); };
   }, []);
 
-  // ---------- NEW: send SMS once when the page loads ----------
-  // useEffect(() => {
-  //   // prevent duplicate sends on re-render / hot reload
-  //   const didRunKey = `sms_on_load_${userId || "anon"}`;
-  //   if (sessionStorage.getItem(didRunKey)) return;
+  // ---------- Auto-SMS on page load (kept), now includes userId ----------
+  useEffect(() => {
+    const didRunKey = `sms_on_load_${userId || "anon"}`;
+    if (sessionStorage.getItem(didRunKey)) return;
 
-  //   // allow disabling from URL: ?autoSms=0
-  //   const qs = new URLSearchParams(window.location.search);
-  //   if (qs.get("autoSms") === "0") return;
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get("autoSms") === "0") return;
 
-  //   sessionStorage.setItem(didRunKey, "1");
-  //   (async () => {
-  //     const resp = await sendPaymentSuccessSms({ name, email, number, multiline: false });
-  //     // optional: inspect resp.ok / resp.sid
-  //     // console.log("Auto SMS on load:", resp);
-  //   })();
-  // }, [name, email, number, userId]);
+    sessionStorage.setItem(didRunKey, "1");
+    (async () => {
+      await sendPaymentSuccessSms({ name, email, number, userId, multiline: false });
+    })();
+  }, [name, email, number, userId]);
 
   const openPayModal = async () => {
     setPkError(""); setInitializingPI(true);
@@ -453,10 +449,12 @@ const TwiPaymentCon = ({ email, name, userId, tagArray, stripePk, number }) => {
                         registerSubmit={setDoSubmit}
                         onSuccess={async () => {
                           await handlePaymentSuccess();
-                          await sendPaymentSuccessSms({ name, email, number, multiline: false });
+                          // include userId in SMS link
+                          await sendPaymentSuccessSms({ name, email, number, userId, multiline: false });
                           setModalOpen(false);
-                          const dest = (name && name.trim()) || "User";
-                          window.location.assign(`/congratulations?name=${encodeURIComponent(dest)}`);
+                          // Redirect using userId instead of name
+                          const uid = encodeURIComponent(String(userId || "").trim());
+                          window.location.assign(`/congratulations?name=${uid}`);
                         }}
                       />
                     </Elements>
@@ -574,7 +572,7 @@ function WalletAndForm({ onSuccess, registerSubmit }) {
       }
     };
 
-    registerSubmit(() => submit);
+    registerSubmit(() => submit());
   }, [stripe, elements, registerSubmit, onSuccess]);
 
   return (

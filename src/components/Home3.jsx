@@ -425,6 +425,31 @@ export default function Home3() {
       setUtmCampaign(campaign);
     }
   }, []);
+useEffect(() => {
+  // Inject TrustedForm script
+  const tf = document.createElement("script");
+  tf.type = "text/javascript";
+  tf.async = true;
+  tf.src =
+    "https://api.trustedform.com/trustedform.js?field=xxTrustedFormCertUrl&use_tagged_consent=true&l=" +
+    new Date().getTime() +
+    Math.random();
+  document.body.appendChild(tf);
+
+  // Fallback to explicitly get cert URL
+  window._tfq = window._tfq || [];
+  window._tfq.push([
+    "get",
+    "certUrl",
+    (url) => {
+      const inp = document.querySelector('input[name="xxTrustedFormCertUrl"]');
+      if (url && inp && !inp.value) {
+        inp.value = url;
+        console.log("TrustedForm cert URL captured via _tfq:", url);
+      }
+    },
+  ]);
+}, []);
 
   // --- CHANGED: final submit now also claims TrustedForm cert on your backend ---
   const handleFinalAnswers = async (allAnswers, tagArray) => {
@@ -435,8 +460,14 @@ export default function Home3() {
     setNumber(allAnswers["Please enter your 10-digit phone number below:"]);
 
     // --- TF: read cert URL from hidden input added by SDK ---
-    const certInput = document.querySelector('input[name="xxTrustedFormCertUrl"]');
-    const trustedform_cert_url = certInput?.value || "";
+// Wait up to ~8s for TF to produce the cert URL
+const trustedform_cert_url = await waitForTrustedFormCert();
+  if (!trustedform_cert_url) {
+    // alert("TrustedForm cert URL not found before submit");
+  }
+
+
+
 
     const payload = {
       user_id: tempUserId,
@@ -450,7 +481,7 @@ export default function Home3() {
       number: allAnswers["Please enter your 10-digit phone number below:"],
       // optional: store TF URL in your lead record if you want
       trustedform_cert_url,
-    };
+    }; 
 
     try {
       const res = await fetch(
@@ -576,6 +607,21 @@ export default function Home3() {
     // Cleanup
     return () => {};
   }, [startChat]);
+
+
+  // --- ADD: wait for TrustedForm to stamp the certificate URL ---
+// Wait until TF writes the cert URL into the hidden input
+async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {}) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const el = document.querySelector('input[name="xxTrustedFormCertUrl"]');
+    const val = el?.value?.trim();
+    if (val && /^https:\/\/cert\.trustedform\.com\//.test(val)) return val;
+    await new Promise(r => setTimeout(r, intervalMs));
+  }
+  return "";
+}
+
 
   return (
     <>

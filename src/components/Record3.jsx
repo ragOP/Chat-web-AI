@@ -146,6 +146,8 @@ const Record3 = () => {
                 <tr>
                   <th className="px-4 py-3">Name</th>
                   <th className="px-4 py-3">Email</th>
+                       <th className="px-4 py-3">Number</th>
+
                   <th className="px-4 py-3">Age</th>
                   <th className="px-4 py-3">User ID</th>
                   <th className="px-4 py-3">ZIP</th>
@@ -172,6 +174,7 @@ const Record3 = () => {
                     >
                       <td className="px-4 py-2">{row.fullName}</td>
                       <td className="px-4 py-2">{row.email}</td>
+                                      <td className="px-4 py-2">{row.number}</td>
                       <td className="px-4 py-2">{row.age}</td>
                       <td className="px-4 py-2">{row.userId}</td>
                       <td className="px-4 py-2">{row.zipCode}</td>
