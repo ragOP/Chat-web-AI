@@ -16,7 +16,7 @@ const BENEFIT_CARDS = {
       "This food allowance card gives you thousands of dollars a year to spend on groceries, rent, prescriptions, etc.",
     img: benifit1,
     badge: "Easiest To Claim",
-    phone: "+13236897861",
+    phone: "+18333381762",
     call: "CALL (323) 689-7861",
   },
   Debt: {
