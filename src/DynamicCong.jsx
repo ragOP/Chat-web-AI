@@ -1,0 +1,465 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import benifit1 from "./assets/card.png";
+import benifit2 from "./assets/benifit2.webp";
+import benifit3 from "./assets/benifit3.webp";
+import benifit4 from "./assets/benifit4.webp";
+import firstmessage from "./assets/Congratulations We-ve fo 1.wav";
+import secondmessage from "./assets/So go ahead claim and en 1.wav";
+import center from "./assets/center.png";
+import LoaderWithStates from "../src/components/LoaderWithStates";
+import "../src/components/shimmer.css";
+
+/**
+ * =============================
+ *  CONFIG
+ * =============================
+ * INITIAL_UNLOCKED:
+ *  - 1  => First tab is UNLOCKED (recommended)
+ *  - 0  => First tab is LOCKED (you can unlock by custom logic if needed)
+ */
+const INITIAL_UNLOCKED = 1;
+
+const BENEFIT_CARDS = {
+  Medicare: {
+    title: "Food Allowance Card",
+    description:
+      "This food allowance card gives you thousands of dollars a year to spend on groceries, rent, prescriptions, etc.",
+    img: benifit1,
+    badge: "Easiest To Claim",
+    phone: "+18333381762",
+    call: "CALL (323) 689-7861",
+  },
+  Debt: {
+    title: "Credit Card Debt Relief",
+    description:
+      "You are eligible to get all your debt relieved under the new Emergency Debt Relief program.",
+    img: benifit2,
+    badge: "Takes 10 Minutes Or More",
+    phone: "+18333402442",
+    call: "CALL (833) 340-2442",
+  },
+  Auto: {
+    title: "Auto Insurance",
+    description:
+      "You're eligible for a Discounted Auto Insurance Plan with all the coverage.",
+    img: benifit3,
+    badge: "Assured Monthly Savings!",
+    phone: "+16197753027",
+    call: "CALL (619) 775-3027",
+  },
+  MVA: {
+    title: "MVA",
+    description:
+      "You might be eligible for a higher compensation. Most people get 3x of their past compensations.",
+    img: benifit4,
+    badge: "Could Be Worth $100,000+",
+    phone: "https://www.roadwayrelief.com/get-quote-am/",
+    call: "CLICK HERE TO PROCEED",
+  },
+};
+
+// Simple inline icons (no extra deps)
+const LockIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+    <path d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm-3 8V6a3 3 0 016 0v3H9z" />
+  </svg>
+);
+
+const CheckIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+  </svg>
+);
+
+const PhoneIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+    <path d="M6.62 10.79a15.464 15.464 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V21a1 1 0 01-1 1C10.4 22 2 13.6 2 3a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.2 2.2z" />
+  </svg>
+);
+
+const ExternalIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+    <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z" />
+    <path d="M5 5h5V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-5h-2v5H5V5z" />
+  </svg>
+);
+
+const DynamicCong= () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [offer, setOffer] = useState(null);
+
+  // UI state for Tabs + gating
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [unlockedCount, setUnlockedCount] = useState(INITIAL_UNLOCKED); // how many tabs are unlocked (1 => first unlocked)
+  const [completed, setCompleted] = useState([]); // which steps completed (after pressing Call)
+  const audioPlayedRef = useRef(false);
+
+  // ---- Load Offer ----
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nameFromQuery = params.get("name");
+    // Fallback to your hardcoded example if not provided:
+    const name = nameFromQuery || "JOH1755367810840";
+
+    if (!name) {
+      setError("Missing userId in URL.");
+      setLoading(false);
+      return;
+    }
+
+    fetch(
+      `https://benifit-gpt-be.onrender.com/check/offer?name=${encodeURIComponent(
+        name
+      )}`
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch offer");
+        return res.json();
+      })
+      .then((data) => {
+        setOffer(data.data || data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Could not load your offer. Please try again later.");
+        setLoading(false);
+      });
+  }, []);
+
+  // ---- Build ordered benefits from tags ----
+  const { fullName = "User", tags = [] } = offer || {};
+  const benefits = useMemo(() => {
+    const valid = tags.filter((t) => BENEFIT_CARDS[t]);
+    return valid.map((t) => ({ key: t, ...BENEFIT_CARDS[t ] }));
+  }, [tags]);
+
+  // ---- Restore / persist gating state per user ----
+  const storageKey = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nameFromQuery = params.get("name") || "JOH1755367810840";
+    return `cong-tabs-state::${nameFromQuery}`;
+  }, []);
+
+  useEffect(() => {
+    if (!offer) return;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.completed)) setCompleted(parsed.completed);
+        if (typeof parsed.unlockedCount === "number")
+          setUnlockedCount(Math.max(parsed.unlockedCount, INITIAL_UNLOCKED));
+        if (typeof parsed.activeIndex === "number") setActiveIndex(parsed.activeIndex);
+      } catch {
+        // ignore parse errors
+      }
+    } else {
+      // Initialize completed with false for each step
+      setCompleted(Array(benefits.length).fill(false));
+    }
+  }, [offer, storageKey, benefits.length]);
+
+  useEffect(() => {
+    if (!offer) return;
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({ completed, unlockedCount, activeIndex })
+    );
+  }, [completed, unlockedCount, activeIndex, storageKey, offer]);
+
+  // ---- Audio flow (unchanged) ----
+  useEffect(() => {
+    if (!loading && offer && !audioPlayedRef.current) {
+      audioPlayedRef.current = true;
+      const audio1 = new Audio(firstmessage);
+      const audio2 = new Audio(secondmessage);
+      audio1.play().then(() => {
+        audio1.onended = () => {
+          audio2.play();
+        };
+      });
+    }
+  }, [loading, offer]);
+
+  // ---- Actions ----
+  const openLink = (phone) => {
+    if (phone.includes("http")) {
+      window.open(phone, "_blank");
+    } else {
+      window.location.href = `tel:${phone}`;
+    }
+  };
+
+  const onCallClick = (idx, phone) => {
+    // 1) Trigger call / open
+    openLink(phone);
+
+    // 2) Mark current step completed
+    setCompleted((prev) => {
+      const next = [...prev];
+      next[idx] = true;
+      return next;
+    });
+
+    // 3) Unlock next step (if any)
+    setUnlockedCount((prev) => Math.min(prev + 1, benefits.length));
+    if (idx + 1 < benefits.length) {
+      setActiveIndex(idx + 1);
+    }
+  };
+
+  // ---- UI helpers ----
+  const isLocked = (idx) => idx >= unlockedCount;
+  const isCompleted = (idx) => !!completed[idx];
+
+  // ---- Rendering ----
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-black">
+        <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
+          <img
+            src={center}
+            alt="logo"
+            className="w-[60%] h-[55px] object-contain"
+          />
+        </div>
+        <div className="mt-10 text-2xl font-bold">{error}</div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col">
+        <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
+          <img
+            src={center}
+            alt="logo"
+            className="w-[60%] h-[55px] object-contain"
+          />
+        </div>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <LoaderWithStates />
+        </div>
+      </div>
+    );
+  }
+
+  if (!offer) return null;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#eef7f3] to-white">
+      {/* Top bar */}
+      <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
+        <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-black leading-tight">
+            Congratulations, {fullName}! 🎉
+          </h1>
+          <p className="text-lg md:text-xl text-black/80 mt-3">
+            We've found that you immediately qualify for{" "}
+            <span className="text-green-600 font-bold">these benefits</span>{" "}
+            worth thousands of dollars combined.
+          </p>
+
+          <div className="bg-[#cbefda] rounded-3xl p-4 md:p-5 mt-5 shadow-sm border border-green-200">
+            <p className="text-base md:text-lg text-black tracking-tight">
+              Claim all of your benefits by calling on their official hotlines{" "}
+              <span className="font-semibold">in order</span>.{" "}
+              <span className="font-bold">Each call takes ~3–5 minutes.</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Tab Bar */}
+        <div className="rounded-2xl bg-white/70 backdrop-blur border border-slate-200 p-3 md:p-4 shadow">
+          {benefits.length === 0 ? (
+            <div className="text-black text-lg font-semibold my-8 text-center">
+              No benefits found for you at this time.
+            </div>
+          ) : (
+            <>
+              {/* Steps */}
+              <div className="overflow-x-auto">
+                <div className="flex gap-2 md:gap-3">
+                  {benefits.map((b, idx) => {
+                    const locked = isLocked(idx);
+                    const completed = isCompleted(idx);
+                    const active = idx === activeIndex;
+
+                    return (
+                      <button
+                        key={b.key}
+                        onClick={() => !locked && setActiveIndex(idx)}
+                        className={[
+                          "relative flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl border transition-all min-w-[180px]",
+                          locked
+                            ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
+                            : active
+                            ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
+                          "shadow-sm"
+                        ].join(" ")}
+                      >
+                        <div
+                          className={[
+                            "w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold",
+                            locked
+                              ? "bg-slate-200 text-slate-500"
+                              : completed
+                              ? "bg-green-600 text-white"
+                              : "bg-emerald-500/80 text-white",
+                          ].join(" ")}
+                        >
+                          {completed ? <CheckIcon className="w-4 h-4" /> : idx + 1}
+                        </div>
+
+                        <div className="text-left">
+                          <div className="text-sm font-semibold truncate">{b.title}</div>
+                          <div className="text-[11px] text-slate-500 truncate">
+                            {b.badge}
+                          </div>
+                        </div>
+
+                        {locked && (
+                          <LockIcon className="w-4 h-4 text-slate-400 absolute right-2" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Active Tab Content */}
+              <div className="mt-5">
+                {benefits[activeIndex] && (
+                  <BenefitPanel
+                    benefit={benefits[activeIndex]}
+                    locked={isLocked(activeIndex)}
+                    completed={isCompleted(activeIndex)}
+                    onCall={() =>
+                      onCallClick(activeIndex, benefits[activeIndex].phone)
+                    }
+                  />
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Footer note */}
+        <p className="text-xs text-gray-600 text-center px-6 mt-6 max-w-2xl mx-auto">
+          Beware of other fraudulent & similar looking websites that might look
+          exactly like ours, we have no affiliation with them. This is the only
+          official website to claim your Benefits with the domain name
+          mybenefitsai.org.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default DynamicCong;
+
+/**
+ * BenefitPanel — pretty card for the active tab
+ */
+const BenefitPanel = 
+
+({ benefit, locked, completed, onCall }) => {
+  const isLink = benefit.phone.includes("http");
+
+  return (
+    <div
+      className={[
+        "relative rounded-2xl p-4 md:p-6",
+        "bg-gradient-to-br from-white to-emerald-50",
+        "border border-emerald-100 shadow-md"
+      ].join(" ")}
+    >
+      {/* Badge */}
+      <div className="absolute -top-3 left-4">
+        <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+          {benefit.badge}
+        </span>
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-5">
+        <div className="w-full md:w-1/3 flex items-center justify-center">
+          <img
+            src={benefit.img}
+            alt={benefit.title}
+            className="w-full max-w-[240px] object-contain rounded-xl shadow"
+          />
+        </div>
+
+        <div className="w-full md:w-2/3">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-emerald-900">
+            {benefit.title}
+          </h2>
+          <p className="text-slate-700 mt-3 leading-relaxed">{benefit.description}</p>
+
+          <div className="bg-emerald-100/60 border border-emerald-200 rounded-xl p-3 mt-4">
+            <p className="text-sm text-emerald-900">
+              Complete this step to unlock the next benefit.
+            </p>
+          </div>
+
+          <div className="mt-5">
+            <button
+              disabled={locked || completed}
+              onClick={onCall}
+              className={[
+                "w-full md:w-auto inline-flex items-center justify-center gap-2",
+                "px-5 py-3 rounded-full font-extrabold text-base shimmer",
+                locked
+                  ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  : completed
+                  ? "bg-emerald-600 text-white"
+                  : "bg-green-600 text-white hover:bg-green-700 transition-colors"
+              ].join(" ")}
+              title={
+                locked
+                  ? "Locked — complete the previous step first"
+                  : completed
+                  ? "Completed"
+                  : isLink
+                  ? "Open the official page"
+                  : "Place the call now"
+              }
+            >
+              {isLink ? (
+                <ExternalIcon className="w-5 h-5" />
+              ) : (
+                <PhoneIcon className="w-5 h-5" />
+              )}
+              {completed ? "Completed" : benefit.call}
+            </button>
+
+            {!isLink && (
+              <div className="mt-2 text-xs text-slate-500">
+                Or dial: <span className="font-mono">{benefit.phone}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Locked overlay */}
+      {locked && (
+        <div className="absolute inset-0 rounded-2xl bg-white/70 backdrop-blur-[2px] border border-slate-200 flex items-center justify-center">
+          <div className="flex items-center gap-2 text-slate-600">
+            <LockIcon className="w-5 h-5" />
+            <span className="font-semibold">Locked — finish the previous step</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
