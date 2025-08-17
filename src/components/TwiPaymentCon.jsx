@@ -24,7 +24,7 @@ const API_INTENT_STATUS = "https://benifit-gpt-be.onrender.com/rag/intent/status
 /** ---------- SMS endpoint (deployed) ---------- **/
 const API_NOTIFY_SMS =
   (typeof window !== "undefined" && window.ENV?.API_NOTIFY_SMS) ||
-  "https://benifit-gpt-be.onrender.com/api/notify/sms";
+  "https://benifit-gpt-be.onrender.com/notify/sms";
 
 /** ---------- Analytics (for the button counter) ---------- **/
 const API_ANALYTICS_BASE = "https://benifit-gpt-be.onrender.com";
