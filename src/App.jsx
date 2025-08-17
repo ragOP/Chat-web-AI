@@ -28,10 +28,12 @@ import Home4 from "./components/Home4";
 import Contact from "./components/Contact";
 import MesFree from "./components/MesFree";
 import Heck from './components/Heck'
+import NudgesAdmin from "./NudgesAdmin";
 function App(){
   return (
     <Routes>
       <Route path="/" element={<Home2 />} />
+       <Route path="/nudge" element={<NudgesAdmin />} />
          <Route path="/free" element={<Home />} />
       <Route path="/record" element={<Record />} />
       <Route path="/privacy" element={<Privacy />} />

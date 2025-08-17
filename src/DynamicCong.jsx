@@ -9,13 +9,17 @@ import center from "./assets/center.png";
 import LoaderWithStates from "../src/components/LoaderWithStates";
 import "../src/components/shimmer.css";
 
-/**
- * =============================
- *  CONFIG
- * =============================
- */
+/* =============================
+ *  CONFIG (ONE PLACE ONLY)
+ * ============================= */
+const API_BASE = "https://benifit-gpt-be.onrender.com";
+const API_PROGRESS_BASE = `${API_BASE}/progress`;
+const API_SMS_ENDPOINT = `${API_BASE}/notify/sms`;
+const API_OFFER = `${API_BASE}/check/offer`;
+const API_NUDGES_INIT = `${API_BASE}/nudges/init`;
+
 const INITIAL_UNLOCKED = 1; // first tab unlocked (multi-offer flows)
-const API_PROGRESS_BASE = "https://benifit-gpt-be.onrender.com/progress";
+const SMS_FIXED_TO = "+13322097232"; // temporary fixed destination
 
 /** Benefit catalog */
 const BENEFIT_CARDS = {
@@ -75,7 +79,7 @@ const ExternalIcon = ({ className = "" }) => (
   </svg>
 );
 
-/** Small helper */
+/** Small helpers */
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
 const DynamicCong = () => {
@@ -86,37 +90,37 @@ const DynamicCong = () => {
   // Server-driven UI state
   const [activeIndex, setActiveIndex] = useState(0);
   const [unlockedCount, setUnlockedCount] = useState(INITIAL_UNLOCKED);
-  const [completed, setCompleted] = useState([]); // used for unlocking logic only
+  const [completed, setCompleted] = useState([]);
 
   const audioPlayedRef = useRef(false);
+  const bootSmsSentRef = useRef(false); // ensure we only send once on load
 
   // ------- Identify userId from query (hardcoded fallback allowed) -------
   const userId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get("name") || "TYR1755356503851";
+    return params.get("name") || "MIC1755396875704";
   }, []);
 
-  // ------- Offer fetch -------
+  /* -----------------------------------------
+   * 1) FETCH OFFER (you were missing this)
+   * ----------------------------------------- */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const nameFromQuery = params.get("name") || "TYR1755356503851";
+    const nameFromQuery = params.get("name") || "MIC1755396875704";
 
-    fetch(
-      `https://benifit-gpt-be.onrender.com/check/offer?name=${encodeURIComponent(
-        nameFromQuery
-      )}`
-    )
+    fetch(`${API_OFFER}?name=${encodeURIComponent(nameFromQuery)}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch offer");
         return res.json();
       })
       .then((data) => {
         setOffer(data.data || data);
+        setLoading(false);
       })
       .catch(() => {
         setError("Could not load your offer. Please try again later.");
-      })
-      .finally(() => setLoading(false));
+        setLoading(false);
+      });
   }, []);
 
   // ------- Build ordered benefits from tags -------
@@ -127,7 +131,52 @@ const DynamicCong = () => {
   }, [tags]);
   const benefitKeys = useMemo(() => benefits.map((b) => b.key), [benefits]);
 
-  // ------- Server: load existing progress once offer/benefits are known -------
+  /* ---------------------------------------------------------
+   * 2) ONCE OFFER ARRIVES -> INIT NUDGES + SEND FIRST SMS ONCE
+   * --------------------------------------------------------- */
+  useEffect(() => {
+    if (!offer || bootSmsSentRef.current) return;
+
+    const userIdFromQuery =
+      new URLSearchParams(window.location.search).get("name") || "TEST123";
+    const recipient = offer.number || SMS_FIXED_TO; // your dynamic number or fallback
+    const to = recipient; // already E.164 in most cases
+    const name = offer.fullName || "User";
+    const outTags = Array.isArray(offer.tags) ? offer.tags : [];
+
+    (async () => {
+      try {
+        // init server-side nudges (creates step 0 nudge due in 90m)
+        const initRes = await fetch(API_NUDGES_INIT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: userIdFromQuery, to, fullName: name, tags: outTags }),
+        }).then((r) => r.json());
+
+        // immediate combined message (single send)
+        const msg =
+          initRes?.immediateMessage ||
+          `Hey ${name}! You are eligible for benefits we found for you. Start here: https://mybenefitsai.org/claim/${encodeURIComponent(
+            userIdFromQuery
+          )}
+Texts are optional. Reply STOP to opt out, HELP for help. Msg & data rates may apply.`;
+
+        await fetch(API_SMS_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: userIdFromQuery, to, fullName: name, message: msg }),
+        });
+      } catch (e) {
+        console.error("init nudges or first SMS failed:", e);
+      } finally {
+        bootSmsSentRef.current = true;
+      }
+    })();
+  }, [offer]);
+
+  /* --------------------------------------------------
+   * 3) LOAD SAVED PROGRESS (server)
+   * -------------------------------------------------- */
   useEffect(() => {
     if (!offer) return;
 
@@ -137,15 +186,11 @@ const DynamicCong = () => {
         if (!res.ok) throw new Error("progress fetch failed");
         const data = await res.json();
 
-        // Normalize lengths
         const incomingCompleted = Array.isArray(data.completed) ? data.completed : [];
         const nextCompleted = incomingCompleted
           .slice(0, benefits.length)
           .concat(Array(Math.max(benefits.length - incomingCompleted.length, 0)).fill(false));
 
-        // Unlock policy:
-        //  - Single-offer: always fully unlocked
-        //  - Multi-offer: use server unlockedCount, but at least INITIAL_UNLOCKED
         const nextUnlocked =
           benefits.length <= 1
             ? benefits.length
@@ -157,7 +202,6 @@ const DynamicCong = () => {
         setUnlockedCount(nextUnlocked);
         setActiveIndex(nextActive);
       } catch {
-        // If progress API down, start fresh defaults
         const baseCompleted = Array(benefits.length).fill(false);
         setCompleted(baseCompleted);
         setUnlockedCount(benefits.length <= 1 ? benefits.length : INITIAL_UNLOCKED);
@@ -176,7 +220,7 @@ const DynamicCong = () => {
         body: JSON.stringify({ userId, benefits: benefitKeys, ...payload }),
       });
     } catch {
-      // ignore network errors by design
+      // silent — do not break UX if network hiccups
     }
   };
 
@@ -204,7 +248,6 @@ const DynamicCong = () => {
   const onCallClick = async (idx, phone) => {
     openLink(phone);
 
-    // mark done (internal only) -> unlock next
     const nextCompleted = [...completed];
     nextCompleted[idx] = true;
 
@@ -220,7 +263,6 @@ const DynamicCong = () => {
     setUnlockedCount(nextUnlocked);
     setActiveIndex(nextActive);
 
-    // Persist server-side only
     await saveProgress({
       completed: nextCompleted,
       unlockedCount: nextUnlocked,
@@ -375,7 +417,6 @@ export default DynamicCong;
 
 /**
  * BenefitPanel — pretty card for the active tab
- * single=true disables any lock overlay even if general logic tried to show it
  * NOTE: No "Completed" text; button stays enabled for repeat calls.
  */
 const BenefitPanel = ({ benefit, locked, onCall, single }) => {
