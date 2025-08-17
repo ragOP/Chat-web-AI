@@ -98,7 +98,7 @@ const DynamicCong = () => {
   // ------- Identify userId from query (hardcoded fallback allowed) -------
   const userId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get("name") || "MIC1755396875704";
+    return params.get("name") || "KAR1755473379416";
   }, []);
 
   /* -----------------------------------------
@@ -106,7 +106,7 @@ const DynamicCong = () => {
    * ----------------------------------------- */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const nameFromQuery = params.get("name") || "MIC1755396875704";
+    const nameFromQuery = params.get("name") || "KAR1755473379416";
 
     fetch(`${API_OFFER}?name=${encodeURIComponent(nameFromQuery)}`)
       .then((res) => {
