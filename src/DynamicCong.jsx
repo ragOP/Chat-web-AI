@@ -13,12 +13,11 @@ import "../src/components/shimmer.css";
  * =============================
  *  CONFIG
  * =============================
- * INITIAL_UNLOCKED:
- *  - 1  => First tab is UNLOCKED (recommended)
- *  - 0  => First tab is LOCKED (you can unlock by custom logic if needed)
  */
-const INITIAL_UNLOCKED = 1;
+const INITIAL_UNLOCKED = 1; // first tab unlocked (multi-offer flows)
+const API_PROGRESS_BASE = "https://benifit-gpt-be.onrender.com/progress";
 
+/** Benefit catalog */
 const BENEFIT_CARDS = {
   Medicare: {
     title: "Food Allowance Card",
@@ -58,25 +57,17 @@ const BENEFIT_CARDS = {
   },
 };
 
-// Simple inline icons (no extra deps)
+/** Minimal inline icons (no extra deps) */
 const LockIcon = ({ className = "" }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
     <path d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm-3 8V6a3 3 0 016 0v3H9z" />
   </svg>
 );
-
-const CheckIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
-    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-  </svg>
-);
-
 const PhoneIcon = ({ className = "" }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
     <path d="M6.62 10.79a15.464 15.464 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V21a1 1 0 01-1 1C10.4 22 2 13.6 2 3a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.2 2.2z" />
   </svg>
 );
-
 const ExternalIcon = ({ className = "" }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
     <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z" />
@@ -84,33 +75,35 @@ const ExternalIcon = ({ className = "" }) => (
   </svg>
 );
 
-const DynamicCong= () => {
+/** Small helper */
+const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+const DynamicCong = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [offer, setOffer] = useState(null);
 
-  // UI state for Tabs + gating
+  // Server-driven UI state
   const [activeIndex, setActiveIndex] = useState(0);
-  const [unlockedCount, setUnlockedCount] = useState(INITIAL_UNLOCKED); // how many tabs are unlocked (1 => first unlocked)
-  const [completed, setCompleted] = useState([]); // which steps completed (after pressing Call)
+  const [unlockedCount, setUnlockedCount] = useState(INITIAL_UNLOCKED);
+  const [completed, setCompleted] = useState([]); // used for unlocking logic only
+
   const audioPlayedRef = useRef(false);
 
-  // ---- Load Offer ----
+  // ------- Identify userId from query (hardcoded fallback allowed) -------
+  const userId = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("name") || "TYR1755356503851";
+  }, []);
+
+  // ------- Offer fetch -------
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const nameFromQuery = params.get("name");
-    // Fallback to your hardcoded example if not provided:
-    const name = nameFromQuery || "JOH1755367810840";
-
-    if (!name) {
-      setError("Missing userId in URL.");
-      setLoading(false);
-      return;
-    }
+    const nameFromQuery = params.get("name") || "TYR1755356503851";
 
     fetch(
       `https://benifit-gpt-be.onrender.com/check/offer?name=${encodeURIComponent(
-        name
+        nameFromQuery
       )}`
     )
       .then((res) => {
@@ -119,70 +112,87 @@ const DynamicCong= () => {
       })
       .then((data) => {
         setOffer(data.data || data);
-        setLoading(false);
       })
       .catch(() => {
         setError("Could not load your offer. Please try again later.");
-        setLoading(false);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  // ---- Build ordered benefits from tags ----
+  // ------- Build ordered benefits from tags -------
   const { fullName = "User", tags = [] } = offer || {};
   const benefits = useMemo(() => {
     const valid = tags.filter((t) => BENEFIT_CARDS[t]);
-    return valid.map((t) => ({ key: t, ...BENEFIT_CARDS[t ] }));
+    return valid.map((t) => ({ key: t, ...BENEFIT_CARDS[t] }));
   }, [tags]);
+  const benefitKeys = useMemo(() => benefits.map((b) => b.key), [benefits]);
 
-  // ---- Restore / persist gating state per user ----
-  const storageKey = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nameFromQuery = params.get("name") || "JOH1755367810840";
-    return `cong-tabs-state::${nameFromQuery}`;
-  }, []);
-
+  // ------- Server: load existing progress once offer/benefits are known -------
   useEffect(() => {
     if (!offer) return;
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
+
+    (async () => {
       try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.completed)) setCompleted(parsed.completed);
-        if (typeof parsed.unlockedCount === "number")
-          setUnlockedCount(Math.max(parsed.unlockedCount, INITIAL_UNLOCKED));
-        if (typeof parsed.activeIndex === "number") setActiveIndex(parsed.activeIndex);
+        const res = await fetch(`${API_PROGRESS_BASE}?userId=${encodeURIComponent(userId)}`);
+        if (!res.ok) throw new Error("progress fetch failed");
+        const data = await res.json();
+
+        // Normalize lengths
+        const incomingCompleted = Array.isArray(data.completed) ? data.completed : [];
+        const nextCompleted = incomingCompleted
+          .slice(0, benefits.length)
+          .concat(Array(Math.max(benefits.length - incomingCompleted.length, 0)).fill(false));
+
+        // Unlock policy:
+        //  - Single-offer: always fully unlocked
+        //  - Multi-offer: use server unlockedCount, but at least INITIAL_UNLOCKED
+        const nextUnlocked =
+          benefits.length <= 1
+            ? benefits.length
+            : Math.max(Number(data.unlockedCount || INITIAL_UNLOCKED), INITIAL_UNLOCKED);
+
+        const nextActive = clamp(Number(data.activeIndex || 0), 0, Math.max(benefits.length - 1, 0));
+
+        setCompleted(nextCompleted);
+        setUnlockedCount(nextUnlocked);
+        setActiveIndex(nextActive);
       } catch {
-        // ignore parse errors
+        // If progress API down, start fresh defaults
+        const baseCompleted = Array(benefits.length).fill(false);
+        setCompleted(baseCompleted);
+        setUnlockedCount(benefits.length <= 1 ? benefits.length : INITIAL_UNLOCKED);
+        setActiveIndex(0);
       }
-    } else {
-      // Initialize completed with false for each step
-      setCompleted(Array(benefits.length).fill(false));
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offer, userId, benefits.length]);
+
+  // ------- Save progress to server -------
+  const saveProgress = async (payload) => {
+    try {
+      await fetch(API_PROGRESS_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, benefits: benefitKeys, ...payload }),
+      });
+    } catch {
+      // ignore network errors by design
     }
-  }, [offer, storageKey, benefits.length]);
+  };
 
-  useEffect(() => {
-    if (!offer) return;
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({ completed, unlockedCount, activeIndex })
-    );
-  }, [completed, unlockedCount, activeIndex, storageKey, offer]);
-
-  // ---- Audio flow (unchanged) ----
+  // ------- Audio flow (unchanged) -------
   useEffect(() => {
     if (!loading && offer && !audioPlayedRef.current) {
       audioPlayedRef.current = true;
       const audio1 = new Audio(firstmessage);
       const audio2 = new Audio(secondmessage);
       audio1.play().then(() => {
-        audio1.onended = () => {
-          audio2.play();
-        };
+        audio1.onended = () => audio2.play();
       });
     }
   }, [loading, offer]);
 
-  // ---- Actions ----
+  // ------- Actions -------
   const openLink = (phone) => {
     if (phone.includes("http")) {
       window.open(phone, "_blank");
@@ -191,38 +201,42 @@ const DynamicCong= () => {
     }
   };
 
-  const onCallClick = (idx, phone) => {
-    // 1) Trigger call / open
+  const onCallClick = async (idx, phone) => {
     openLink(phone);
 
-    // 2) Mark current step completed
-    setCompleted((prev) => {
-      const next = [...prev];
-      next[idx] = true;
-      return next;
-    });
+    // mark done (internal only) -> unlock next
+    const nextCompleted = [...completed];
+    nextCompleted[idx] = true;
 
-    // 3) Unlock next step (if any)
-    setUnlockedCount((prev) => Math.min(prev + 1, benefits.length));
-    if (idx + 1 < benefits.length) {
-      setActiveIndex(idx + 1);
+    let nextUnlocked = unlockedCount;
+    let nextActive = activeIndex;
+
+    if (benefits.length > 1) {
+      nextUnlocked = Math.min(unlockedCount + 1, benefits.length);
+      if (idx + 1 < benefits.length) nextActive = idx + 1;
     }
+
+    setCompleted(nextCompleted);
+    setUnlockedCount(nextUnlocked);
+    setActiveIndex(nextActive);
+
+    // Persist server-side only
+    await saveProgress({
+      completed: nextCompleted,
+      unlockedCount: nextUnlocked,
+      activeIndex: nextActive,
+    });
   };
 
-  // ---- UI helpers ----
-  const isLocked = (idx) => idx >= unlockedCount;
-  const isCompleted = (idx) => !!completed[idx];
+  // ------- UI helpers -------
+  const isLocked = (idx) => (benefits.length <= 1 ? false : idx >= unlockedCount);
 
-  // ---- Rendering ----
+  // ------- Rendering -------
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-black">
         <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
-          <img
-            src={center}
-            alt="logo"
-            className="w-[60%] h-[55px] object-contain"
-          />
+          <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
         </div>
         <div className="mt-10 text-2xl font-bold">{error}</div>
       </div>
@@ -233,11 +247,7 @@ const DynamicCong= () => {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col">
         <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
-          <img
-            src={center}
-            alt="logo"
-            className="w-[60%] h-[55px] object-contain"
-          />
+          <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
           <LoaderWithStates />
@@ -289,7 +299,6 @@ const DynamicCong= () => {
                 <div className="flex gap-2 md:gap-3">
                   {benefits.map((b, idx) => {
                     const locked = isLocked(idx);
-                    const completed = isCompleted(idx);
                     const active = idx === activeIndex;
 
                     return (
@@ -297,7 +306,7 @@ const DynamicCong= () => {
                         key={b.key}
                         onClick={() => !locked && setActiveIndex(idx)}
                         className={[
-                          "relative flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl border transition-all min-w-[180px]",
+                          "relative flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl border transition-all min-w-[190px]",
                           locked
                             ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
                             : active
@@ -305,18 +314,18 @@ const DynamicCong= () => {
                             : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
                           "shadow-sm"
                         ].join(" ")}
+                        title={locked ? "Locked — complete the previous step first" : "Open this step"}
                       >
+                        {/* Number always visible, no check badge */}
                         <div
                           className={[
                             "w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold",
                             locked
                               ? "bg-slate-200 text-slate-500"
-                              : completed
-                              ? "bg-green-600 text-white"
-                              : "bg-emerald-500/80 text-white",
+                              : "bg-emerald-500/90 text-white"
                           ].join(" ")}
                         >
-                          {completed ? <CheckIcon className="w-4 h-4" /> : idx + 1}
+                          {idx + 1}
                         </div>
 
                         <div className="text-left">
@@ -341,10 +350,8 @@ const DynamicCong= () => {
                   <BenefitPanel
                     benefit={benefits[activeIndex]}
                     locked={isLocked(activeIndex)}
-                    completed={isCompleted(activeIndex)}
-                    onCall={() =>
-                      onCallClick(activeIndex, benefits[activeIndex].phone)
-                    }
+                    onCall={() => onCallClick(activeIndex, benefits[activeIndex].phone)}
+                    single={benefits.length === 1}
                   />
                 )}
               </div>
@@ -368,11 +375,12 @@ export default DynamicCong;
 
 /**
  * BenefitPanel — pretty card for the active tab
+ * single=true disables any lock overlay even if general logic tried to show it
+ * NOTE: No "Completed" text; button stays enabled for repeat calls.
  */
-const BenefitPanel = 
-
-({ benefit, locked, completed, onCall }) => {
+const BenefitPanel = ({ benefit, locked, onCall, single }) => {
   const isLink = benefit.phone.includes("http");
+  const showLocked = !single && locked;
 
   return (
     <div
@@ -413,33 +421,25 @@ const BenefitPanel =
 
           <div className="mt-5">
             <button
-              disabled={locked || completed}
+              disabled={showLocked}
               onClick={onCall}
               className={[
                 "w-full md:w-auto inline-flex items-center justify-center gap-2",
                 "px-5 py-3 rounded-full font-extrabold text-base shimmer",
-                locked
+                showLocked
                   ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                  : completed
-                  ? "bg-emerald-600 text-white"
                   : "bg-green-600 text-white hover:bg-green-700 transition-colors"
               ].join(" ")}
               title={
-                locked
+                showLocked
                   ? "Locked — complete the previous step first"
-                  : completed
-                  ? "Completed"
                   : isLink
                   ? "Open the official page"
                   : "Place the call now"
               }
             >
-              {isLink ? (
-                <ExternalIcon className="w-5 h-5" />
-              ) : (
-                <PhoneIcon className="w-5 h-5" />
-              )}
-              {completed ? "Completed" : benefit.call}
+              {isLink ? <ExternalIcon className="w-5 h-5" /> : <PhoneIcon className="w-5 h-5" />}
+              {benefit.call}
             </button>
 
             {!isLink && (
@@ -452,7 +452,7 @@ const BenefitPanel =
       </div>
 
       {/* Locked overlay */}
-      {locked && (
+      {showLocked && (
         <div className="absolute inset-0 rounded-2xl bg-white/70 backdrop-blur-[2px] border border-slate-200 flex items-center justify-center">
           <div className="flex items-center gap-2 text-slate-600">
             <LockIcon className="w-5 h-5" />
