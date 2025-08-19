@@ -10,16 +10,21 @@ import LoaderWithStates from "../src/components/LoaderWithStates";
 import "../src/components/shimmer.css";
 
 /* =============================
- *  CONFIG (ONE PLACE ONLY)
+ *  CONFIG
  * ============================= */
 const API_BASE = "https://benifit-gpt-be.onrender.com";
 const API_PROGRESS_BASE = `${API_BASE}/progress`;
-const API_SMS_ENDPOINT = `${API_BASE}/notify/sms`;
 const API_OFFER = `${API_BASE}/check/offer`;
 const API_NUDGES_INIT = `${API_BASE}/nudges/init`;
 
-const INITIAL_UNLOCKED = 1; // first tab unlocked (multi-offer flows)
-const SMS_FIXED_TO = "+13322097232"; // temporary fixed destination
+// Try all known mounts in order; first success wins
+const API_SMS_ENDPOINTS = [
+  `${API_BASE}/api/notify/sms`,
+  `${API_BASE}/notify/sms`,
+  `${API_BASE}/rag/notify/sms`,
+];
+
+const INITIAL_UNLOCKED = 1;
 
 /** Benefit catalog */
 const BENEFIT_CARDS = {
@@ -61,7 +66,9 @@ const BENEFIT_CARDS = {
   },
 };
 
-/** Minimal inline icons (no extra deps) */
+/* =============================
+ *  ICONS
+ * ============================= */
 const LockIcon = ({ className = "" }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
     <path d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm-3 8V6a3 3 0 016 0v3H9z" />
@@ -79,36 +86,84 @@ const ExternalIcon = ({ className = "" }) => (
   </svg>
 );
 
-/** Small helpers */
+/* =============================
+ *  HELPERS
+ * ============================= */
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-const DynamicCong = () => {
+const sanitizePhone = (raw) => {
+  if (!raw) return "";
+  const s = String(raw).trim();
+  if (s.startsWith("+") && /^\+\d{10,15}$/.test(s)) return s;
+  const digits = s.replace(/\D+/g, "");
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  if (digits.length === 10) return `+1${digits}`;
+  return digits ? `+${digits}` : "";
+};
+
+async function postJson(url, body) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`HTTP ${res.status} – ${text || "no body"}`);
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
+}
+
+async function sendSMSWithFallback(payload) {
+  const errors = [];
+  for (const url of API_SMS_ENDPOINTS) {
+    try {
+      const data = await postJson(url, payload);
+      return data; // success
+    } catch (e) {
+      errors.push(`${url}: ${e?.message || String(e)}`);
+    }
+  }
+  throw new Error(errors.join(" | "));
+}
+
+/* =============================
+ *  MAIN COMPONENT
+ * ============================= */
+const DynamicCong = ({ userId: userIdProp, phone: phoneProp }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [offer, setOffer] = useState(null);
 
-  // Server-driven UI state
   const [activeIndex, setActiveIndex] = useState(0);
   const [unlockedCount, setUnlockedCount] = useState(INITIAL_UNLOCKED);
   const [completed, setCompleted] = useState([]);
 
   const audioPlayedRef = useRef(false);
-  const bootSmsSentRef = useRef(false); // ensure we only send once on load
+  const bootSmsSentRef = useRef(false);
 
-  // ------- Identify userId from query (hardcoded fallback allowed) -------
-  const userId = useMemo(() => {
+  // Resolve identifiers from URL -> props -> session
+  const { resolvedUserId, resolvedPhone } = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get("name") || "KAR1755473379416";
+    const urlUser = params.get("name");
+    const urlPhone = params.get("phone");
+
+    const user =
+      (urlUser || userIdProp || sessionStorage.getItem("mbai:last_user") || "66W").trim();
+    const phone = sanitizePhone(urlPhone || phoneProp || sessionStorage.getItem("mbai:last_phone") || "");
+
+    if (user) sessionStorage.setItem("mbai:last_user", user);
+    if (phone) sessionStorage.setItem("mbai:last_phone", phone);
+
+    return { resolvedUserId: user, resolvedPhone: phone };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* -----------------------------------------
-   * 1) FETCH OFFER (you were missing this)
-   * ----------------------------------------- */
+  /* 1) Fetch Offer */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nameFromQuery = params.get("name") || "KAR1755473379416";
-
-    fetch(`${API_OFFER}?name=${encodeURIComponent(nameFromQuery)}`)
+    fetch(`${API_OFFER}?name=${encodeURIComponent(resolvedUserId)}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch offer");
         return res.json();
@@ -117,13 +172,13 @@ const DynamicCong = () => {
         setOffer(data.data || data);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((e) => {
+        console.error("[offer] error", e);
         setError("Could not load your offer. Please try again later.");
         setLoading(false);
       });
-  }, []);
+  }, [resolvedUserId]);
 
-  // ------- Build ordered benefits from tags -------
   const { fullName = "User", tags = [] } = offer || {};
   const benefits = useMemo(() => {
     const valid = tags.filter((t) => BENEFIT_CARDS[t]);
@@ -131,58 +186,67 @@ const DynamicCong = () => {
   }, [tags]);
   const benefitKeys = useMemo(() => benefits.map((b) => b.key), [benefits]);
 
-  /* ---------------------------------------------------------
-   * 2) ONCE OFFER ARRIVES -> INIT NUDGES + SEND FIRST SMS ONCE
-   * --------------------------------------------------------- */
+  /* 2) Init nudges + send immediate SMS once */
   useEffect(() => {
     if (!offer || bootSmsSentRef.current) return;
 
-    const userIdFromQuery =
-      new URLSearchParams(window.location.search).get("name") || "TEST123";
-    const recipient = offer.number || SMS_FIXED_TO; // your dynamic number or fallback
-    const to = recipient; // already E.164 in most cases
-    const name = offer.fullName || "User";
-    const outTags = Array.isArray(offer.tags) ? offer.tags : [];
+    // pick destination: URL/prop -> offer.number -> session
+    const to = sanitizePhone(resolvedPhone || offer?.number || sessionStorage.getItem("mbai:last_phone") || "");
+    if (!to) {
+      console.warn("[sms] no phone available; skipping send");
+      return;
+    }
+
+    const GUARD_KEY = `nudges:first_sms:${resolvedUserId}:${to}`; // per pair
+    if (sessionStorage.getItem(GUARD_KEY) === "1") {
+      bootSmsSentRef.current = true;
+      return;
+    }
 
     (async () => {
       try {
-        // init server-side nudges (creates step 0 nudge due in 90m)
-        const initRes = await fetch(API_NUDGES_INIT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: userIdFromQuery, to, fullName: name, tags: outTags }),
-        }).then((r) => r.json());
+        const name = offer.fullName || "User";
 
-        // immediate combined message (single send)
+        // schedule follow-ups
+        let initRes = {};
+        try {
+          initRes = await postJson(API_NUDGES_INIT, { userId: resolvedUserId, to, fullName: name });
+        } catch (e) {
+          console.warn("[nudges/init] failed:", e?.message || e);
+        }
+
+        // immediate SMS
         const msg =
           initRes?.immediateMessage ||
-          `Hey ${name}! You are eligible for benefits we found for you. Start here: https://mybenefitsai.org/claim/${encodeURIComponent(
-            userIdFromQuery
-          )}
-Texts are optional. Reply STOP to opt out, HELP for help. Msg & data rates may apply.`;
+          `You still have unclaimed benefits waiting. They expire soon—claim them now: https://mybenefitsai.org/claim/${encodeURIComponent(
+            resolvedUserId
+          )} Reply START to opt in, STOP to opt out.`;
 
-        await fetch(API_SMS_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: userIdFromQuery, to, fullName: name, message: msg }),
-        });
-      } catch (e) {
-        console.error("init nudges or first SMS failed:", e);
-      } finally {
+        await sendSMSWithFallback({ userId: resolvedUserId, to, fullName: name, message: msg });
+
+        sessionStorage.setItem(GUARD_KEY, "1");
         bootSmsSentRef.current = true;
+        console.info("[sms] sent successfully to", to);
+      } catch (e) {
+        const msg = String(e?.message || e);
+        if (/21610/.test(msg)) {
+          alert("This number has opted out. Ask the user to text START to your Twilio number, then reload.");
+        } else {
+          console.error("[sms] failed:", msg);
+        }
+        // don’t set guard, so it can retry later
       }
     })();
-  }, [offer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offer, resolvedPhone, resolvedUserId]);
 
-  /* --------------------------------------------------
-   * 3) LOAD SAVED PROGRESS (server)
-   * -------------------------------------------------- */
+  /* 3) Load progress */
   useEffect(() => {
     if (!offer) return;
 
     (async () => {
       try {
-        const res = await fetch(`${API_PROGRESS_BASE}?userId=${encodeURIComponent(userId)}`);
+        const res = await fetch(`${API_PROGRESS_BASE}?userId=${encodeURIComponent(resolvedUserId)}`);
         if (!res.ok) throw new Error("progress fetch failed");
         const data = await res.json();
 
@@ -201,7 +265,8 @@ Texts are optional. Reply STOP to opt out, HELP for help. Msg & data rates may a
         setCompleted(nextCompleted);
         setUnlockedCount(nextUnlocked);
         setActiveIndex(nextActive);
-      } catch {
+      } catch (e) {
+        console.warn("[progress] load failed:", e);
         const baseCompleted = Array(benefits.length).fill(false);
         setCompleted(baseCompleted);
         setUnlockedCount(benefits.length <= 1 ? benefits.length : INITIAL_UNLOCKED);
@@ -209,22 +274,22 @@ Texts are optional. Reply STOP to opt out, HELP for help. Msg & data rates may a
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [offer, userId, benefits.length]);
+  }, [offer, resolvedUserId, benefits.length]);
 
-  // ------- Save progress to server -------
+  // Save progress
   const saveProgress = async (payload) => {
     try {
       await fetch(API_PROGRESS_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, benefits: benefitKeys, ...payload }),
+        body: JSON.stringify({ userId: resolvedUserId, benefits: benefitKeys, ...payload }),
       });
     } catch {
-      // silent — do not break UX if network hiccups
+      // silent
     }
   };
 
-  // ------- Audio flow (unchanged) -------
+  // Audio
   useEffect(() => {
     if (!loading && offer && !audioPlayedRef.current) {
       audioPlayedRef.current = true;
@@ -236,7 +301,7 @@ Texts are optional. Reply STOP to opt out, HELP for help. Msg & data rates may a
     }
   }, [loading, offer]);
 
-  // ------- Actions -------
+  // Actions
   const openLink = (phone) => {
     if (phone.includes("http")) {
       window.open(phone, "_blank");
@@ -270,10 +335,9 @@ Texts are optional. Reply STOP to opt out, HELP for help. Msg & data rates may a
     });
   };
 
-  // ------- UI helpers -------
   const isLocked = (idx) => (benefits.length <= 1 ? false : idx >= unlockedCount);
 
-  // ------- Rendering -------
+  // Rendering
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-black">
@@ -354,17 +418,14 @@ Texts are optional. Reply STOP to opt out, HELP for help. Msg & data rates may a
                             : active
                             ? "bg-emerald-50 border-emerald-300 text-emerald-800"
                             : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50",
-                          "shadow-sm"
+                          "shadow-sm",
                         ].join(" ")}
                         title={locked ? "Locked — complete the previous step first" : "Open this step"}
                       >
-                        {/* Number always visible, no check badge */}
                         <div
                           className={[
                             "w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold",
-                            locked
-                              ? "bg-slate-200 text-slate-500"
-                              : "bg-emerald-500/90 text-white"
+                            locked ? "bg-slate-200 text-slate-500" : "bg-emerald-500/90 text-white",
                           ].join(" ")}
                         >
                           {idx + 1}
@@ -372,14 +433,10 @@ Texts are optional. Reply STOP to opt out, HELP for help. Msg & data rates may a
 
                         <div className="text-left">
                           <div className="text-sm font-semibold truncate">{b.title}</div>
-                          <div className="text-[11px] text-slate-500 truncate">
-                            {b.badge}
-                          </div>
+                          <div className="text-[11px] text-slate-500 truncate">{b.badge}</div>
                         </div>
 
-                        {locked && (
-                          <LockIcon className="w-4 h-4 text-slate-400 absolute right-2" />
-                        )}
+                        {locked && <LockIcon className="w-4 h-4 text-slate-400 absolute right-2" />}
                       </button>
                     );
                   })}
@@ -415,10 +472,7 @@ Texts are optional. Reply STOP to opt out, HELP for help. Msg & data rates may a
 
 export default DynamicCong;
 
-/**
- * BenefitPanel — pretty card for the active tab
- * NOTE: No "Completed" text; button stays enabled for repeat calls.
- */
+/* ========= Subcomponent ========= */
 const BenefitPanel = ({ benefit, locked, onCall, single }) => {
   const isLink = benefit.phone.includes("http");
   const showLocked = !single && locked;
@@ -428,7 +482,7 @@ const BenefitPanel = ({ benefit, locked, onCall, single }) => {
       className={[
         "relative rounded-2xl p-4 md:p-6",
         "bg-gradient-to-br from-white to-emerald-50",
-        "border border-emerald-100 shadow-md"
+        "border border-emerald-100 shadow-md",
       ].join(" ")}
     >
       {/* Badge */}
@@ -449,15 +503,11 @@ const BenefitPanel = ({ benefit, locked, onCall, single }) => {
         </div>
 
         <div className="w-full md:w-2/3">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-emerald-900">
-            {benefit.title}
-          </h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-emerald-900">{benefit.title}</h2>
           <p className="text-slate-700 mt-3 leading-relaxed">{benefit.description}</p>
 
           <div className="bg-emerald-100/60 border border-emerald-200 rounded-xl p-3 mt-4">
-            <p className="text-sm text-emerald-900">
-              Complete this step to unlock the next benefit.
-            </p>
+            <p className="text-sm text-emerald-900">Complete this step to unlock the next benefit.</p>
           </div>
 
           <div className="mt-5">
@@ -469,14 +519,10 @@ const BenefitPanel = ({ benefit, locked, onCall, single }) => {
                 "px-5 py-3 rounded-full font-extrabold text-base shimmer",
                 showLocked
                   ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                  : "bg-green-600 text-white hover:bg-green-700 transition-colors"
+                  : "bg-green-600 text-white hover:bg-green-700 transition-colors",
               ].join(" ")}
               title={
-                showLocked
-                  ? "Locked — complete the previous step first"
-                  : isLink
-                  ? "Open the official page"
-                  : "Place the call now"
+                showLocked ? "Locked — complete the previous step first" : isLink ? "Open the official page" : "Place the call now"
               }
             >
               {isLink ? <ExternalIcon className="w-5 h-5" /> : <PhoneIcon className="w-5 h-5" />}

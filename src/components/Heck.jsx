@@ -164,7 +164,7 @@ export default function Home3() {
   const [step, setStep] = useState(0);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [finalmessage, setFinalMessage] = useState(true);
+  const [finalmessage, setFinalMessage] = useState(false);
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [number, setNumber] = useState("");
@@ -1128,7 +1128,7 @@ async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {
           number={number}
           email={email}
           name={name}
-          userId={userId}
+          userIds={userId}
           tagArray={tags}
         />
       )}
