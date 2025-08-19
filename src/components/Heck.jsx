@@ -485,10 +485,13 @@ function generateThreeCharId() {
   const handleFinalAnswers = async (allAnswers, tagArray) => {
     
 
-      const tempUserId = generateThreeCharId();
-      console.log("tempUserId",tempUserId)
-    setUserId(tempUserId);
-    setNumber(allAnswers["Please enter your 10-digit phone number below:"]);
+  const tempUserId = generateThreeCharId();
+  setUserId(tempUserId);
+  setNumber(allAnswers["Please enter your 10-digit phone number below:"]);
+
+  // NEW: persist for deep links and DynamicCong fallback
+  sessionStorage.setItem("mbai:last_user", tempUserId);
+  sessionStorage.setItem("mbai:last_phone", allAnswers["Please enter your 10-digit phone number below:"] || "");
 
     // --- TF: read cert URL from hidden input added by SDK ---
 // Wait up to ~8s for TF to produce the cert URL

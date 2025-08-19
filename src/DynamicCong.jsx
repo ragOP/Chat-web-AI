@@ -132,7 +132,8 @@ async function sendSMSWithFallback(payload) {
 /* =============================
  *  MAIN COMPONENT
  * ============================= */
-const DynamicCong = ({ userIds: userIdProp, number: phoneProp }) => {
+const DynamicCong = ({ userIds: userIdProp, number: phoneProp, idParam = "name",      // <-- which query param holds the id
+  phoneParam = "phone", }) => {
   console.log(userIdProp,phoneProp,"radha")
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -148,39 +149,66 @@ const DynamicCong = ({ userIds: userIdProp, number: phoneProp }) => {
   // Resolve identifiers from URL -> props -> session
 
 
-  const { resolvedUserId, resolvedPhone } = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlUser = params.get("name");
-    const urlPhone = params.get("phone");
+// Resolve identifiers from: props -> query (?name / ?id / ?userId) -> PATH (/claim/:id) -> session
+// Resolve from: props -> query (?<idParam> / ?<phoneParam>) -> session
+const { resolvedUserId, resolvedPhone } = useMemo(() => {
+  const params = new URLSearchParams(window.location.search);
 
-    const user = (urlUser || userIdProp || sessionStorage.getItem("mbai:last_user") || "").trim();
-    const phone = sanitizePhone(urlPhone || phoneProp || sessionStorage.getItem("mbai:last_phone") || "");
+  const urlUser = params.get(idParam);       // e.g. ?name=7A4 (default)
+  const urlPhone = params.get(phoneParam);   // e.g. ?phone=+1570...
 
-    if (user) sessionStorage.setItem("mbai:last_user", user);
-    if (phone) sessionStorage.setItem("mbai:last_phone", phone);
+  const user =
+    (userIdProp && String(userIdProp).trim()) ||
+    (urlUser && urlUser.trim()) ||
+    (sessionStorage.getItem("mbai:last_user") || "").trim();
 
-    return { resolvedUserId: user, resolvedPhone: phone };
-  }, [userIdProp, phoneProp]);
+  const phone = sanitizePhone(
+    phoneProp ||
+      urlPhone ||
+      sessionStorage.getItem("mbai:last_phone") ||
+      ""
+  );
+
+  if (user)  sessionStorage.setItem("mbai:last_user", user);
+  if (phone) sessionStorage.setItem("mbai:last_phone", phone);
+
+  console.log("[resolve] userId:", user, "phone:", phone, "(idParam:", idParam, ")");
+  return { resolvedUserId: user, resolvedPhone: phone };
+}, [userIdProp, phoneProp, idParam, phoneParam]);
+
 
   /* 1) Fetch Offer */
-   useEffect(() => {
-    if (!resolvedUserId) return;
+ /* 1) Fetch Offer (using dynamic idParam) */
+useEffect(() => {
+  if (!resolvedUserId) {
+    console.warn("[offer] No user id resolved; check prop/query/session.");
+    setLoading(false);
+    setError("Missing user id. Open your claim link again.");
+    return;
+  }
 
-    fetch(`${API_OFFER}?name=${encodeURIComponent(resolvedUserId)}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch offer");
-        return res.json();
-      })
-      .then((data) => {
-        setOffer(data.data || data);
-        setLoading(false);
-      })
-      .catch((e) => {
-        console.error("[offer] error", e);
-        setError("Could not load your offer. Please try again later.");
-        setLoading(false);
-      });
-  }, [resolvedUserId]);
+  // ✅ reset error & show loader for this attempt
+  setError("");            // <-- add this
+  setLoading(true);        // <-- add this
+
+  fetch(`${API_OFFER}?name=${encodeURIComponent(resolvedUserId)}`)
+    .then((res) => {
+      if (!res.ok) throw new Error(`Failed to fetch offer (${res.status})`);
+      return res.json();
+    })
+    .then((data) => {
+      setOffer(data.data || data);
+      setError("");        // ✅ ensure error cleared on success
+      setLoading(false);
+    })
+    .catch((e) => {
+      console.error("[offer] error", e);
+      setOffer(null);
+      setError("Could not load your offer. Please try again later.");
+      setLoading(false);
+    });
+}, [resolvedUserId]);
+
 
   const { fullName = "User", tags = [] } = offer || {};
   const benefits = useMemo(() => {
