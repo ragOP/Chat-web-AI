@@ -132,7 +132,8 @@ async function sendSMSWithFallback(payload) {
 /* =============================
  *  MAIN COMPONENT
  * ============================= */
-const DynamicCong = ({ userId: userIdProp, phone: phoneProp }) => {
+const DynamicCong = ({ userIds: userIdProp, number: phoneProp }) => {
+  console.log(userIdProp,phoneProp,"radha")
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [offer, setOffer] = useState(null);
@@ -145,24 +146,26 @@ const DynamicCong = ({ userId: userIdProp, phone: phoneProp }) => {
   const bootSmsSentRef = useRef(false);
 
   // Resolve identifiers from URL -> props -> session
+
+
   const { resolvedUserId, resolvedPhone } = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     const urlUser = params.get("name");
     const urlPhone = params.get("phone");
 
-    const user =
-      (urlUser || userIdProp || sessionStorage.getItem("mbai:last_user") || "66W").trim();
+    const user = (urlUser || userIdProp || sessionStorage.getItem("mbai:last_user") || "").trim();
     const phone = sanitizePhone(urlPhone || phoneProp || sessionStorage.getItem("mbai:last_phone") || "");
 
     if (user) sessionStorage.setItem("mbai:last_user", user);
     if (phone) sessionStorage.setItem("mbai:last_phone", phone);
 
     return { resolvedUserId: user, resolvedPhone: phone };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userIdProp, phoneProp]);
 
   /* 1) Fetch Offer */
-  useEffect(() => {
+   useEffect(() => {
+    if (!resolvedUserId) return;
+
     fetch(`${API_OFFER}?name=${encodeURIComponent(resolvedUserId)}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch offer");
