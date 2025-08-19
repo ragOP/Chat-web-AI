@@ -7,7 +7,6 @@ import botAvatar from "../assets/pic-DztGI3xK.png";
 import nameAudio from "../assets/Great Let-s start with y 1.wav";
 import ageAudio from "../assets/Okay and whats your age 1.wav";
 import zipcodeAudio from "../assets/Nice and what-s your zip 1.wav";
-import emailAudio from "../assets/So far so good may i kno 1.wav";
 import medicareAudio from "../assets/Thank you Now are you o 3.wav";
 import alzheimersAudio from "../assets/Do you have any of the me 1.wav";
 import homeAudio from "../assets/Okay next do you own you 2.wav";
@@ -20,14 +19,16 @@ import firstquestion from "../assets/Congratulations on taking 2 (1).wav";
 import secondquestion from "../assets/Let-s just get to know yo 2.wav";
 import thirdquestion from "../assets/Tap the button below and 2.wav";
 import phoneAudio from "../assets/phone.mp3";
-import smsAudio from "../assets/sms.mp3";
 import center from "../assets/center.png";
 import PaymentConfirmation from "./PaymentConfirmation";
 import FaqAccordion from "./Faq";
 import Testimonial from "./Testimonial";
 import DynamicCong from "../DynamicCong";
-  import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
+/* =============================
+ *  TAGS
+ * ============================= */
 const TAGS = {
   medicare: "is_md",
   ssdi: "is_ssdi",
@@ -37,6 +38,9 @@ const TAGS = {
   mortgage: "is_rvm",
 };
 
+/* =============================
+ *  QUESTIONS (Q4 REMOVED)
+ * ============================= */
 const questions = [
   {
     id: 1,
@@ -59,13 +63,7 @@ const questions = [
     keyType: "numeric",
     audio: zipcodeAudio,
   },
-  {
-    id: 4,
-    text: "Would you like to receive your benefits report?",
-    type: "choice",
-    options: ["SMS", "Whatsapp"],
-    audio: smsAudio,
-  },
+  // ---- (id:4) REMOVED: “Would you like to receive your benefits report?”
   {
     id: 5,
     text: "Please enter your 10-digit phone number below:",
@@ -169,19 +167,23 @@ export default function Home3() {
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [number, setNumber] = useState("");
-  const chatBoxRef = useRef(null);
-  const audioRef = useRef(null);
-
-
-const navigate = useNavigate();
-
   const [tags, setTags] = useState([]);
   const [name, setName] = useState("");
+  const [utmCampaign, setUtmCampaign] = useState(null);
 
-  // --- TF: state + hidden form ref ---
-  const [tfReady, setTfReady] = useState(false); // SDK loaded
-  const tfFormRef = useRef(null); // the hidden form TrustedForm needs
+  // Consent for TCPA / TrustedForm tagging (required at phone step)
+  const [consentAgreed, setConsentAgreed] = useState(false);
 
+  const chatBoxRef = useRef(null);
+  const audioRef = useRef(null);
+  const tfFormRef = useRef(null);
+  const [tfReady, setTfReady] = useState(false);
+
+  const navigate = useNavigate();
+
+  /* =============================
+   *  HELPERS
+   * ============================= */
   useEffect(() => {
     if (chatBoxRef.current) {
       setTimeout(() => {
@@ -199,11 +201,7 @@ const navigate = useNavigate();
       audioRef.current
         .play()
         .then(() => {
-          if (onEnded) {
-            audioRef.current.onended = onEnded;
-          } else {
-            audioRef.current.onended = null;
-          }
+          audioRef.current.onended = onEnded || null;
         })
         .catch((err) => {
           console.error("Audio playback failed:", err);
@@ -211,15 +209,18 @@ const navigate = useNavigate();
     }
   };
 
-  // --- TF: inject TrustedForm script once (needs a form in DOM) ---
+  // Load TrustedForm (needs a <form> in DOM)
   useEffect(() => {
     if (!tfFormRef.current) return;
-    if (document.getElementById("tf-sdk")) { setTfReady(true); return; }
+    if (document.getElementById("tf-sdk")) {
+      setTfReady(true);
+      return;
+    }
 
     (function loadTF() {
-      const field = "xxTrustedFormCertUrl"; // default field name
+      const field = "xxTrustedFormCertUrl";
       const provideReferrer = true;
-      const sandbox = false; // keep false in production
+      const sandbox = false;
 
       const s = document.createElement("script");
       s.async = true;
@@ -227,53 +228,170 @@ const navigate = useNavigate();
       s.type = "text/javascript";
       s.src =
         "https://api.trustedform.com/trustedform.js" +
-        "?field=" + encodeURIComponent(field) +
-        "&provide_referrer=" + (provideReferrer ? "true" : "false") +
-        "&sandbox=" + (sandbox ? "true" : "false");
-
+        "?field=" +
+        encodeURIComponent(field) +
+        "&provide_referrer=" +
+        (provideReferrer ? "true" : "false") +
+        "&sandbox=" +
+        (sandbox ? "true" : "false") +
+        "&use_tagged_consent=true";
       s.onload = () => setTfReady(true);
       s.onerror = () => console.warn("TrustedForm SDK failed to load");
       document.body.appendChild(s);
     })();
   }, []);
 
+  // Explicit _tfq getter fallback
+  useEffect(() => {
+    const tf = document.createElement("script");
+    tf.type = "text/javascript";
+    tf.async = true;
+    tf.src =
+      "https://api.trustedform.com/trustedform.js?field=xxTrustedFormCertUrl&use_tagged_consent=true&l=" +
+      new Date().getTime() +
+      Math.random();
+    document.body.appendChild(tf);
+
+    window._tfq = window._tfq || [];
+    window._tfq.push([
+      "get",
+      "certUrl",
+      (url) => {
+        const inp = document.querySelector(
+          'input[name="xxTrustedFormCertUrl"]'
+        );
+        if (url && inp && !inp.value) {
+          inp.value = url;
+          console.log("TrustedForm cert URL captured via _tfq:", url);
+        }
+      },
+    ]);
+  }, []);
+
+  // Campaign
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const campaign = params.get("utm_campaign");
+    if (campaign) setUtmCampaign(campaign);
+  }, []);
+
   const simulateBotTyping = (question, showTyping = true) => {
     if (showTyping) setTyping(true);
-
-    setTimeout(
-      () => {
-        setChat((prev) => [
-          ...prev,
-          {
-            id: question.id,
-            sender: "bot",
-            text: question.text,
-            type: question.type,
-            options: question.options,
-            audio: question.audio,
-          },
-        ]);
-        playMessageAudio(question.audio);
-        setTyping(false);
-      },
-      showTyping ? 1000 : 10
-    );
+    setTimeout(() => {
+      setChat((prev) => [
+        ...prev,
+        {
+          id: question.id,
+          sender: "bot",
+          text: question.text,
+          type: question.type,
+          options: question.options,
+          audio: question.audio,
+        },
+      ]);
+      playMessageAudio(question.audio);
+      setTyping(false);
+    }, showTyping ? 1000 : 10);
   };
 
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePincode = (pincode) => /^\d{5,6}$/.test(pincode);
+  const validatePhone = (val) => /^\d{10}$/.test((val || "").trim());
+
+  // Number animation
+  const [counter, setCounter] = useState(1100);
+  useEffect(() => {
+    if (startChat) return;
+    let start = 1100;
+    let end = 2500;
+    let duration = 1800;
+    let frameRate = 90;
+    let totalFrames = Math.round(duration / frameRate);
+    let increment = (end - start) / totalFrames;
+    let frame = 0;
+
+    const animate = () => {
+      frame++;
+      let value = Math.round(start + increment * frame);
+      if (value > end) value = end;
+      setCounter(value);
+      if (frame < totalFrames) {
+        setTimeout(animate, frameRate);
+      }
+    };
+
+    setCounter(start);
+    animate();
+    return () => {};
+  }, [startChat]);
+
+  // Wait for TrustedForm to produce cert URL
+  async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {}) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const el = document.querySelector('input[name="xxTrustedFormCertUrl"]');
+      const val = el && el.value ? el.value.trim() : "";
+      if (val && /^https:\/\/cert\.trustedform\.com\//.test(val)) return val;
+      await new Promise((r) => setTimeout(r, intervalMs));
+    }
+    return "";
+  }
+
+  // 3-char ID
+  const issuedIdsRef = useRef(new Set());
+  function generateThreeCharId() {
+    const digits = "0123456789";
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    for (let attempts = 0; attempts < 50; attempts++) {
+      const d1 = digits[Math.floor(Math.random() * 10)];
+      const d2 = digits[Math.floor(Math.random() * 10)];
+      const L = letters[Math.floor(Math.random() * 26)];
+
+      const arr = [d1, d2, L];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+
+      const id = arr.join("");
+      if (!issuedIdsRef.current.has(id)) {
+        issuedIdsRef.current.add(id);
+        return id;
+      }
+    }
+    return (
+      digits[Math.floor(Math.random() * 10)] +
+      digits[Math.floor(Math.random() * 10)] +
+      letters[Math.floor(Math.random() * 26)]
+    );
+  }
+
+  /* =============================
+   *  SENDING / FLOW
+   * ============================= */
   const handleSend = (response) => {
     const currentQuestion = questions[step];
 
+    // Validate zip
     if (currentQuestion.id === 3 && !validatePincode(response)) {
       alert("Please enter a valid pincode");
       return;
     }
 
-    // --- CHANGED: validate phone on Q5 ---
-    // if (currentQuestion.id === 5 && !validatePhone(response)) {
-    //   alert("Please enter a valid 10-digit phone number");
-    //   return;
-    // }
+    // Enforce consent + phone validation at Q5
+    if (currentQuestion.id === 5) {
+      if (!validatePhone(response)) {
+        alert("Please enter a valid 10-digit phone number");
+        return;
+      }
+      if (!consentAgreed) {
+        alert("Please check the consent box to continue.");
+        return;
+      }
+    }
 
+    // Tags
     if (currentQuestion.tag) {
       let shouldTag = false;
       if (currentQuestion.id === 7 && (response === "Yes" || response === "No"))
@@ -288,23 +406,26 @@ const navigate = useNavigate();
       }
     }
 
+    // Capture name / phone
     switch (currentQuestion.id) {
       case 1:
         setName(response);
         break;
-      case 5: // --- CHANGED: capture phone early as state ---
+      case 5:
         setNumber(response);
         break;
       default:
         break;
     }
 
+    // Store answer
     const updatedAnswers = {
       ...answers,
       [currentQuestion.text]: response,
     };
     setAnswers(updatedAnswers);
 
+    // Echo in chat
     const updatedChat = [
       ...chat,
       { id: chat.length + 1, sender: "user", text: response },
@@ -312,8 +433,10 @@ const navigate = useNavigate();
     setChat(updatedChat);
     setInput("");
 
+    // Step advance
     let nextStep = step + 1;
 
+    // If next is info, auto-show next real question too
     if (
       nextStep < questions.length &&
       questions[nextStep].type === "info" &&
@@ -360,6 +483,7 @@ const navigate = useNavigate();
   };
 
   const handleChoiceClick = (choice) => {
+    // Start button from landing messages
     if (
       choice === "Lets Start" &&
       step === 0 &&
@@ -371,24 +495,27 @@ const navigate = useNavigate();
       }, 1000);
       return;
     }
-
     handleSend(choice);
   };
 
+  // Render input (with consent on phone step)
   const renderUserInput = () => {
     if (typing || step >= questions.length) return null;
 
     const current = questions[step];
     if (current.type === "text") {
+      const isPhoneStep = current.id === 5;
       return (
         <div className="mt-3 w-full flex flex-col items-end">
-          <div className="flex gap-2 mt-1">
+          <div className="flex gap-2 mt-1 w-full items-start">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
               className="flex-grow rounded-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-base"
-              placeholder="Type your message..."
+              placeholder={
+                isPhoneStep ? "Enter 10-digit phone" : "Type your message..."
+              }
               style={{ fontSize: "16px" }}
               inputMode={current.keyType === "numeric" ? "numeric" : "text"}
             />
@@ -413,122 +540,82 @@ const navigate = useNavigate();
               </svg>
             </button>
           </div>
+
+          {/* Consent row (only at phone step) */}
+          {isPhoneStep && (
+            <div className="w-full mt-3 text-sm text-gray-700">
+              <label className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={consentAgreed}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setConsentAgreed(checked);
+                    try {
+                      window._tfq = window._tfq || [];
+                      window._tfq.push([
+                        "tag",
+                        checked ? "consent:checked" : "consent:unchecked",
+                      ]);
+                    } catch (err) {}
+                    const hidden = document.querySelector(
+                      'input[name="xxTrustedFormConsent"]'
+                    );
+                    if (hidden) hidden.value = checked ? "true" : "false";
+                  }}
+                />
+                <span className="leading-5">
+                  By clicking, you agree to SMS, MMS & automated calls from
+                  MyBenefitsAI. Msg&data rates may apply. Reply STOP to opt out.
+                </span>
+              </label>
+            </div>
+          )}
         </div>
       );
     }
     return null;
   };
 
-  const [utmCampaign, setUtmCampaign] = useState(null);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const campaign = params.get("utm_campaign");
-
-    if (campaign) {
-      setUtmCampaign(campaign);
-    }
-  }, []);
-useEffect(() => {
-  // Inject TrustedForm script
-  const tf = document.createElement("script");
-  tf.type = "text/javascript";
-  tf.async = true;
-  tf.src =
-    "https://api.trustedform.com/trustedform.js?field=xxTrustedFormCertUrl&use_tagged_consent=true&l=" +
-    new Date().getTime() +
-    Math.random();
-  document.body.appendChild(tf);
-
-  // Fallback to explicitly get cert URL
-  window._tfq = window._tfq || [];
-  window._tfq.push([
-    "get",
-    "certUrl",
-    (url) => {
-      const inp = document.querySelector('input[name="xxTrustedFormCertUrl"]');
-      if (url && inp && !inp.value) {
-        inp.value = url;
-        console.log("TrustedForm cert URL captured via _tfq:", url);
-      }
-    },
-  ]);
-}, []);
-const __issuedIds = new Set();
-
-function generateThreeCharId() {
-  const digits = "0123456789";
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-  for (let attempts = 0; attempts < 50; attempts++) {
-    const d1 = digits[Math.floor(Math.random() * 10)];
-    const d2 = digits[Math.floor(Math.random() * 10)];
-    const L  = letters[Math.floor(Math.random() * 26)];
-
-    const arr = [d1, d2, L];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-
-    const id = arr.join("");
-    if (!__issuedIds.has(id)) {
-      __issuedIds.add(id);
-      return id; // e.g. "7A4", "B25", "18G"
-    }
-  }
-
-  // ultra-rare fallback (still 2 digits + 1 letter)
-  return (
-    digits[Math.floor(Math.random() * 10)] +
-    digits[Math.floor(Math.random() * 10)] +
-    letters[Math.floor(Math.random() * 26)]
-  );
-}
-  // --- CHANGED: final submit now also claims TrustedForm cert on your backend ---
+  /* =============================
+   *  FINAL SUBMIT
+   * ============================= */
   const handleFinalAnswers = async (allAnswers, tagArray) => {
-    
+    const tempUserId = generateThreeCharId();
+    setUserId(tempUserId);
+    setNumber(allAnswers["Please enter your 10-digit phone number below:"]);
 
-  const tempUserId = generateThreeCharId();
-  setUserId(tempUserId);
-  setNumber(allAnswers["Please enter your 10-digit phone number below:"]);
+    // persist for deep links and DynamicCong fallback
+    sessionStorage.setItem("mbai:last_user", tempUserId);
+    sessionStorage.setItem(
+      "mbai:last_phone",
+      allAnswers["Please enter your 10-digit phone number below:"] || ""
+    );
 
-  // NEW: persist for deep links and DynamicCong fallback
-  sessionStorage.setItem("mbai:last_user", tempUserId);
-  sessionStorage.setItem("mbai:last_phone", allAnswers["Please enter your 10-digit phone number below:"] || "");
-
-    // --- TF: read cert URL from hidden input added by SDK ---
-// Wait up to ~8s for TF to produce the cert URL
-const trustedform_cert_url = await waitForTrustedFormCert();
-  if (!trustedform_cert_url) {
-    // alert("TrustedForm cert URL not found before submit");
-  }
-
-
-
+    // Wait up to ~8s for TF to produce the cert URL
+    const trustedform_cert_url = await waitForTrustedFormCert();
 
     const payload = {
       user_id: tempUserId,
       fullName: allAnswers["What's your full name?"],
       age: allAnswers["Okay, what is your age today?"],
       zipcode: allAnswers["Nice, and what's your zip code?"],
-      // email: allAnswers["May I know your email?"],
       tags: tagArray || tags,
       origin: `6-${utmCampaign}`,
-      sendMessageOn: allAnswers["Would you like to receive your benefits report?"],
+      // Since Q4 is removed, default to SMS delivery
+      sendMessageOn: "SMS",
       number: allAnswers["Please enter your 10-digit phone number below:"],
-      // optional: store TF URL in your lead record if you want
       trustedform_cert_url,
-    }; 
+      consentAgreed, // for your own record
+    };
 
     try {
       const res = await fetch(
         "https://benifit-gpt-be.onrender.com/response/create",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         }
       );
@@ -538,7 +625,7 @@ const trustedform_cert_url = await waitForTrustedFormCert();
       console.error("❌ Error submitting chatbot answers:", err);
     }
 
-    // --- TF: claim/retain certificate on your backend (server uses API key) ---
+    // Claim TF certificate on backend
     try {
       if (trustedform_cert_url) {
         await fetch("https://benifit-gpt-be.onrender.com/tf/claim", {
@@ -560,6 +647,9 @@ const trustedform_cert_url = await waitForTrustedFormCert();
     }
   };
 
+  /* =============================
+   *  START AI CTA
+   * ============================= */
   const handleStartAI = () => {
     setActivatingAiLoder(true);
 
@@ -571,26 +661,29 @@ const trustedform_cert_url = await waitForTrustedFormCert();
         {
           id: 1,
           sender: "bot",
-          text: "Congratulations on taking the first step toward claiming the benefits you rightfully deserve!",
+          text:
+            "Congratulations on taking the first step toward claiming the benefits you rightfully deserve!",
           audio: firstquestion,
         },
         {
           id: 2,
           sender: "bot",
-          text: "Let's just get to know you a little better, so I can help unlock all the benefits, subsidies, and allowances you might qualify for.",
+          text:
+            "Let's just get to know you a little better, so I can help unlock all the benefits, subsidies, and allowances you might qualify for.",
           audio: secondquestion,
         },
         {
           id: 3,
           sender: "bot",
-          text: "Tap the button below and we'll get started — it only takes a minute.",
+          text:
+            "Tap the button below and we'll get started — it only takes a minute.",
           type: "choice",
           options: ["Lets Start"],
           audio: thirdquestion,
         },
       ];
 
-      let delays = [500, 7000, 15000];
+      const delays = [500, 7000, 15000];
       initialMessages.forEach((msg, index) => {
         setTimeout(() => {
           setChat((prev) => {
@@ -603,71 +696,20 @@ const trustedform_cert_url = await waitForTrustedFormCert();
     }, 1500);
   };
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePincode = (pincode) => {
-    const pinRegex = /^\d{5,6}$/;
-    return pinRegex.test(pincode);
-  };
-
-  // --- NEW: simple US 10-digit phone (no country code) ---
-  const validatePhone = (val) => {
-    return /^\d{10}$/.test((val || "").trim());
-  };
-
-  const [counter, setCounter] = useState(1100);
-  useEffect(() => {
-    if (startChat) return; // Only animate before chat starts
-    let start = 1100;
-    let end = 2500;
-    let duration = 1800; // ms
-    let frameRate = 90; // ms per frame
-    let totalFrames = Math.round(duration / frameRate);
-    let increment = (end - start) / totalFrames;
-    let frame = 0;
-
-    const animate = () => {
-      frame++;
-      let value = Math.round(start + increment * frame);
-      if (value > end) value = end;
-      setCounter(value);
-      if (frame < totalFrames) {
-        setTimeout(animate, frameRate);
-      }
-    };
-
-    setCounter(start);
-    animate();
-
-    // Cleanup
-    return () => {};
-  }, [startChat]);
-
-
-  // --- ADD: wait for TrustedForm to stamp the certificate URL ---
-// Wait until TF writes the cert URL into the hidden input
-async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {}) {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const el = document.querySelector('input[name="xxTrustedFormCertUrl"]');
-    const val = el?.value?.trim();
-    if (val && /^https:\/\/cert\.trustedform\.com\//.test(val)) return val;
-    await new Promise(r => setTimeout(r, intervalMs));
-  }
-  return "";
-}
-
-
+  /* =============================
+   *  RENDER
+   * ============================= */
   return (
     <>
       {!finalmessage ? (
         <>
           <audio playsInline ref={audioRef} style={{ display: "none" }} />
-          {/* --- TF: Hidden form for TrustedForm SDK to inject hidden input --- */}
-          <form ref={tfFormRef} style={{ display: "none" }} aria-hidden="true" />
+
+          {/* Hidden form for TrustedForm SDK */}
+          <form ref={tfFormRef} style={{ display: "none" }} aria-hidden="true">
+            {/* TF will inject xxTrustedFormCertUrl. We also keep a consent mirror. */}
+            <input type="hidden" name="xxTrustedFormConsent" defaultValue="false" />
+          </form>
 
           <div>
             <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
@@ -685,6 +727,7 @@ async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {
               22,578 Americans Helped In Last 24 Hours!
             </div>
           </div>
+
           <div
             className="min-h-screen p-4 flex flex-col items-center"
             style={{ backgroundColor: "rgb(246,246,243)" }}
@@ -697,6 +740,7 @@ async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {
                   </h2>
                 </div>
               </div>
+
               <div className="flex-grow flex flex-col justify-between h-full">
                 {startChat ? (
                   <div
@@ -871,7 +915,7 @@ async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {
                                         maskImage:
                                           "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
                                         WebkitMaskImage:
-                                          "linear-gradient(to right, transparent 0%, black 60%, transparent 100%)",
+                                          "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
                                       }}
                                     />
                                   )}
@@ -1002,7 +1046,7 @@ async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {
                               />
                             </svg>
                           </div>
-                          <span>Just $1 (100% Refund Guarantee)</span>
+                          <span>Takes Under 2 Minutes</span>
                         </div>
 
                         <div className="flex items-start space-x-2">
@@ -1098,7 +1142,6 @@ async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {
                     </div>
                   </div>
                 )}
-                
 
                 {!startChat && (
                   <>
@@ -1131,6 +1174,7 @@ async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {
           </div>
         </>
       ) : (
+        // After final submit, redirect to claim page (DynamicCong flow)
         navigate(`/claim?name=${encodeURIComponent(userId)}`)
       )}
     </>

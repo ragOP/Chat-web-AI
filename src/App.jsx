@@ -59,8 +59,8 @@ function App(){
     <Route path="/messg1" element={<LanderThree />} />
     <Route path="/success" element={<Sucess />} />
     <Route path="/cancel" element={<Cancel />} />
-    <Route path="/messg2" element={<Home3 />} />
-        <Route path="/heck" element={<Heck />} />
+    <Route path="/messg222" element={<Home3 />} />
+        <Route path="/messg2" element={<Heck />} />
 
         <Route path="/mesfree" element={<MesFree />} />
           <Route path="/claim" element={<DynamicCong />} />
