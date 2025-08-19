@@ -193,8 +193,11 @@ const DynamicCong = () => {
   /* 1) Fetch Offer (STRICTLY BY ID) */
   useEffect(() => {
     if (!resolvedUserId) {
-      setLoading(false);
-      setError("Missing user id. Open your claim link again with ?name=YOUR_ID.");
+       window.location.assign(
+    `https://www.mybenefitsai.org/claim?name=${encodeURIComponent(resolvedUserId)}`
+  );
+      // setLoading(false);
+      // setError("Missing user id. Open your claim link again with ?name=YOUR_ID.");
       return;
     }
 
