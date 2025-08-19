@@ -26,6 +26,7 @@ import PaymentConfirmation from "./PaymentConfirmation";
 import FaqAccordion from "./Faq";
 import Testimonial from "./Testimonial";
 import DynamicCong from "../DynamicCong";
+  import { useNavigate } from "react-router-dom";
 
 const TAGS = {
   medicare: "is_md",
@@ -170,6 +171,9 @@ export default function Home3() {
   const [number, setNumber] = useState("");
   const chatBoxRef = useRef(null);
   const audioRef = useRef(null);
+
+
+const navigate = useNavigate();
 
   const [tags, setTags] = useState([]);
   const [name, setName] = useState("");
@@ -1127,13 +1131,7 @@ async function waitForTrustedFormCert({ timeoutMs = 8000, intervalMs = 200 } = {
           </div>
         </>
       ) : (
-        <DynamicCong
-          number={number}
-          email={email}
-          name={name}
-          userIds={userId}
-          tagArray={tags}
-        />
+        navigate(`/claim?name=${encodeURIComponent(userId)}`)
       )}
     </>
   );

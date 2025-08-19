@@ -25,6 +25,8 @@ const API_SMS_ENDPOINTS = [
 ];
 
 const INITIAL_UNLOCKED = 1;
+const ID_PARAM = "name";
+const PHONE_PARAM = "phone";
 
 /** Benefit catalog */
 const BENEFIT_CARDS = {
@@ -129,12 +131,39 @@ async function sendSMSWithFallback(payload) {
   throw new Error(errors.join(" | "));
 }
 
+// Retry GET JSON with small delays
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function fetchJsonWithRetry(url, { retries = 2, delays = [250, 800], signal } = {}) {
+  let lastErr;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(url, { method: "GET", signal });
+      const text = await res.text();
+
+      if (!res.ok) {
+        lastErr = new Error(`HTTP ${res.status} ${text?.slice(0, 160) || ""}`);
+        if (res.status === 404 || i === retries) throw lastErr;
+      } else {
+        try {
+          return JSON.parse(text || "{}");
+        } catch {
+          lastErr = new Error("Invalid JSON");
+          if (i === retries) throw lastErr;
+        }
+      }
+    } catch (e) {
+      lastErr = e;
+      if (i === retries) throw lastErr;
+    }
+    await sleep(delays[Math.min(i, delays.length - 1)]);
+  }
+  throw lastErr;
+}
+
 /* =============================
- *  MAIN COMPONENT
+ *  MAIN (NO PROPS)
  * ============================= */
-const DynamicCong = ({ userIds: userIdProp, number: phoneProp, idParam = "name",      // <-- which query param holds the id
-  phoneParam = "phone", }) => {
-  console.log(userIdProp,phoneProp,"radha")
+const DynamicCong = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [offer, setOffer] = useState(null);
@@ -146,69 +175,53 @@ const DynamicCong = ({ userIds: userIdProp, number: phoneProp, idParam = "name",
   const audioPlayedRef = useRef(false);
   const bootSmsSentRef = useRef(false);
 
-  // Resolve identifiers from URL -> props -> session
+  // Resolve identifiers ONLY from: query (?name & ?phone) -> session
+  const { resolvedUserId, resolvedPhone } = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromQueryUser = params.get(ID_PARAM)?.trim();
+    const fromQueryPhone = params.get(PHONE_PARAM)?.trim();
 
+    const user = (fromQueryUser || sessionStorage.getItem("mbai:last_user") || "").trim();
+    const phone = sanitizePhone(fromQueryPhone || sessionStorage.getItem("mbai:last_phone") || "");
 
-// Resolve identifiers from: props -> query (?name / ?id / ?userId) -> PATH (/claim/:id) -> session
-// Resolve from: props -> query (?<idParam> / ?<phoneParam>) -> session
-const { resolvedUserId, resolvedPhone } = useMemo(() => {
-  const params = new URLSearchParams(window.location.search);
+    if (user) sessionStorage.setItem("mbai:last_user", user);
+    if (phone) sessionStorage.setItem("mbai:last_phone", phone);
 
-  const urlUser = params.get(idParam);       // e.g. ?name=7A4 (default)
-  const urlPhone = params.get(phoneParam);   // e.g. ?phone=+1570...
+    return { resolvedUserId: user, resolvedPhone: phone };
+  }, [window.location.search]); // re-evaluate if query changes
 
-  const user =
-    (userIdProp && String(userIdProp).trim()) ||
-    (urlUser && urlUser.trim()) ||
-    (sessionStorage.getItem("mbai:last_user") || "").trim();
-
-  const phone = sanitizePhone(
-    phoneProp ||
-      urlPhone ||
-      sessionStorage.getItem("mbai:last_phone") ||
-      ""
-  );
-
-  if (user)  sessionStorage.setItem("mbai:last_user", user);
-  if (phone) sessionStorage.setItem("mbai:last_phone", phone);
-
-  console.log("[resolve] userId:", user, "phone:", phone, "(idParam:", idParam, ")");
-  return { resolvedUserId: user, resolvedPhone: phone };
-}, [userIdProp, phoneProp, idParam, phoneParam]);
-
-
-  /* 1) Fetch Offer */
- /* 1) Fetch Offer (using dynamic idParam) */
-useEffect(() => {
-  if (!resolvedUserId) {
-    console.warn("[offer] No user id resolved; check prop/query/session.");
-    setLoading(false);
-    setError("Missing user id. Open your claim link again.");
-    return;
-  }
-
-  // ✅ reset error & show loader for this attempt
-  setError("");            // <-- add this
-  setLoading(true);        // <-- add this
-
-  fetch(`${API_OFFER}?name=${encodeURIComponent(resolvedUserId)}`)
-    .then((res) => {
-      if (!res.ok) throw new Error(`Failed to fetch offer (${res.status})`);
-      return res.json();
-    })
-    .then((data) => {
-      setOffer(data.data || data);
-      setError("");        // ✅ ensure error cleared on success
+  /* 1) Fetch Offer (STRICTLY BY ID) */
+  useEffect(() => {
+    if (!resolvedUserId) {
       setLoading(false);
-    })
-    .catch((e) => {
-      console.error("[offer] error", e);
-      setOffer(null);
-      setError("Could not load your offer. Please try again later.");
-      setLoading(false);
-    });
-}, [resolvedUserId]);
+      setError("Missing user id. Open your claim link again with ?name=YOUR_ID.");
+      return;
+    }
 
+    const ctrl = new AbortController();
+    const url = `${API_OFFER}?${encodeURIComponent(ID_PARAM)}=${encodeURIComponent(resolvedUserId)}`;
+
+    setError("");
+    setLoading(true);
+
+    (async () => {
+      try {
+        const json = await fetchJsonWithRetry(url, { retries: 2, delays: [250, 800], signal: ctrl.signal });
+        const data = json?.data || json;
+        if (!data || typeof data !== "object") throw new Error("Empty offer payload");
+        setOffer(data);
+        setError("");
+      } catch (e) {
+        console.error("[offer] FINAL fail:", e);
+        setOffer(null);
+        setError("Could not load your offer. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => ctrl.abort();
+  }, [resolvedUserId]);
 
   const { fullName = "User", tags = [] } = offer || {};
   const benefits = useMemo(() => {
@@ -221,14 +234,13 @@ useEffect(() => {
   useEffect(() => {
     if (!offer || bootSmsSentRef.current) return;
 
-    // pick destination: URL/prop -> offer.number -> session
     const to = sanitizePhone(resolvedPhone || offer?.number || sessionStorage.getItem("mbai:last_phone") || "");
     if (!to) {
       console.warn("[sms] no phone available; skipping send");
       return;
     }
 
-    const GUARD_KEY = `nudges:first_sms:${resolvedUserId}:${to}`; // per pair
+    const GUARD_KEY = `nudges:first_sms:${resolvedUserId}:${to}`;
     if (sessionStorage.getItem(GUARD_KEY) === "1") {
       bootSmsSentRef.current = true;
       return;
@@ -246,12 +258,11 @@ useEffect(() => {
           console.warn("[nudges/init] failed:", e?.message || e);
         }
 
-        // immediate SMS
+        // immediate SMS (link uses query param)
+        const claimUrl = `https://mybenefitsai.org/claim?${ID_PARAM}=${encodeURIComponent(resolvedUserId)}`;
         const msg =
           initRes?.immediateMessage ||
-          `You still have unclaimed benefits waiting. They expire soon—claim them now: https://mybenefitsai.org/claim/${encodeURIComponent(
-            resolvedUserId
-          )} Reply START to opt in, STOP to opt out.`;
+          `You still have unclaimed benefits waiting. They expire soon—claim them now: ${claimUrl} Reply START to opt in, STOP to opt out.`;
 
         await sendSMSWithFallback({ userId: resolvedUserId, to, fullName: name, message: msg });
 
@@ -265,13 +276,11 @@ useEffect(() => {
         } else {
           console.error("[sms] failed:", msg);
         }
-        // don’t set guard, so it can retry later
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offer, resolvedPhone, resolvedUserId]);
 
-  /* 3) Load progress */
+  /* 3) Load progress (per user) */
   useEffect(() => {
     if (!offer) return;
 
@@ -320,7 +329,7 @@ useEffect(() => {
     }
   };
 
-  // Audio
+  // Audio (play once per mount after offer ready)
   useEffect(() => {
     if (!loading && offer && !audioPlayedRef.current) {
       audioPlayedRef.current = true;
@@ -368,7 +377,7 @@ useEffect(() => {
 
   const isLocked = (idx) => (benefits.length <= 1 ? false : idx >= unlockedCount);
 
-  // Rendering
+  // ---------- RENDER ORDER: loading -> success -> error ----------
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-black">
