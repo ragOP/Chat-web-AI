@@ -29,6 +29,7 @@ import Contact from "./components/Contact";
 import MesFree from "./components/MesFree";
 import Heck from './components/Heck'
 import NudgesAdmin from "./NudgesAdmin";
+import DynamicCong from "./DynamicCong";
 function App(){
   return (
     <Routes>
@@ -62,6 +63,7 @@ function App(){
         <Route path="/heck" element={<Heck />} />
 
         <Route path="/mesfree" element={<MesFree />} />
+          <Route path="/claim" element={<DynamicCong />} />
     <Route path="/messg-free" element={<Home4 />} />
 
     </Routes>
