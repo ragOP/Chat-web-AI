@@ -131,8 +131,11 @@ async function sendSMSWithFallback(payload) {
   throw new Error(errors.join(" | "));
 }
 
-// Retry GET JSON with small delays
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const isAbortError = (e) =>
+  e?.name === "AbortError" || /aborted|abortcontroller/i.test(String(e?.message || e));
+
 async function fetchJsonWithRetry(url, { retries = 2, delays = [250, 800], signal } = {}) {
   let lastErr;
   for (let i = 0; i <= retries; i++) {
@@ -152,6 +155,7 @@ async function fetchJsonWithRetry(url, { retries = 2, delays = [250, 800], signa
         }
       }
     } catch (e) {
+      if (isAbortError(e)) throw e; // bubble the abort; caller will ignore
       lastErr = e;
       if (i === retries) throw lastErr;
     }
@@ -165,7 +169,7 @@ async function fetchJsonWithRetry(url, { retries = 2, delays = [250, 800], signa
  * ============================= */
 const DynamicCong = () => {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); // only for real errors (not aborts)
   const [offer, setOffer] = useState(null);
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -175,11 +179,14 @@ const DynamicCong = () => {
   const audioPlayedRef = useRef(false);
   const bootSmsSentRef = useRef(false);
 
+  // 🔒 Stabilize the search string so StrictMode re-renders don't bounce it
+  const initialSearch = useRef(window.location.search).current;
+
   // Resolve identifiers ONLY from: query (?name & ?phone) -> session
   const { resolvedUserId, resolvedPhone } = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fromQueryUser = params.get(ID_PARAM)?.trim();
-    const fromQueryPhone = params.get(PHONE_PARAM)?.trim();
+    const params = new URLSearchParams(initialSearch);
+    const fromQueryUser = params.get(ID_PARAM)?.trim() || "";
+    const fromQueryPhone = params.get(PHONE_PARAM)?.trim() || "";
 
     const user = (fromQueryUser || sessionStorage.getItem("mbai:last_user") || "").trim();
     const phone = sanitizePhone(fromQueryPhone || sessionStorage.getItem("mbai:last_phone") || "");
@@ -188,16 +195,13 @@ const DynamicCong = () => {
     if (phone) sessionStorage.setItem("mbai:last_phone", phone);
 
     return { resolvedUserId: user, resolvedPhone: phone };
-  }, [window.location.search]); // re-evaluate if query changes
+  }, [initialSearch]);
 
   /* 1) Fetch Offer (STRICTLY BY ID) */
   useEffect(() => {
     if (!resolvedUserId) {
-       window.location.assign(
-    `https://www.mybenefitsai.org/claim?name=${encodeURIComponent(resolvedUserId)}`
-  );
-      // setLoading(false);
-      // setError("Missing user id. Open your claim link again with ?name=YOUR_ID.");
+      // safe redirect (no ?name=undefined)
+      window.location.assign(`https://www.mybenefitsai.org/claim`);
       return;
     }
 
@@ -209,26 +213,36 @@ const DynamicCong = () => {
 
     (async () => {
       try {
-        const json = await fetchJsonWithRetry(url, { retries: 2, delays: [250, 800], signal: ctrl.signal });
+        const json = await fetchJsonWithRetry(url, {
+          retries: 1,
+          delays: [250],
+          signal: ctrl.signal,
+        });
+
         const data = json?.data || json;
         if (!data || typeof data !== "object") throw new Error("Empty offer payload");
+
         setOffer(data);
         setError("");
       } catch (e) {
+        // 🚫 ignore aborts (React 18 StrictMode aborts the first pass)
+        if (isAbortError(e)) return;
+
         console.error("[offer] FINAL fail:", e);
-        setOffer(null);
-        setError("Could not load your offer. Please try again.");
+        // keep any prior offer; only show error if we truly have none
+        if (!offer) setError("Could not load your offer. Please refresh the page.");
       } finally {
         setLoading(false);
       }
     })();
 
     return () => ctrl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedUserId]);
 
   const { fullName = "User", tags = [] } = offer || {};
   const benefits = useMemo(() => {
-    const valid = tags.filter((t) => BENEFIT_CARDS[t]);
+    const valid = Array.isArray(tags) ? tags.filter((t) => BENEFIT_CARDS[t]) : [];
     return valid.map((t) => ({ key: t, ...BENEFIT_CARDS[t] }));
   }, [tags]);
   const benefitKeys = useMemo(() => benefits.map((b) => b.key), [benefits]);
@@ -381,17 +395,6 @@ const DynamicCong = () => {
   const isLocked = (idx) => (benefits.length <= 1 ? false : idx >= unlockedCount);
 
   // ---------- RENDER ORDER: loading -> success -> error ----------
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-black">
-        <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
-          <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
-        </div>
-        <div className="mt-10 text-2xl font-bold">{error}</div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -405,7 +408,21 @@ const DynamicCong = () => {
     );
   }
 
+  // Only show error if we truly have no offer data at all
+  if (error && !offer) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-black">
+        <div className="w-full bg-black text-white py-1 flex justify-center items-center space-x-2">
+          <img src={center} alt="logo" className="w-[60%] h-[55px] object-contain" />
+        </div>
+        <div className="mt-10 text-2xl font-bold">{error}</div>
+      </div>
+    );
+  }
+
   if (!offer) return null;
+
+  // const { fullName = "User" } = offer || {};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#eef7f3] to-white">

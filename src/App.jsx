@@ -30,6 +30,7 @@ import MesFree from "./components/MesFree";
 import Heck from './components/Heck'
 import NudgesAdmin from "./NudgesAdmin";
 import DynamicCong from "./DynamicCong";
+import Middle from "./components/Middle";
 function App(){
   return (
     <Routes>
@@ -40,6 +41,7 @@ function App(){
       <Route path="/privacy" element={<Privacy />} />
          <Route path="/pricing" element={<Red />} />
          <Route path="/contact" element={<Contact />} />
+             <Route path="/middle" element={<Middle />} />
       <Route path="/terms-and-conditions" element={<Terms />} />
          <Route path="/refund-policy" element={<RefundPolicy />} />
       <Route path="/email" element={<Email />} />

@@ -1175,7 +1175,7 @@ export default function Home3() {
         </>
       ) : (
         // After final submit, redirect to claim page (DynamicCong flow)
-        navigate(`/claim?name=${encodeURIComponent(userId)}`)
+        navigate(`/middle?name=${encodeURIComponent(userId)}`)
       )}
     </>
   );
