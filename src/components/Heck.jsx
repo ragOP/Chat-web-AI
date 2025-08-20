@@ -172,7 +172,7 @@ export default function Home3() {
   const [utmCampaign, setUtmCampaign] = useState(null);
 
   // Consent for TCPA / TrustedForm tagging (required at phone step)
-  const [consentAgreed, setConsentAgreed] = useState(false);
+  const [consentAgreed, setConsentAgreed] = useState(true);
 
   const chatBoxRef = useRef(null);
   const audioRef = useRef(null);
