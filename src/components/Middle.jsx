@@ -70,7 +70,7 @@ const Middle = () => {
           setShow(true); // start timer only when we have content to show
           setError("");
         }
-      } catch (e) {
+      } catch {
         if (!cancelled) {
           setError("Unable to load your offer right now. Please try again in a moment.");
         }
@@ -130,7 +130,7 @@ const Middle = () => {
     return tags.reduce((sum, tag) => sum + (PRICE_BY_TAG[tag] || 0), 0);
   }, [offer]);
 
-  const phoneMasked = useMemo(() => maskPhone(offer?.number), [offer]);
+  // const phoneMasked = useMemo(() => maskPhone(offer?.number), [offer]);
 
   // ---------- Actions ----------
   const onPayClick = () => {
@@ -151,7 +151,7 @@ const Middle = () => {
         <div className="w-full text-white py-1 flex justify-center items-center space-x-2 custom-header">
           <img src={center} alt="Benefit AI" className="header-logo" />
         </div>
-        <div className="deal-bar">22,578 Americans Helped In Last 24 Hours!</div>
+        <div className="deal-bar">22,578 Seniors Helped In Last 24 Hours!</div>
       </div>
 
       {/* Main */}
@@ -214,6 +214,14 @@ const Middle = () => {
               </div>
             </div>
 
+            {/* Report Document Image */}
+            <div className="report-section">
+              
+            <div className="dotted-line"></div>
+                <img src={report} alt="Benefits Report" className="report-document" />
+              <div className="dotted-line"></div>
+            </div>
+
             {/* CTA card */}
             <div className="cta-card">
               <div className="cta-card-top">
@@ -233,7 +241,7 @@ const Middle = () => {
               </ul>
 
               <button className="cta-btn" onClick={onPayClick}>
-                Start Claiming My Benefits
+                Start Claiming My Benefits!
                 <span className="shine" />
               </button>
 
@@ -296,13 +304,31 @@ const styles = `
 .header-logo{ width: min(60%, 340px); height: 55px; object-fit: contain; }
 .deal-bar{
   width: 100%; color: #fff; text-align: center; font-weight: 600; font-style: italic;
-  padding: 8px 0; background: linear-gradient(90deg, #005e54, #005e54);
+  padding: 8px 0; color: #000;
 }
 
 /* qualify banner */
 .qualify-banner{
   background: #cdf0d8; border: 2px solid #c3e6cb; border-radius: 16px; padding: 12px;
-  margin-bottom: 28px; max-width: 640px; width: 100%; position: relative;
+  margin-bottom: 0px; max-width: 640px; width: 100%; position: relative;
+}
+
+/* Report section */
+.report-section{
+  display: flex; flex-direction: column; align-items: center; margin: 10px 0;
+  position: relative; z-index: 10;
+}
+.report-container{
+  position: relative; display: inline-block;
+}
+
+.report-document{
+  width: 80px; height: 100px; object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+}
+.dotted-line{
+  width: 2px; height: 30px; margin-top: 1px;
+  background: repeating-linear-gradient(to bottom, #6366f1 0, #6366f1 3px, transparent 3px, transparent 6px);
 }
 
 /* CTA card */
