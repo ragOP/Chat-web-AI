@@ -284,7 +284,7 @@ const styles = `
 
 /* Report section */
 .report-section{
-  display: flex; flex-direction: column; align-items: center; margin: 10px 0;
+  display: flex; flex-direction: column; align-items: center; margin: 3px 0;
   position: relative; z-index: 10;
 }
 .report-container{
