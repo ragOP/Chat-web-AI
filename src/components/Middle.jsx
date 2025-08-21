@@ -78,7 +78,7 @@ const Middle = () => {
       }
     };
 
-    fetchOffer();
+    setTimeout(fetchOffer, 3000);
     return () => {
       cancelled = true;
     };
