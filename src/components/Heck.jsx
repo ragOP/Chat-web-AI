@@ -25,6 +25,7 @@ import FaqAccordion from "./Faq";
 import Testimonial from "./Testimonial";
 import DynamicCong from "../DynamicCong";
 import { useNavigate } from "react-router-dom";
+import Middle from "./Middle";
 
 /* =============================
  *  TAGS
@@ -1174,8 +1175,8 @@ export default function Home3() {
           </div>
         </>
       ) : (
-        // After final submit, redirect to claim page (DynamicCong flow)
-        navigate(`/middle?name=${encodeURIComponent(userId)}`)
+        // After final submit, render the Middle component directly
+        <Middle userId={userId} />
       )}
     </>
   );

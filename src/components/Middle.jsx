@@ -30,7 +30,7 @@ const maskPhone = (num = "") => {
   return `${s.slice(0, 3)}***${s.slice(-4)}`;
 };
 
-const Middle = () => {
+const Middle = ({userId}) => {
   const navigate = useNavigate();
 
   // ---------- State ----------
@@ -41,10 +41,10 @@ const Middle = () => {
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
 
   // ---------- Read userId from query string ----------
-  const userId = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    return (params.get("name") || "").trim();
-  }, []);
+  // const userId = useMemo(() => {
+  //   const params = new URLSearchParams(window.location.search);
+  //   return (params.get("name") || "").trim();
+  // }, []);
 
   // ---------- Fetch offer on mount ----------
   useEffect(() => {
