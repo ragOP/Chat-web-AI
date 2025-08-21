@@ -159,9 +159,9 @@ const Middle = () => {
         {/* Title */}
         <div className="text-left mb-6 px-4">
           <h1 className="text-4xl font-semibold text-black mb-2 leading-12">
-            Congratulations, {firstName}! 🎉
+            Congratulations, {firstName}! 
           </h1>
-          {offer?.zipCode ? (
+          {/* {offer?.zipCode ? (
             <p className="text-gray-700">
               Zip Code: <b>{offer.zipCode}</b>
               {phoneMasked ? (
@@ -171,7 +171,7 @@ const Middle = () => {
                 </>
               ) : null}
             </p>
-          ) : null}
+          ) : null} */}
         </div>
 
         {/* Error */}
@@ -199,27 +199,38 @@ const Middle = () => {
             {/* Qualify banner */}
             <div className="qualify-banner">
               <div className="text-center">
-                <p className="text-gray-800 text-2xl">
+                <p className="text-gray-800 font-bold text-2xl">
                   We found you qualify for benefits{" "}
                   <span className="text-[#44aa5f] font-bold">
                     ${roundToThousands(totalPayment)}+
                   </span>
                 </p>
-                {Array.isArray(offer?.tags) && offer.tags.length > 0 ? (
+                {/* {Array.isArray(offer?.tags) && offer.tags.length > 0 ? (
                   <p className="text-gray-700 mt-1">
                     Eligible programs:&nbsp;
                     <b>{offer.tags.join(" · ")}</b>
                   </p>
-                ) : null}
+                ) : null} */}
               </div>
             </div>
 
             {/* CTA card */}
             <div className="cta-card">
               <div className="cta-card-top">
-                <h2 className="cta-title">Your Benefit Report Is Ready, Unlock It For $1!</h2>
+                <h2 className="text-3xl text-gray-50 font-bold">Your Benefit Report Is Ready!</h2>
               </div>
-              <img src={report} alt="report" className="report-img" />
+              {/* <img src={report} alt="report" className="report-img" /> */}
+              <ul className="px-3 list-none p-0 my-5 text-left space-y-3">
+                <li className="relative pl-4 text-white text-base leading-relaxed font-medium before:content-['•'] before:absolute before:left-0 before:top-0 before:text-white before:text-xl before:font-bold">
+                  You're approved for 4 exclusive benefits, worth over $9,000 if claimed on time.
+                </li>
+                <li className="relative pl-4 text-white text-base leading-relaxed font-medium before:content-['•'] before:absolute before:left-0 before:top-0 before:text-white before:text-xl before:font-bold">
+                  Deadlines are strict, and unclaimed benefits will be lost if you wait too long.
+                </li>
+                <li className="relative pl-4 text-white text-base leading-relaxed font-medium before:content-['•'] before:absolute before:left-0 before:top-0 before:text-white before:text-xl before:font-bold">
+                  Click below to start claim each benefit one by one - now!
+                </li>
+              </ul>
 
               <button className="cta-btn" onClick={onPayClick}>
                 Start Claiming My Benefits
@@ -306,8 +317,8 @@ const styles = `
 .report-img{ height:100px; width:100px; object-fit:contain; display:block; margin:12px auto 18px auto; }
 
 .cta-btn{
-  position:relative; background:#10b981; color:#052e16; font-weight:900;
-  padding:18px 14px; border-radius:16px; width:100%;
+  position:relative; background:#10b981; color:#fff; font-weight:900;
+  padding:18px 14px; border-radius:46px; width:100%;
   box-shadow: 0 14px 28px rgba(16,185,129,.28), inset 0 -2px 0 rgba(0,0,0,.08);
   transition: transform .15s ease, box-shadow .15s ease;
   overflow:hidden; display:flex; align-items:center; justify-content:center; gap:8px;
