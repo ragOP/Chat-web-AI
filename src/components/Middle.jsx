@@ -49,6 +49,7 @@ const Middle = () => {
   // ---------- Fetch offer on mount ----------
   useEffect(() => {
     let cancelled = false;
+    let timeoutId = null;
 
     const fetchOffer = async () => {
       if (!userId) {
@@ -78,9 +79,31 @@ const Middle = () => {
       }
     };
 
-    setTimeout(fetchOffer, 3000);
+    // Use requestAnimationFrame for better mobile compatibility
+    const delay = () => {
+      const startTime = Date.now();
+      const checkTime = () => {
+        if (cancelled) return;
+        
+        if (Date.now() - startTime >= 3000) {
+          fetchOffer();
+        } else {
+          requestAnimationFrame(checkTime);
+        }
+      };
+      requestAnimationFrame(checkTime);
+    };
+
+    // Fallback with setTimeout as well
+    timeoutId = setTimeout(() => {
+      if (!cancelled) fetchOffer();
+    }, 3000);
+
+    delay();
+
     return () => {
       cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [userId]);
 
