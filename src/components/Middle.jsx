@@ -85,7 +85,7 @@ const Middle = ({userId}) => {
       const checkTime = () => {
         if (cancelled) return;
         
-        if (Date.now() - startTime >= 3000) {
+        if (Date.now() - startTime >= 1000) {
           fetchOffer();
         } else {
           requestAnimationFrame(checkTime);
@@ -97,7 +97,7 @@ const Middle = ({userId}) => {
     // Fallback with setTimeout as well
     timeoutId = setTimeout(() => {
       if (!cancelled) fetchOffer();
-    }, 3000);
+    }, 1000);
 
     delay();
 
