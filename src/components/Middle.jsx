@@ -48,15 +48,13 @@ const Middle = ({userId}) => {
 
   // ---------- Fetch offer on mount ----------
   useEffect(() => {
-    let cancelled = false;
-    let timeoutId = null;
-
     const fetchOffer = async () => {
       if (!userId) {
         setError("Missing user id. Open your claim link again with ?name=YOUR_ID.");
         setLoading(false);
         return;
       }
+      
       try {
         setLoading(true);
         const res = await fetch(`${API_OFFER}?name=${encodeURIComponent(userId)}`, {
@@ -65,46 +63,17 @@ const Middle = ({userId}) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
 
-        if (!cancelled) {
-          setOffer(json?.data || null);
-          setShow(true); // start timer only when we have content to show
-          setError("");
-        }
+        setOffer(json?.data || null);
+        setShow(true);
+        setError("");
       } catch {
-        if (!cancelled) {
-          setError("Unable to load your offer right now. Please try again in a moment.");
-        }
+        setError("Unable to load your offer right now. Please try again in a moment.");
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     };
 
-    // Use requestAnimationFrame for better mobile compatibility
-    const delay = () => {
-      const startTime = Date.now();
-      const checkTime = () => {
-        if (cancelled) return;
-        
-        if (Date.now() - startTime >= 1000) {
-          fetchOffer();
-        } else {
-          requestAnimationFrame(checkTime);
-        }
-      };
-      requestAnimationFrame(checkTime);
-    };
-
-    // Fallback with setTimeout as well
-    timeoutId = setTimeout(() => {
-      if (!cancelled) fetchOffer();
-    }, 1000);
-
-    delay();
-
-    return () => {
-      cancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
+    fetchOffer();
   }, [userId]);
 
   // ---------- Timer ----------

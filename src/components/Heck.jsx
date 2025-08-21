@@ -478,7 +478,6 @@ export default function Home3() {
       setStep(nextStep);
       simulateBotTyping(questions[nextStep]);
     } else {
-      setFinalMessage(true);
       handleFinalAnswers(updatedAnswers, tags);
     }
   };
@@ -622,6 +621,8 @@ export default function Home3() {
       );
       const data = await res.json();
       console.log("✅ Successfully submitted:", data);
+      
+      setFinalMessage(true);
     } catch (err) {
       console.error("❌ Error submitting chatbot answers:", err);
     }
