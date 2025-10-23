@@ -66,7 +66,7 @@ const BENEFIT_CARDS = {
   // },
 };
 
-// Mapping from Home4.jsx tags to BENEFIT_CARDS keys
+
 const TAG_TO_BENEFIT_MAPPING = {
   is_md: "Medicare",
   is_ssdi: "SSDI",
@@ -89,7 +89,7 @@ const CongratulationsPage = ({ name, tags: userTags = [] }) => {
       return;
     }
 
-    // Use local data instead of API call
+    // Use local data 
     setOffer({
       fullName: name,
       tags: userTags,
