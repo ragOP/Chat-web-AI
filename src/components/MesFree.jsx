@@ -425,7 +425,7 @@ export default function MesFree() {
 
     if (campaign) {
       setUtmCampaign(campaign);
-         }
+    }
   }, []);
 
   const handleFinalAnswers = async (allAnswers, tagArray) => {
@@ -442,7 +442,8 @@ export default function MesFree() {
       // email: allAnswers["May I know your email?"],
       tags: tagArray || tags,
       origin: `6-${utmCampaign}`,
-      sendMessageOn: allAnswers["Would you like to receive your benefits report?"],
+      sendMessageOn:
+        allAnswers["Would you like to receive your benefits report?"],
       number: allAnswers["Please enter your 10-digit phone number below:"],
     };
     try {
@@ -766,7 +767,8 @@ export default function MesFree() {
                                       }
                                     }
                                     .animate-betterShimmer {
-                                      animation: betterShimmer 2.2s infinite linear;
+                                      animation: betterShimmer 2.2s infinite
+                                        linear;
                                     }
 
                                     @keyframes slideLeftRight {
@@ -781,7 +783,8 @@ export default function MesFree() {
                                       }
                                     }
                                     .animate-slide-left-right {
-                                      animation: slideLeftRight 2s ease-in-out infinite;
+                                      animation: slideLeftRight 2s ease-in-out
+                                        infinite;
                                       display: inline-block;
                                     }
                                   `}</style>
@@ -978,13 +981,11 @@ export default function MesFree() {
                     </div>
                   </div>
                 )}
-                
 
                 {!startChat && (
                   <>
-                  <Testimonial />
+                    <Testimonial />
                     <FaqAccordion />
-                    
 
                     <div className="text-center space-y-4 pt-6">
                       <div className="p-3 text-sm text-black">
@@ -1012,13 +1013,14 @@ export default function MesFree() {
           </div>
         </>
       ) : (
-        <TwiMesFree
-        number={number}
-          email={email}
-          name={name}
-          userId={userId}
-          tagArray={tags}
-        />
+        // <TwiMesFree
+        //   number={number}
+        //   email={email}
+        //   name={name}
+        //   userId={userId}
+        //   tagArray={tags}
+        // />
+        <CongratulationsPage />
       )}
     </>
   );
