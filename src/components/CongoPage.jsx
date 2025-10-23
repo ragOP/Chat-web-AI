@@ -66,38 +66,36 @@ const BENEFIT_CARDS = {
   // },
 };
 
-const CongratulationsPage = () => {
-  const [loading, setLoading] = useState(true);
+// Mapping from Home4.jsx tags to BENEFIT_CARDS keys
+const TAG_TO_BENEFIT_MAPPING = {
+  is_md: "Medicare",
+  is_ssdi: "SSDI",
+  is_auto: "Auto",
+  is_mva: "MVA",
+  is_debt: "Debt",
+  is_rvm: "Reverse Mortgage",
+};
+
+const CongratulationsPage = ({ name, tags: userTags = [] }) => {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [offer, setOffer] = useState(null);
   const audioPlayedRef = useRef(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const name = params.get("name");
     if (!name) {
-      setError("Missing userId in URL.");
+      setError("Missing name parameter.");
       setLoading(false);
       return;
     }
-    fetch(
-      `https://benifit-gpt-be.onrender.com/check/offer?name=${encodeURIComponent(
-        name
-      )}`,
-    )
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch offer");
-        return res.json();
-      })
-      .then((data) => {
-        setOffer(data.data || data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Could not load your offer. Please try again later.");
-        setLoading(false);
-      });
-  }, []);
+
+    // Use local data instead of API call
+    setOffer({
+      fullName: name,
+      tags: userTags,
+    });
+    setLoading(false);
+  }, [name, userTags]);
 
   useEffect(() => {
     if (!loading && offer && !audioPlayedRef.current) {
@@ -172,7 +170,10 @@ const CongratulationsPage = () => {
   if (!offer) return null;
 
   const { fullName = "User", tags = [] } = offer;
-  const validTags = tags.filter((tag) => BENEFIT_CARDS[tag]);
+  // Map tags to benefit card keys and filter valid ones
+  const validTags = tags
+    .map((tag) => TAG_TO_BENEFIT_MAPPING[tag])
+    .filter((benefitKey) => BENEFIT_CARDS[benefitKey]);
   // const totalBenefits = validTags.length;
 
   return (
@@ -193,7 +194,7 @@ const CongratulationsPage = () => {
             {fullName}! 🎉
           </h1>
           <p className="text-xl text-black mb-6 leading-tight">
-            We've found that you immediately qualify for {" "}
+            We've found that you immediately qualify for{" "}
             <span className="text-green-600 font-bold">these benefits</span>{" "}
             worth thousands of dollars combined.
           </p>
@@ -221,8 +222,8 @@ const CongratulationsPage = () => {
         <p className="text-xs text-gray-600 text-center px-6 mt-6 max-w-2xl mx-auto">
           Beware of other fraudulent & similar looking websites that might look
           exactly like ours, we have no affiliation with them. This is the only
-          official website to claim your Benefits with the domain
-          name mybenefitsai.org.
+          official website to claim your Benefits with the domain name
+          mybenefitsai.org.
         </p>
       </div>
     </div>

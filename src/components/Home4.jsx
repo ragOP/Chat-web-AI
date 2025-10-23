@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import InfinityLoader from "./InfinityLoader";
 import CongratulationsPage from "./CongoPage";
 import botAvatar from "../assets/pic-DztGI3xK.png";
@@ -168,6 +169,7 @@ const questions = [
 ];
 
 export default function Home4() {
+  const navigate = useNavigate();
   const [startChat, setStartChat] = useState(false);
   const [activatingAiLoder, setActivatingAiLoder] = useState(false);
   const [chat, setChat] = useState([]);
@@ -428,7 +430,7 @@ export default function Home4() {
 
     if (campaign) {
       setUtmCampaign(campaign);
-         }
+    }
   }, []);
 
   const handleFinalAnswers = async (allAnswers, tagArray) => {
@@ -444,7 +446,8 @@ export default function Home4() {
       // email: allAnswers["May I know your email?"],
       tags: tagArray || tags,
       origin: `7-${utmCampaign}`,
-      sendMessageOn: allAnswers["Would you like to receive your benefits report?"],
+      sendMessageOn:
+        allAnswers["Would you like to receive your benefits report?"],
       number: allAnswers["Please enter your 10-digit phone number below:"],
     };
     try {
@@ -461,6 +464,21 @@ export default function Home4() {
 
       const data = await res.json();
       console.log("✅ Successfully submitted:", data);
+
+      // Navigate to congratulations page with URL parameters
+      // const name = allAnswers["What's your full name?"];
+      // const phone = allAnswers["Please enter your 10-digit phone number below:"];
+      // const finalTags = tagArray || tags;
+
+      // const urlParams = new URLSearchParams({
+      //   name: name,
+      //   phone: phone,
+      //   userId: tempUserId,
+      //   tags: finalTags.join(','),
+      //   utmCampaign: utmCampaign
+      // });
+
+      // navigate(`/congratulations?${urlParams.toString()}`);
     } catch (err) {
       console.error("❌ Error submitting chatbot answers:", err);
     }
@@ -768,7 +786,8 @@ export default function Home4() {
                                       }
                                     }
                                     .animate-betterShimmer {
-                                      animation: betterShimmer 2.2s infinite linear;
+                                      animation: betterShimmer 2.2s infinite
+                                        linear;
                                     }
 
                                     @keyframes slideLeftRight {
@@ -783,7 +802,8 @@ export default function Home4() {
                                       }
                                     }
                                     .animate-slide-left-right {
-                                      animation: slideLeftRight 2s ease-in-out infinite;
+                                      animation: slideLeftRight 2s ease-in-out
+                                        infinite;
                                       display: inline-block;
                                     }
                                   `}</style>
@@ -980,13 +1000,11 @@ export default function Home4() {
                     </div>
                   </div>
                 )}
-                
 
                 {!startChat && (
                   <>
-                  <Testimonial />
+                    <Testimonial />
                     <FaqAccordion />
-                    
 
                     <div className="text-center space-y-4 pt-6">
                       <div className="p-3 text-sm text-black">
@@ -1014,11 +1032,18 @@ export default function Home4() {
           </div>
         </>
       ) : (
-        <PaymentConfirmationNew
+        // <PaymentConfirmationNew
+        //   name={name}
+        //   phone={phone}
+        //   userId={userId}
+        //   tagArray={tags}
+        //   utmCampaign={utmCampaign}
+        // />
+        <CongratulationsPage
           name={name}
           phone={phone}
           userId={userId}
-          tagArray={tags}
+          tags={tags}
           utmCampaign={utmCampaign}
         />
       )}
